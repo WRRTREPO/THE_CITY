@@ -1,7 +1,7 @@
 # Bridge Access Traversal Contention Proof — Draft
 
-**Version:** 0.1.0-draft.0  
-**Status:** Prepared implementation specification. Not frozen; no implementation has begun.  
+**Version:** 0.1.0  
+**Status:** Frozen implementation specification. Implementation is authorized only for this proof; no implementation has begun.  
 **Opened:** 2026-08-26  
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 
@@ -34,9 +34,9 @@ The following laws are already established by the v0.7 continuation and frozen A
 
 This proof must not revise those laws in code. It exists to exercise their interaction.
 
-## Candidate route-admission clarification
+## Frozen route-admission clarification
 
-The implementation must be capable of representing the following lawful transient state. This wording is a candidate clarification pending freeze:
+The implementation must represent the following lawful transient state:
 
 > `route.open` and `route.capacity` govern new edge admission only. A valid existing edge lease is traversal authority for its already-entered segment and survives a later admission closure until scheduled exit or an explicitly defined traversal-invalidating event.
 
@@ -56,7 +56,8 @@ E_AB:
 
 ```text
 scenario_id: ash-crossing-bridge-contention-v1
-simulation_version: next continuation revision after freeze
+scenario_version: 0.1.0
+simulation_version: 0.7.0-draft.13
 strategic_decision_boundary: t0
 route: E_AB
 physical target: bridge_access_point_E_AB_01
@@ -115,6 +116,19 @@ one committed record for the selected case
 
 The Unreal proposal does not select its own canonical order. It supplies physical evidence only. The test fixture supplies the named canonical queue position before the batch closes. Local Unreal clock time, process scheduling, and transport arrival time are evidence metadata only; none may determine strategic order.
 
+The ordering variants are fixture inputs only. They prove correct semantics under either canonical ordering; they do **not** establish production precedence policy for otherwise simultaneous player-originated and simulation-originated proposals.
+
+The batch uses four distinct hash roles:
+
+```text
+batch_pre_state_hash     = hash(R0), immutable for the whole t0 decision boundary
+source_record_hash        = proposal binding checked against batch_pre_state_hash
+working_pre_state_hash    = sequential authoritative state immediately before a proposal
+working_post_state_hash   = sequential authoritative state immediately after it
+```
+
+`source_record_hash` must never be compared to `working_pre_state_hash`. In Case 2, after `Q` has committed, `P.source_record_hash == batch_pre_state_hash` while `P.source_record_hash != P.working_pre_state_hash`; `P` remains eligible for working-state revalidation.
+
 Each case has its own fixed canonical input sequence. Replay means the same `R0`, proposal bytes, logical queue, simulation version, and rules reproduce its own byte-identical record and ledger.
 
 ## Proposals
@@ -136,9 +150,12 @@ Required proposal facts:
 
 ```yaml
 proposal_id: physical_destroy_E_AB_contention_0001
+protocol_version: PhysicalConsequenceProposal.v1
 source:
   system: crew_physical_simulation
+  runtime_instance_id: contention_proof_runtime_01
   source_record_hash: hash(R0)
+  source_simulation_version: 0.7.0-draft.13
 instigator:
   kind: crew
   id: crew_01_to_04
@@ -148,6 +165,7 @@ target:
   route: E_AB
 observed_outcome:
   state: destroyed
+  event_sequence: 1
 evidence:
   physical_actor_id: bridge_access_point_E_AB_01
   destruction_state: destroyed
@@ -159,6 +177,27 @@ proposed_mutations:
 ```
 
 `P` must not require spare route admission capacity. It may validly destroy an occupied bridge. Its canonical gates still require the target to be intact and the route to be open in the working record.
+
+### `P` authorization gates
+
+Evidence integrity is not proposal authorization. Before any working-record mutation, the canonical layer must evaluate every side-effect-free `P` gate and ledger each as `batch_binding` or `working_revalidation`:
+
+```text
+batch_binding:
+  protocol/schema is exactly PhysicalConsequenceProposal.v1
+  source system and simulation version are exact
+  source_record_hash == batch_pre_state_hash
+  proposal id is unseen in the batch pre-state
+  instigator, target kind/id/route, outcome, and physical actor are exact
+  destruction state and evidence digest are exact
+  proposed mutation list is exactly the three authorized E_AB mutations, in canonical order
+
+working_revalidation:
+  E_AB bridge access is intact
+  E_AB is open
+```
+
+Unknown, missing, redirected, additional, or reordered **authority-bearing** proposal fields reject. Optional metadata is permitted only when the frozen protocol explicitly names it. A digest may prove that received evidence is internally intact; it cannot authorize a target or mutation by itself.
 
 ### `Q`: police entry into `E_AB`
 
@@ -269,9 +308,12 @@ commitments:
     last_valid_location: A
 ```
 
-At the already-defined scheduled `t1/15` exit boundary:
+The `t0` contention batch ends when this intermediate record is established. At the separately named `t1/15` exit transaction, advance the canonical clock, create a new immutable transaction pre-state `Rexit_pre`, and then resolve the scheduled exit:
 
 ```text
+Rexit_pre = exact authoritative state at the t1/15 boundary
+batch_pre_state_hash = hash(Rexit_pre), not hash(R0)
+
 police exits E_AB at B
   → releases E_AB lease
   → retains the active traversal commitment and reserved unit
@@ -301,7 +343,7 @@ The proof ends at `t1/15`. It must not enter, reject, reserve, or otherwise eval
 
 ## Canonical validation, mutation, and ledger
 
-The transaction layer must create a batch header recording:
+The `t0` contention transaction layer must create a batch header recording:
 
 ```yaml
 decision_boundary: t0
@@ -314,15 +356,27 @@ proposal_ids:
 
 Each proposal ledger entry must retain the inherited provenance fields and additionally make the race inspectable:
 
-- immutable `R0` snapshot hash and working pre-/post-state hashes;
+- immutable `batch_pre_state_hash = hash(R0)`, proposal source hash, and working pre-/post-state hashes;
+- explicit proof that a proposal source hash was checked against `batch_pre_state_hash`, never its working pre-state;
 - canonical execution sequence and fixture-supplied queue position;
 - proposal observations and beliefs from `R0`;
-- all gates evaluated at its working-record turn;
+- every gate with value, result, and scope: `batch_binding` or `working_revalidation`;
 - route lease acquisition, absence, or release;
 - physical evidence digest and crew provenance for `P`; and
 - downstream traversal eligibility changes.
 
 The intermediate Case 2 record is proof evidence, not a separate player-visible strategic decision. It may be serialized as a test artifact solely to prove the lawful closed-route-plus-lease state.
+
+The later `t1/15` exit is a new transaction, not a continuation of the t0 contention batch. Its ledger header and exit entry must carry:
+
+```yaml
+decision_boundary: t1/15
+batch_pre_state_hash: hash(Rexit_pre)
+working_pre_state_hash: hash(Rexit_pre)
+working_post_state_hash: hash(R2)
+```
+
+It must not claim `decision_time: t0` or reuse `hash(R0)` as its transaction pre-state.
 
 ## Fresh materialization
 
@@ -342,16 +396,20 @@ Unreal may not infer, repair, or commit either result. It only expresses the sel
 | Test | Required proof |
 | --- | --- |
 | Shared snapshot | `P` and `Q` both bind to `hash(R0)`; one batch owns their resolution. |
+| Hash-role separation | Case 2 proves `P.source_record_hash == batch_pre_state_hash`, `P.source_record_hash != P.working_pre_state_hash`, and accepted `P` uses the former comparison only. |
+| Gate scope | Every evaluated proposal gate records `batch_binding` or `working_revalidation` scope. |
 | Destruction-first | `P` commits, `Q` fails `E_AB.open`, police remains at A, and no lease exists. |
 | Entry-first intermediate | `Q` acquires the sole E_AB lease; `P` closes new admission while that lease remains valid. |
-| Entry-first exit | At `t1/15`, police reaches B and releases exactly the E_AB lease. |
+| Entry-first exit | A separate `t1/15` transaction records its own pre-state hash; police reaches B and releases exactly the E_AB lease. |
 | Future admission | A new E_AB admission after destruction fails; no stale or phantom lease exists. |
 | E_BC isolation | No E_BC gate, lease, or police arrival at C is evaluated before `t1/20`. |
 | Mutation isolation | Only bridge-access facts plus mandatory police/traversal facts caused by the ordered proposals change. Fire remains 4; Docklands remains contested. |
 | Replay | Each fixed case input reproduces byte-identical final record, intermediate artifact where applicable, and ledger. |
 | Ledger reconstruction | The batch header and entries establish why `P` or `Q` won without inference from final state. |
+| Proposal authorization rejection | Wrong target route/id, actor id, outcome, missing/extra/reordered mutation, and any internally consistent but unauthorized proposal all reject without mutation. |
 | Fresh materialization | A fresh Unreal process independently renders each final authoritative record with no hidden prior process state. |
 | Authority audit | Unreal writes only `P`; it cannot write batch, intermediate, final record, or ledger. |
+| Artifact integrity | A release manifest excludes its own hash; verifying it returns success, and every evidence hash matches its final source and artifact. |
 
 ## Intended implementation surface after freeze
 
@@ -362,14 +420,14 @@ proof_kernel/
   contention.py                 # new batch fixture and canonical resolver
   test_contention.py            # acceptance matrix
   kernel.py                     # reuse traversal conventions; no regression
-  roundtrip.py                  # reuse proposal validation only if behavior remains pinned
+  roundtrip.py                  # shared physical-proposal validation remains behavior-pinned
 
 CityMaterializationProof/
   existing bridge access actor  # emits P only
   selected-record materializer  # reads Case 1 / Case 2 records only
 ```
 
-The existing eight kernel tests, five round-trip tests, and two Unreal authority-boundary tests remain required regressions. No code, record, or Unreal source is modified by this draft.
+The existing eight kernel tests, five round-trip tests, and two Unreal authority-boundary tests are required regressions, alongside the new contention suite. Both final case records require fresh Unreal rematerialization. Evidence may claim the proof passed only after every listed regression and both fresh runs pass.
 
 ## Explicitly out of scope
 
@@ -381,9 +439,16 @@ The existing eight kernel tests, five round-trip tests, and two Unreal authority
 
 ## Freeze boundary
 
-Freeze this draft only if the candidate route-admission clarification, exact case records, queue positions, intermediate evidence, and acceptance matrix are accepted. Then implement exactly this proof and nothing adjacent.
+This specification is frozen at `0.1.0`. Implement exactly this proof and nothing adjacent. The route-admission clarification, identities, hash roles, fixture queue positions, complete proposal authorization, t1/15 transaction provenance, intermediate evidence, and acceptance matrix are normative.
 
 ## Changelog
+
+### 0.1.0 — 2026-08-26
+
+- Froze `scenario_id: ash-crossing-bridge-contention-v1`, `scenario_version: 0.1.0`, and `simulation_version: 0.7.0-draft.13`.
+- Froze batch-binding versus sequential working-state hash semantics, including the prohibition on comparing source binding to a working pre-state.
+- Froze fixture ordering as proof input rather than production precedence policy.
+- Required complete physical-proposal authorization, adversarial rejection coverage, a distinct t1/15 exit transaction, final-regression evidence, fresh Unreal materialization for both cases, and a verifiable release manifest.
 
 ### 0.1.0-draft.0 — 2026-08-26
 

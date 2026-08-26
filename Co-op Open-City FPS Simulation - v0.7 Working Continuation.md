@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.12  
-**Status:** Causal kernel, real FPS materialization, and the single-consequence persistence round trip passed. The next bounded contention-proof specification is prepared but not frozen or implemented.  
+**Version:** 0.7.0-draft.13  
+**Status:** Causal kernel, real FPS materialization, and the single-consequence persistence round trip passed. The bridge-access traversal contention proof is frozen and authorized for implementation only within its stated boundary; implementation has not begun.  
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -39,7 +39,7 @@ The real first-person embodiment of those sealed records is recorded in [Unreal 
 
 The bridge-access round trip is specified in [v0.1.1](Bridge%20Access%20Persistence%20Round-Trip%20Proof%20-%20Draft.md), with its reviewed original retained as [v0.1.0](Bridge%20Access%20Persistence%20Round-Trip%20Proof%20-%20v0.1.0.md). Its final implementation and passing evidence are recorded in [Bridge Access Persistence Round-Trip Evidence — v0.1.1](Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.1.md); the original [evidence v0.1.0](Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.0.md) remains inspectable.
 
-The next proposed proof is [Bridge Access Traversal Contention Proof — v0.1.0-draft.0](Bridge%20Access%20Traversal%20Contention%20Proof%20-%20Draft.md). It is specification-only. It does not authorize implementation until frozen.
+The next proof is frozen as [Bridge Access Traversal Contention Proof — v0.1.0](Bridge%20Access%20Traversal%20Contention%20Proof%20-%20Draft.md). It authorizes only the bounded contention implementation defined by that specification.
 
 ## Product framing
 
@@ -119,6 +119,12 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.13 — 2026-08-26
+
+- Froze Bridge Access Traversal Contention Proof v0.1.0 with exact simulation identity, batch-binding versus working-state hash semantics, and fixture-only ordering policy.
+- Required complete physical-proposal authorization, a separate t1/15 exit transaction, adversarial rejection tests, full regressions, fresh materialization for both cases, and verifiable final artifact evidence.
+- Authorized implementation only within the frozen contention-proof boundary; no adjacent city-system expansion is authorized.
 
 ### 0.7.0-draft.12 — 2026-08-26
 
@@ -201,6 +207,6 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 
 The frozen three-area kernel has passed its primary run, counterfactual, replay-equivalence record, causal ledger, materialization projection, real first-person materialization, and one complete physical-to-canonical-to-physical persistence round trip.
 
-The proposed next unit is the prepared bridge-access traversal contention draft: one crew destruction proposal and one police entry proposal, both derived from `R0`, resolved by one canonical batch. It must be frozen before code changes begin.
+The active next unit is the frozen bridge-access traversal contention proof: one crew destruction proposal and one police entry proposal, both derived from `R0`, resolved by one canonical batch, followed by its separately-proven t1/15 exit transaction. Implementation is authorized only inside that proof.
 
 Do not revise the frozen kernel or add map scale, additional city systems, or scripted front outcomes without a new user-directed scope decision. The proven round trip is one consequence, not authority to expand city scope.
