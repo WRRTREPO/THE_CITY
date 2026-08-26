@@ -10,7 +10,7 @@ strategic authority.
 The governing continuation is [v0.7.0-draft.33](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
-are sealed. [Causal-LOD Equivalence](Causal-LOD%20Equivalence%20Proof%20-%20Draft.md) is in specification review; it is not implemented.
+are sealed. [Causal-LOD Equivalence](Causal-LOD%20Equivalence%20Proof%20-%20Draft.md) is frozen for canonical-only implementation.
 
 ## The machine
 

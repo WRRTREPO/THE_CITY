@@ -1,11 +1,11 @@
 # Causal-LOD Equivalence Proof
 
-**Version:** 0.1.0-draft.1
-**Status:** Open for specification review. No implementation is authorized.
+**Version:** 0.1.0
+**Status:** Frozen. Canonical-only implementation is authorized within this exact boundary.
 **Parent law:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 **Predecessor:** [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md)
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
-**Candidate simulation version:** `0.7.0-draft.34` — exact identity to be retained if this specification freezes.
+**Simulation version:** `0.7.0-draft.34` — fixed for this proof.
 
 ## Claim
 
@@ -21,7 +21,7 @@ This is canonical-only. It proves neither FPS fidelity nor production streaming.
 It cannot be reused: it stops at R0 boundary discovery and produces no later
 canonical record.
 
-The candidate proof must introduce a new exact identity:
+The proof introduces one new exact identity:
 
 ```yaml
 record_schema: CanonicalResolutionEnvelope.v1
@@ -43,7 +43,7 @@ The candidate fixture has no city, faction, NPC, route, FPS, or planner noun.
 It contains exactly one active commitment, one reservation, one stable gate,
 one canonical boundary, and one terminal disposition.
 
-### Candidate R0
+### R0
 
 ```yaml
 current_causal_state:
@@ -146,7 +146,7 @@ revalidates substrate_marker == stable
 → removes the resolved due work and leaves no future consequential boundary
 ```
 
-Candidate R1 therefore has one terminal commitment, an available `unit_alpha`,
+R1 therefore has one terminal commitment, an available `unit_alpha`,
 the stated terminal disposition, one ledger entry whose parent and transaction
 pre-state hashes both identify R0, and an empty future schedule/execution-key
 set. No policy may change this result or add a separate authoritative event
@@ -290,16 +290,27 @@ The source audit must prove:
 
 ## Explicit boundary
 
-This draft authorizes no implementation, Unreal work, physical materialization,
-city content, additional commitment composition, planning, stochastic system,
-external input, networking, multiplayer, rollback, save/load, map scale, or
-production streaming work.
+This freeze authorizes canonical-only implementation of exactly the payload
+validator, one resolver, dense-inspection and boundary-jump policies,
+promotion/demotion, four witnesses, runtime rejection checks, equivalence
+oracle, replay/source audit, evidence, and self-excluding release manifest.
 
-The specification must freeze its exact payload fields, final R1 record,
+It does not authorize Unreal work, physical materialization, city content,
+additional commitment composition, planning, stochastic system, external input,
+networking, multiplayer, rollback, save/load, map scale, or production
+streaming work.
+
+The implementation must freeze the exact payload fields, final R1 record,
 canonical serializer, source-audit test plan, release artifacts, and
-simulation identity before canonical-only implementation is authorized.
+simulation identity as executable identities. Any finding outside this boundary
+returns to specification review rather than expanding the proof.
 
 ## Changelog
+
+### 0.1.0 — 2026-08-26
+
+- Froze the Causal-LOD Equivalence Proof: new exact `CausalLodEquivalencePayload.v1`, one shared resolver, dense-inspection and boundary-jump policies, R0-as-sole-pre-state law, four witnesses, runtime fail-closed cases, equivalence-oracle failures, and source-audit requirement.
+- Authorized canonical-only implementation of this proof and nothing adjacent.
 
 ### 0.1.0-draft.1 — 2026-08-26
 
