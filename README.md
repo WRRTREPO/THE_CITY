@@ -56,7 +56,7 @@ proposals. Unreal cannot write city truth or causal-ledger entries.
 | [Bounded Agent Commitment Selection](Bounded%20Agent%20Commitment%20Selection%20Proof%20Evidence%20-%20v0.1.0.md) | A pure agent selector chooses from bounded perception and submits a proposal; canonical authority alone creates the active reservation. |
 | [Resolution Semantics Substrate](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md) | Exact canonical-envelope authority, next-boundary discovery, and promotion/demotion preserve causal truth before Causal-LOD Equivalence is attempted. |
 
-The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.2](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.2.md).
+The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.3](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.3.md).
 
 ## Verification
 
