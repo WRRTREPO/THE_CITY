@@ -1,6 +1,6 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.18
+**Version:** 0.7.0-draft.19
 **Status:** The crew-arrival live-commitment proof is in specification review. Implementation is not authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
@@ -43,7 +43,7 @@ The frozen [Bridge Access Traversal Contention Proof — v0.1.0](Bridge%20Access
 
 The sealed [Crew Deployment Opportunity-Cost Proof — v0.1.0](Crew%20Deployment%20Opportunity-Cost%20Proof%20-%20Draft.md) and its [evidence](Crew%20Deployment%20Opportunity-Cost%20Proof%20Evidence%20-%20v0.1.0.md) establish one shared deployment commitment, exact B/C physical evidence contracts, and the B/C/D opportunity-cost branches. They authorize no successor city scope.
 
-The next proof is drafted as [Crew Arrival Into Live Commitment Proof — v0.1.0](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20-%20Draft.md). Its gang/relay vocabulary is fixture-only; its reusable target is causal continuity through arrival. It fixes state-derived arrival materialization, pre-claim relay intervention, canonical claim resolution, and a fresh post-claim relay change that cannot rewrite historical ownership. It remains specification-only pending final freeze review.
+The next proof is drafted as [Crew Arrival Into Live Commitment Proof — v0.1.0](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20-%20Draft.md). Its gang/relay vocabulary is fixture-only; its reusable target is causal continuity through arrival. It distinguishes a selected deployment destination from clock-derived physical access, while arrival itself remains free of strategic mutation. It fixes pre-claim relay intervention, canonical claim resolution, and a fresh post-claim relay change that cannot rewrite historical ownership. It remains specification-only pending final freeze review.
 
 ## Product framing
 
@@ -123,6 +123,11 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.19 — 2026-08-26
+
+- Corrected the live-commitment arrival lifecycle: deployment destination is not physical occupancy; physical access is derived from active commitment, destination, `physical_access_at`, and canonical clock without a strategic arrival mutation.
+- Advanced the candidate proof's fixed simulation identity to `0.7.0-draft.19`; implementation authority and successor city scope remain unchanged.
 
 ### 0.7.0-draft.18 — 2026-08-26
 

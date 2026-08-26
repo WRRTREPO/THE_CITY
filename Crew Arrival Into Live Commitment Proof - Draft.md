@@ -1,8 +1,8 @@
 # Crew Arrival Into Live Commitment Proof
 
-**Version:** 0.1.0-draft.1
+**Version:** 0.1.0-draft.2
 **Status:** Candidate freeze under review. Implementation is not authorized.
-**Simulation version:** 0.7.0-draft.18 — fixed for this proof.
+**Simulation version:** 0.7.0-draft.19 — fixed for this proof.
 **Parent:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 
 ## Claim
@@ -57,6 +57,41 @@ CANONICAL GANG CLAIM AT C                                  │
 
 `C` remains Docklands Yard. `A` remains the crew hub. The gang claim is an agent/process goal using authored action primitives, not an arrival-specific mission sequence.
 
+## Deployment, access, and arrival are distinct
+
+This proof must not conflate a selected destination with physical capability. It
+freezes three distinct concepts:
+
+```text
+deployment destination
+  = the canonical crew commitment selected at takeoff: C
+physical-access eligibility
+  = deterministic eligibility for the crew runtime to originate evidence at C
+strategic arrival mutation
+  = none
+```
+
+```yaml
+deployment:
+  commitment_id: crew_deployment_C_live_001
+  state: active
+  destination: C
+  physical_access_at: t0/27
+```
+
+```text
+physical_access(C) :=
+    deployment.state == active
+    AND deployment.destination == C
+    AND canonical_clock >= deployment.physical_access_at
+```
+
+Before `t0/27`, the deployment destination is C but `physical_access(C)` is
+false, so the crew runtime has no evidence surface there. At or after `t0/27`,
+physical access is true only because canonical time has reached the
+precommitted travel boundary. No strategic fact, claim gate, threshold,
+schedule, or commitment mutates merely because this predicate becomes true.
+
 ## Non-negotiable authority law
 
 An authored action primitive is lawful:
@@ -83,7 +118,7 @@ No replay-significant identity remains contextual.
 ```yaml
 scenario_id: crew-arrival-live-commitment-v1
 scenario_version: 0.1.0
-simulation_version: 0.7.0-draft.18
+simulation_version: 0.7.0-draft.19
 record_schema: CrewArrivalLiveCommitmentRecord.v1
 seed: crew-arrival-live-commitment-v1/0001
 ```
@@ -92,7 +127,7 @@ seed: crew-arrival-live-commitment-v1/0001
 
 ### Canonical pre-arrival history
 
-The gang's objective is to claim control of C. Each completed action is a canonical action with gates, costs, terminal resource disposition, provenance, and a durable result. A player is already deployed and travelling; no crew physical evidence is available before arrival.
+The gang's objective is to claim control of C. Each completed action is a canonical action with gates, costs, terminal resource disposition, provenance, and a durable result. A player is already deployed with destination C and travelling; no crew physical evidence is available until derived physical access becomes true at arrival.
 
 ```text
 t0/00  crew deployment to C commits; active-world time begins
@@ -110,7 +145,9 @@ The first five actions are complete history, not a single persistent `stage` fie
 
 ### Arrival record
 
-`Rarrival` is constructed by the scheduler from the exact t0/21 parent record:
+`Rarrival` is not an arrival transaction. It is the first scheduler-derived
+record for which `physical_access(C)` is true, constructed from the exact
+t0/21 parent record:
 
 ```text
 Rarrival = copy(t0/21 claim-start record) + clock := t0/27
@@ -118,12 +155,20 @@ Rarrival = copy(t0/21 claim-start record) + clock := t0/27
 
 It has a parent hash, `scheduler_clock_advance` derivation, and transaction-pre-state hash. It changes no fact except `clock`.
 
-The crew's physical domain is already authorized by its existing canonical deployment commitment. Arrival itself produces no strategic mutation, does not alter C, and does not create, replan, pause, extend, or advance `gang_claim_C_001`.
+The existing canonical deployment commitment selects C, but derived physical
+access is false before `t0/27`. Arrival itself produces no strategic mutation,
+does not alter C, and does not create, replan, pause, extend, or advance
+`gang_claim_C_001`.
 
 The record must contain at least:
 
 ```yaml
 area: C
+deployment:
+  commitment_id: crew_deployment_C_live_001
+  state: active
+  destination: C
+  physical_access_at: t0/27
 gang:
   intelligence: true
   personnel_present: 6
@@ -157,6 +202,12 @@ completed_history:
   - establish_perimeter_C
   - activate_relay_C
 ```
+
+`physical_access(C)` is derived from these canonical deployment fields and the
+record clock; it is not a separately serialized arrival fact. Thus the
+arrival record remains a clock-only scheduler derivation while still proving
+that the crew could not lawfully originate evidence at C before the
+precommitted travel boundary.
 
 The materializer may derive physical relay, perimeter, gang presence, ingress state, and visible pressure from those facts. It may not consume a stage or variant instruction.
 
@@ -198,7 +249,8 @@ The proposal gate requires all of the following:
 ```yaml
 source_record_hash: transaction_pre_state_hash
 crew_deployment: active
-crew_domain: C
+deployment_destination: C
+physical_access_C: true
 clock: at_or_after_t0_27
 claim_id: gang_claim_C_001
 claim_state: active
@@ -275,7 +327,8 @@ proposed_mutations:
 
 It originates only from a **fresh Unreal process** receiving the t0/40
 gang-owned canonical record. Its canonical validation requires a fresh source
-record hash, active C crew domain, `C.owner == gang`, terminal claim state
+record hash, active deployment with destination C, derived
+`physical_access(C) == true`, `C.owner == gang`, terminal claim state
 `succeeded`, and `C.relay.active == true`. It may change the current relay fact
 but has no authority path that can reopen, reverse, or re-evaluate the completed
 claim.
@@ -309,7 +362,7 @@ Rarrival late evidence
 
 1. Every pre-arrival action is canonically committed before Rarrival, including terminal resource disposition and provenance.
 2. Rarrival is a scheduler-only derivation of its immediate parent and changes only `clock`.
-3. Arrival has no strategic city, claim, gate, threshold, or schedule mutation.
+3. Deployment destination, derived physical-access eligibility, and strategic arrival mutation are distinct: destination is C; access becomes true only when the canonical clock reaches `physical_access_at`; arrival performs no strategic city, claim, gate, threshold, or schedule mutation.
 4. Rarrival contains durable facts plus `gang_claim_C_001` as one active canonical commitment.
 5. Unreal materializes Rarrival from facts and commitment data only; no stage/variant/arrival selector exists on the demonstrated path.
 6. The claim remains canonical while its physical context is materialized; Unreal owns neither its timer nor its resolution.
@@ -324,7 +377,7 @@ Rarrival late evidence
 ## DAG plan
 
 ```text
-freeze exact identity + late-evidence variant
+freeze reviewed specification
         │
         ├──────────────┐
         ▼              ▼
@@ -350,6 +403,13 @@ canonical prehistory   materialization contract / source audit
 This draft does not authorize implementation, additional city scale, split crews, intelligence variance, autonomous general planning, civilian simulation, new factions, multiplayer, networking, rollback, repair, or generalized player action semantics.
 
 ## Changelog
+
+### 0.1.0-draft.2 — 2026-08-26
+
+- Advanced the fixed proof simulation identity to `0.7.0-draft.19` with this reviewed arrival-eligibility correction.
+- Separated deployment destination from physical-access eligibility. `physical_access(C)` is a deterministic predicate of an active deployment, destination, and the canonical clock; `Rarrival` remains clock-only and introduces no strategic arrival mutation.
+- Replaced the ambiguous `crew_domain` evidence gate with deployment destination plus derived physical-access eligibility, including the fresh post-claim witness.
+- Replaced the stale DAG opening with the actual remaining action: freeze the reviewed specification.
 
 ### 0.1.0-draft.1 — 2026-08-26
 
