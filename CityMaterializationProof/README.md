@@ -71,3 +71,14 @@ Terminate the first Unreal process. Start a fresh process with `-CityProofRecord
 Replaying the accepted proposal against the committed record is rejected without changing canonical state, and replaying the accepted transaction from the same R0 and proposal produces byte-identical R1.
 
 The complete passing record is [Bridge Access Persistence Round-Trip Evidence — v0.1.1](../Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.1.md).
+
+## Bridge traversal contention
+
+The same proof project also materializes the sealed final records for the frozen `E_AB` traversal-contention proof. It remains a read-only materializer: Unreal emitted the captured physical proposal from R0, while Python resolved the collision with police entry and produced both final records.
+
+The completed record is [Bridge Access Traversal Contention Proof Evidence — v0.1.0](../Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.0.md). Verify its release package with:
+
+```sh
+cd "/Users/boandersson/Desktop/Games/THE_CITY"
+PYTHONDONTWRITEBYTECODE=1 python3 proof_kernel/verify_contention_release.py verify
+```

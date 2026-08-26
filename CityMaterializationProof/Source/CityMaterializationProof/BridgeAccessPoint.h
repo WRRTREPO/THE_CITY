@@ -18,7 +18,7 @@ class CITYMATERIALIZATIONPROOF_API ABridgeAccessPoint : public AActor
 public:
     ABridgeAccessPoint();
 
-    void Configure(const FString& InSourceRecordHash, const FString& InExchangeDirectory, bool bInitiallyDestroyed);
+    void Configure(const FString& InSourceRecordHash, const FString& InExchangeDirectory, bool bInitiallyDestroyed, bool bInContentionProof);
     bool TryDestroyByCrew(const FString& CrewId);
 
 private:
@@ -45,5 +45,6 @@ private:
 
     FString SourceRecordHash;
     FString ExchangeDirectory;
+    bool bContentionProof = false;
     bool bDestroyed = false;
 };

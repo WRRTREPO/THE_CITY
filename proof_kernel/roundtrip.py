@@ -11,8 +11,9 @@ import copy
 import hashlib
 import json
 from collections import OrderedDict
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from kernel import canonical_json, state_hash
 
@@ -27,6 +28,109 @@ ALLOWED_MUTATIONS = [
     "E_AB.capacity = 0",
     "E_AB.bridge_access_point.state = destroyed",
 ]
+
+
+@dataclass(frozen=True)
+class PhysicalProposalContract:
+    """Exact authority-bearing shape for one physical consequence kind.
+
+    This is deliberately narrower than evidence integrity.  A valid digest only
+    proves that a proposal's fields agree with one another; this contract proves
+    those fields authorize the canonical mutation being considered.
+    """
+
+    proposal_id: str
+    simulation_version: str
+    runtime_instance_id: str
+    instigator: dict[str, str]
+    target: dict[str, str]
+    observed_outcome: dict[str, Any]
+    allowed_mutations: list[str]
+
+
+def physical_authorization_gates(
+    proposal: dict[str, Any],
+    *,
+    contract: PhysicalProposalContract,
+    batch_pre_state_hash: str,
+    proposal_terminal_dispositions: Mapping[str, str] | None = None,
+) -> OrderedDict[str, bool]:
+    """Validate authority-bearing physical proposal fields without mutation.
+
+    The source hash is intentionally compared to the immutable *batch* state,
+    never to a later sequential working state.  Callers add their own dynamic
+    working-record revalidation gates after this immutable binding check.
+    """
+
+    source = _as_dict(proposal.get("source"))
+    instigator = _as_dict(proposal.get("instigator"))
+    target = _as_dict(proposal.get("target"))
+    observed = _as_dict(proposal.get("observed_outcome"))
+    evidence = _as_dict(proposal.get("evidence"))
+    terminal = proposal_terminal_dispositions or {}
+    event_sequence = observed.get("event_sequence")
+    expected_digest = evidence_digest(
+        source_record_hash=str(source.get("source_record_hash", "")),
+        instigator_id=str(instigator.get("id", "")),
+        physical_actor_id=str(evidence.get("physical_actor_id", "")),
+        state=str(observed.get("state", "")),
+        event_sequence=event_sequence if isinstance(event_sequence, int) else -1,
+    )
+
+    exact_top_level = {
+        "proposal_id",
+        "protocol_version",
+        "source",
+        "instigator",
+        "target",
+        "observed_outcome",
+        "evidence",
+        "proposed_mutations",
+    }
+    exact_source = {
+        "system",
+        "runtime_instance_id",
+        "source_record_hash",
+        "source_simulation_version",
+    }
+    exact_evidence = {"physical_actor_id", "destruction_state", "evidence_digest"}
+
+    return OrderedDict(
+        [
+            (
+                "schema_protocol_compatible",
+                set(proposal) == exact_top_level
+                and proposal.get("protocol_version") == PROTOCOL_VERSION
+                and set(source) == exact_source
+                and source.get("source_simulation_version") == contract.simulation_version,
+            ),
+            (
+                "source_identity_exact",
+                source.get("system") == "crew_physical_simulation"
+                and source.get("runtime_instance_id") == contract.runtime_instance_id,
+            ),
+            (
+                "source_record_hash_matches_batch_pre_state",
+                source.get("source_record_hash") == batch_pre_state_hash,
+            ),
+            (
+                "proposal_id_unseen",
+                proposal.get("proposal_id") == contract.proposal_id
+                and contract.proposal_id not in terminal,
+            ),
+            ("instigator_exact", instigator == contract.instigator),
+            ("target_identity_and_route_match", target == contract.target),
+            ("observed_outcome_exact", observed == contract.observed_outcome),
+            (
+                "evidence_matches_observed_outcome",
+                set(evidence) == exact_evidence
+                and evidence.get("physical_actor_id") == contract.target["id"]
+                and evidence.get("destruction_state") == contract.observed_outcome["state"]
+                and evidence.get("evidence_digest") == expected_digest,
+            ),
+            ("allowed_effect_set_exact", proposal.get("proposed_mutations") == contract.allowed_mutations),
+        ]
+    )
 
 
 def seed_record() -> dict[str, Any]:

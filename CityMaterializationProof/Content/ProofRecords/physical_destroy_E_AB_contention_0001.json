@@ -1,0 +1,38 @@
+{
+	"proposal_id": "physical_destroy_E_AB_contention_0001",
+	"protocol_version": "PhysicalConsequenceProposal.v1",
+	"source":
+	{
+		"system": "crew_physical_simulation",
+		"runtime_instance_id": "contention_proof_runtime_01",
+		"source_record_hash": "65d928d8c981542065e59f4d9ecf0b126637ce0497f9ee51f1476d62d25549bd",
+		"source_simulation_version": "0.7.0-draft.13"
+	},
+	"instigator":
+	{
+		"kind": "crew",
+		"id": "crew_01_to_04"
+	},
+	"target":
+	{
+		"kind": "bridge_access_point",
+		"id": "bridge_access_point_E_AB_01",
+		"route": "E_AB"
+	},
+	"observed_outcome":
+	{
+		"state": "destroyed",
+		"event_sequence": 1
+	},
+	"evidence":
+	{
+		"physical_actor_id": "bridge_access_point_E_AB_01",
+		"destruction_state": "destroyed",
+		"evidence_digest": "md5:615fbb8ff429ee029cc3e3a2f25f78a2"
+	},
+	"proposed_mutations": [
+		"E_AB.open = false",
+		"E_AB.capacity = 0",
+		"E_AB.bridge_access_point.state = destroyed"
+	]
+}

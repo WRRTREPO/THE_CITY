@@ -10,6 +10,9 @@ class UnrealAuthorityBoundaryTests(unittest.TestCase):
     def test_bridge_access_actor_writes_only_a_physical_proposal(self) -> None:
         source = (UNREAL_SOURCE / "BridgeAccessPoint.cpp").read_text(encoding="utf-8")
         self.assertIn("physical_destroy_E_AB_0001.json", source)
+        self.assertIn("physical_destroy_E_AB_contention_0001.json", source)
+        self.assertIn("contention_proof_runtime_01", source)
+        self.assertIn("E_AB.open = false", source)
         self.assertIn("SaveStringToFile", source)
         for forbidden_canonical_output in (
             "committed_record.json",
@@ -23,6 +26,7 @@ class UnrealAuthorityBoundaryTests(unittest.TestCase):
     def test_materializer_reads_records_but_never_serializes_one(self) -> None:
         source = (UNREAL_SOURCE / "CityMaterializationActor.cpp").read_text(encoding="utf-8")
         self.assertIn("LoadAuthoritativeRecord", source)
+        self.assertIn("BridgeAccessTraversalContentionRecord.v1", source)
         self.assertNotIn("SaveStringToFile", source)
         self.assertNotIn("FJsonSerializer::Serialize", source)
 

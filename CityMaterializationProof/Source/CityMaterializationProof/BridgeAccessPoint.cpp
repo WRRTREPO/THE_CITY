@@ -15,9 +15,11 @@
 
 namespace
 {
-constexpr TCHAR ProposalId[] = TEXT("physical_destroy_E_AB_0001");
+constexpr TCHAR RoundTripProposalId[] = TEXT("physical_destroy_E_AB_0001");
+constexpr TCHAR ContentionProposalId[] = TEXT("physical_destroy_E_AB_contention_0001");
 constexpr TCHAR TargetId[] = TEXT("bridge_access_point_E_AB_01");
-constexpr TCHAR SimulationVersion[] = TEXT("0.7.0-draft.9");
+constexpr TCHAR RoundTripSimulationVersion[] = TEXT("0.7.0-draft.9");
+constexpr TCHAR ContentionSimulationVersion[] = TEXT("0.7.0-draft.13");
 }
 
 ABridgeAccessPoint::ABridgeAccessPoint()
@@ -29,10 +31,11 @@ ABridgeAccessPoint::ABridgeAccessPoint()
     ShapeMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 }
 
-void ABridgeAccessPoint::Configure(const FString& InSourceRecordHash, const FString& InExchangeDirectory, bool bInitiallyDestroyed)
+void ABridgeAccessPoint::Configure(const FString& InSourceRecordHash, const FString& InExchangeDirectory, bool bInitiallyDestroyed, bool bInContentionProof)
 {
     SourceRecordHash = InSourceRecordHash;
     ExchangeDirectory = InExchangeDirectory;
+    bContentionProof = bInContentionProof;
     bDestroyed = bInitiallyDestroyed;
     if (bDestroyed)
     {
@@ -130,6 +133,10 @@ bool ABridgeAccessPoint::TryDestroyByCrew(const FString& CrewId)
 
 bool ABridgeAccessPoint::WritePhysicalProposal(const FString& CrewId) const
 {
+    const TCHAR* ProposalId = bContentionProof ? ContentionProposalId : RoundTripProposalId;
+    const TCHAR* SimulationVersion = bContentionProof ? ContentionSimulationVersion : RoundTripSimulationVersion;
+    const TCHAR* RuntimeInstanceId = bContentionProof ? TEXT("contention_proof_runtime_01") : TEXT("proof_runtime_01");
+    const TCHAR* ProposalFilename = bContentionProof ? TEXT("physical_destroy_E_AB_contention_0001.json") : TEXT("physical_destroy_E_AB_0001.json");
     const FString DigestMaterial = FString::Printf(TEXT("%s|%s|%s|destroyed|1"), *SourceRecordHash, *CrewId, TargetId);
     const FString Digest = FString::Printf(TEXT("md5:%s"), *FMD5::HashAnsiString(*DigestMaterial));
 
@@ -139,7 +146,7 @@ bool ABridgeAccessPoint::WritePhysicalProposal(const FString& CrewId) const
 
     TSharedPtr<FJsonObject> Source = MakeShared<FJsonObject>();
     Source->SetStringField(TEXT("system"), TEXT("crew_physical_simulation"));
-    Source->SetStringField(TEXT("runtime_instance_id"), TEXT("proof_runtime_01"));
+    Source->SetStringField(TEXT("runtime_instance_id"), RuntimeInstanceId);
     Source->SetStringField(TEXT("source_record_hash"), SourceRecordHash);
     Source->SetStringField(TEXT("source_simulation_version"), SimulationVersion);
     Root->SetObjectField(TEXT("source"), Source);
@@ -167,7 +174,7 @@ bool ABridgeAccessPoint::WritePhysicalProposal(const FString& CrewId) const
     Root->SetObjectField(TEXT("evidence"), Evidence);
 
     TArray<TSharedPtr<FJsonValue>> Mutations;
-    Mutations.Add(MakeShared<FJsonValueString>(TEXT("E_AB.bridge_open = false")));
+    Mutations.Add(MakeShared<FJsonValueString>(bContentionProof ? TEXT("E_AB.open = false") : TEXT("E_AB.bridge_open = false")));
     Mutations.Add(MakeShared<FJsonValueString>(TEXT("E_AB.capacity = 0")));
     Mutations.Add(MakeShared<FJsonValueString>(TEXT("E_AB.bridge_access_point.state = destroyed")));
     Root->SetArrayField(TEXT("proposed_mutations"), Mutations);
@@ -180,6 +187,6 @@ bool ABridgeAccessPoint::WritePhysicalProposal(const FString& CrewId) const
     }
 
     IFileManager::Get().MakeDirectory(*ExchangeDirectory, true);
-    const FString ProposalPath = FPaths::Combine(ExchangeDirectory, TEXT("physical_destroy_E_AB_0001.json"));
+    const FString ProposalPath = FPaths::Combine(ExchangeDirectory, ProposalFilename);
     return FFileHelper::SaveStringToFile(Serialized, *ProposalPath);
 }

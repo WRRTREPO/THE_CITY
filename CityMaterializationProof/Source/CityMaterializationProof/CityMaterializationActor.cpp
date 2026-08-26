@@ -66,21 +66,65 @@ bool ACityMaterializationActor::LoadAuthoritativeRecord(FCityProofRecord& OutRec
         return false;
     }
 
+    const FString RecordSchema = Root->HasField(TEXT("record_schema")) ? Root->GetStringField(TEXT("record_schema")) : TEXT("");
     OutRecord.RecordName = Root->GetStringField(TEXT("record_name"));
     OutRecord.CanonicalHash = Root->GetStringField(TEXT("canonical_sha256"));
-    OutRecord.bBridgeOpen = Root->GetBoolField(TEXT("bridge_open"));
-    OutRecord.BridgeCapacity = Root->HasField(TEXT("bridge_capacity")) ? Root->GetIntegerField(TEXT("bridge_capacity")) : (OutRecord.bBridgeOpen ? 1 : 0);
-    OutRecord.BridgeAccessPointState = Root->HasField(TEXT("bridge_access_point_state"))
-        ? Root->GetStringField(TEXT("bridge_access_point_state"))
-        : TEXT("intact");
-    OutRecord.bBridgeAccessRoundTripRecord = Root->HasField(TEXT("record_schema"));
-    OutRecord.FireIntensity = Root->GetIntegerField(TEXT("fire_intensity"));
-    OutRecord.PoliceLocation = Root->GetStringField(TEXT("police_location"));
-    OutRecord.PoliceAvailability = Root->GetStringField(TEXT("police_availability"));
-    OutRecord.PolicePresentAtDocklands = Root->GetIntegerField(TEXT("police_present_C"));
-    OutRecord.DocklandsOwner = Root->GetStringField(TEXT("docklands_owner"));
-    OutRecord.GangControl = Root->GetIntegerField(TEXT("gang_control"));
-    OutRecord.RivalControl = Root->GetIntegerField(TEXT("rival_control"));
+
+    if (RecordSchema == TEXT("BridgeAccessTraversalContentionRecord.v1"))
+    {
+        if (!Root->HasTypedField<EJson::Object>(TEXT("routes")) ||
+            !Root->HasTypedField<EJson::Object>(TEXT("agents")) ||
+            !Root->HasTypedField<EJson::Object>(TEXT("areas")))
+        {
+            OutFailure = TEXT("Contention record is missing canonical city sections.");
+            return false;
+        }
+
+        const TSharedPtr<FJsonObject> Routes = Root->GetObjectField(TEXT("routes"));
+        const TSharedPtr<FJsonObject> Agents = Root->GetObjectField(TEXT("agents"));
+        const TSharedPtr<FJsonObject> Areas = Root->GetObjectField(TEXT("areas"));
+        if (!Routes->HasTypedField<EJson::Object>(TEXT("E_AB")) ||
+            !Agents->HasTypedField<EJson::Object>(TEXT("police_unit_01")) ||
+            !Areas->HasTypedField<EJson::Object>(TEXT("B")) ||
+            !Areas->HasTypedField<EJson::Object>(TEXT("C")))
+        {
+            OutFailure = TEXT("Contention record is missing its required bridge, police, or area facts.");
+            return false;
+        }
+
+        const TSharedPtr<FJsonObject> Bridge = Routes->GetObjectField(TEXT("E_AB"));
+        const TSharedPtr<FJsonObject> Police = Agents->GetObjectField(TEXT("police_unit_01"));
+        const TSharedPtr<FJsonObject> AreaB = Areas->GetObjectField(TEXT("B"));
+        const TSharedPtr<FJsonObject> AreaC = Areas->GetObjectField(TEXT("C"));
+        OutRecord.bBridgeOpen = Bridge->GetBoolField(TEXT("open"));
+        OutRecord.BridgeCapacity = Bridge->GetIntegerField(TEXT("capacity"));
+        OutRecord.BridgeAccessPointState = Bridge->GetStringField(TEXT("bridge_access_point_state"));
+        OutRecord.bBridgeAccessRoundTripRecord = true;
+        OutRecord.bBridgeAccessContentionRecord = true;
+        OutRecord.FireIntensity = AreaB->GetIntegerField(TEXT("fire_intensity"));
+        OutRecord.PoliceLocation = Police->GetStringField(TEXT("location"));
+        OutRecord.PoliceAvailability = Police->GetStringField(TEXT("availability"));
+        OutRecord.PolicePresentAtDocklands = AreaC->GetIntegerField(TEXT("police_present"));
+        OutRecord.DocklandsOwner = AreaC->GetStringField(TEXT("owner"));
+        OutRecord.GangControl = AreaC->GetIntegerField(TEXT("gang_control"));
+        OutRecord.RivalControl = AreaC->GetIntegerField(TEXT("rival_control"));
+    }
+    else
+    {
+        OutRecord.bBridgeOpen = Root->GetBoolField(TEXT("bridge_open"));
+        OutRecord.BridgeCapacity = Root->HasField(TEXT("bridge_capacity")) ? Root->GetIntegerField(TEXT("bridge_capacity")) : (OutRecord.bBridgeOpen ? 1 : 0);
+        OutRecord.BridgeAccessPointState = Root->HasField(TEXT("bridge_access_point_state"))
+            ? Root->GetStringField(TEXT("bridge_access_point_state"))
+            : TEXT("intact");
+        OutRecord.bBridgeAccessRoundTripRecord = Root->HasField(TEXT("record_schema"));
+        OutRecord.FireIntensity = Root->GetIntegerField(TEXT("fire_intensity"));
+        OutRecord.PoliceLocation = Root->GetStringField(TEXT("police_location"));
+        OutRecord.PoliceAvailability = Root->GetStringField(TEXT("police_availability"));
+        OutRecord.PolicePresentAtDocklands = Root->GetIntegerField(TEXT("police_present_C"));
+        OutRecord.DocklandsOwner = Root->GetStringField(TEXT("docklands_owner"));
+        OutRecord.GangControl = Root->GetIntegerField(TEXT("gang_control"));
+        OutRecord.RivalControl = Root->GetIntegerField(TEXT("rival_control"));
+    }
 
     if ((OutRecord.DocklandsOwner == TEXT("gang") && OutRecord.PolicePresentAtDocklands != 0) ||
         (OutRecord.bBridgeOpen && OutRecord.FireIntensity >= 5) ||
@@ -107,7 +151,11 @@ void ACityMaterializationActor::SpawnBridgeAccessPoint(const FCityProofRecord& R
     ABridgeAccessPoint* AccessPoint = GetWorld()->SpawnActor<ABridgeAccessPoint>(ABridgeAccessPoint::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
     if (AccessPoint != nullptr)
     {
-        AccessPoint->Configure(Record.CanonicalHash, ExchangeDirectory, Record.BridgeAccessPointState == TEXT("destroyed"));
+        AccessPoint->Configure(
+            Record.CanonicalHash,
+            ExchangeDirectory,
+            Record.BridgeAccessPointState == TEXT("destroyed"),
+            Record.bBridgeAccessContentionRecord);
     }
 }
 
@@ -228,7 +276,17 @@ void ACityMaterializationActor::Materialize(const FCityProofRecord& Record)
         AddLabel(FVector(1500.0f, 0.0f, 300.0f), TEXT("CONTESTED — NO GANG CONTROL"), FColor::Yellow);
     }
 
-    if (Record.PolicePresentAtDocklands > 0)
+    if (Record.PoliceLocation == TEXT("A"))
+    {
+        AddBlock(FVector(-1300.0f, 260.0f, 100.0f), FVector(0.5f, 0.5f, 1.0f), PoliceColor, true);
+        AddLabel(FVector(-1300.0f, 260.0f, 260.0f), FString::Printf(TEXT("POLICE AT A - %s"), *Record.PoliceAvailability.ToUpper()), FColor::Blue);
+    }
+    else if (Record.PoliceLocation == TEXT("B"))
+    {
+        AddBlock(FVector(0.0f, 420.0f, 100.0f), FVector(0.5f, 0.5f, 1.0f), PoliceColor, true);
+        AddLabel(FVector(0.0f, 420.0f, 260.0f), FString::Printf(TEXT("POLICE AT B - %s"), *Record.PoliceAvailability.ToUpper()), FColor::Blue);
+    }
+    else if (Record.PolicePresentAtDocklands > 0)
     {
         AddBlock(FVector(1700.0f, 260.0f, 100.0f), FVector(0.5f, 0.5f, 1.0f), PoliceColor, true);
         AddLabel(FVector(1700.0f, 260.0f, 260.0f), TEXT("POLICE PRESENT"), FColor::Blue);

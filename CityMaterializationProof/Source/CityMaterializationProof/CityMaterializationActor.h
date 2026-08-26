@@ -21,6 +21,7 @@ struct FCityProofRecord
     int32 BridgeCapacity = 0;
     FString BridgeAccessPointState;
     bool bBridgeAccessRoundTripRecord = false;
+    bool bBridgeAccessContentionRecord = false;
     int32 FireIntensity = 0;
     FString PoliceLocation;
     FString PoliceAvailability;
