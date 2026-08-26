@@ -1,0 +1,139 @@
+# THE_CITY Development Capacity and Progress Note
+
+**Version:** 0.1.1
+**Date:** 2026-08-26
+**Status:** Recorded proof capacity only. This note grants no successor scope.
+**Supersedes:** [v0.1.0](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.0.md)
+**Governing record:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
+
+## Current position
+
+THE_CITY has not yet proven a production 10 × 10 km game. It has proven the
+smallest coherent authority machine required to make that game possible:
+
+```text
+canonical causal city
+        ↓
+authoritative record
+        ↓
+Unreal first-person materialization
+        ↓
+physical evidence proposal
+        ↓
+canonical validation and atomic mutation
+        ↓
+new authoritative record
+        ↓
+fresh Unreal materialization
+```
+
+The city machine, not the local FPS encounter, remains the strategic
+authority. Unreal materializes facts and emits evidence; it does not select a
+mission, run strategic time, write city state, or append the causal ledger.
+
+## Proven capacity
+
+| Capacity | Proven boundary |
+| --- | --- |
+| Causal city kernel | Three connected areas, two factions, police, one fire process, routes, resources, gates, thresholds, commitments, and durable ownership outcomes. |
+| Deterministic resolution | Same authoritative input, seed, ordered input sequence, and simulation identity reproduce byte-equivalent records and ledgers. |
+| Causal provenance | Every consequential attempt is ledgered with decision boundary, gates, resources, mutation or failure, and canonical state references. |
+| Causal LOD | Distant strategic facts can materialize as a walkable UE 5.8 first-person scene without contradicting or rerolling canonical truth. |
+| FPS-to-city authority boundary | A physical UE result can emit exact evidence; the canonical transaction layer alone accepts, rejects, and commits durable city truth. |
+| Temporal contention | A crew consequence and an agent traversal commitment can contend at one canonical boundary. Entered route authority survives later admission closure; future admission does not. |
+| Crew opportunity cost | One aircraft-bound shared crew has one active evidence domain while active-world time advances unattended city processes. |
+| Entry into live causality | The crew can arrive after completed history but before a live commitment settles, materially change a future gate, and remain outside strategic authority. |
+| Historical finality | A later valid physical change can alter a current fact without retroactively reopening a completed historical result. |
+| Shared-state composition | Two independently defined commitments can alter each other's future eligibility solely by reading and writing one authoritative shared fact. |
+
+## Progress record
+
+```text
+1. CAUSAL HISTORY
+   Fire, routes, police, factions, resources, and thresholds resolve as one record.
+
+2. FPS MATERIALIZATION
+   The authoritative record becomes a walkable local world.
+
+3. ROUND-TRIP PERSISTENCE
+   A physical consequence becomes canonical only through evidence and validation,
+   then survives destruction and fresh reconstruction of the UE process.
+
+4. TEMPORAL CONTENTION
+   Canonical order and entered commitments govern collisions between player and
+   agent action without retroactive invalidation.
+
+5. OPPORTUNITY COST
+   A single crew chooses one physical domain while unattended processes continue.
+
+6. LIVE ARRIVAL
+   The crew can enter an already-running causal interval and alter its future,
+   not replace it with an arrival-triggered mission.
+
+7. SHARED-STATE COMPOSITION
+   Independently defined commitments interfere through ordinary working-state
+   revalidation, without callbacks, foreign references, or pair-specific rules.
+```
+
+The latest sealed proof is [Shared-State Commitment Interference Proof — v0.1.0](Shared-State%20Commitment%20Interference%20Proof%20-%20Draft.md), with its [evidence record](Shared-State%20Commitment%20Interference%20Proof%20Evidence%20-%20v0.1.0.md). It records 68 passing Python checks, isolated X/Y definition hashes, X-absent counterfactual, reversed-order permutation, complete terminal resource disposition, and a 19-member self-excluding release manifest.
+
+## Exact current operating envelope
+
+```yaml
+city_kernel:
+  areas: 3
+  factions: 2
+  public_service_agent: 1 police unit
+  autonomous_processes: 1 fire fixture
+  live_commitments_proven: 1 fixture-local claim
+  independent_commitment_composition: 2 fixture-local definitions / 1 shared fact
+
+crew_topology:
+  crew: one shared crew
+  aircraft: one
+  simultaneous_deployments: one
+  simultaneous_physical_evidence_domains: one
+  split_fireteams: not proven
+
+authority:
+  canonical_city: sole strategic authority
+  unreal: materialization plus evidenced consequence proposal only
+  canonical_transaction_layer: validation, ordering, mutation, ledger
+
+verification:
+  deterministic_replay: proven in the stated fixtures
+  fresh_process_materialization: proven in the stated fixtures
+  release_artifact_verification: proven for each sealed package
+```
+
+## Not yet capacity
+
+The following remain outside the proven envelope:
+
+- production 10 × 10 km streaming, performance, population, or long-horizon stability;
+- multiple active crews, split fireteams, simultaneous crew bubbles, or 1–4 network arbitration;
+- trusted transport, rollback, save/load generalization, reconciliation, or host migration;
+- intelligence quality, stale reports, UI legibility, pacing, balancing, or proof that the pressure is fun at production density;
+- generalized factions, commitment classes, damage, repair, economy, civilians, traffic, or city-scale procedural content.
+
+The live-claim gang/relay vocabulary is a proof fixture, not production city
+ontology. No `GangClaimSystem`, relay framework, or territory pipeline has
+been authorized by its existence.
+
+## Development rule
+
+The correct next step is not implicit expansion. The record currently proves a
+bounded authority architecture. Any next proof must be selected deliberately,
+frozen before implementation, and demonstrate one new system property without
+presuming scale or production readiness.
+
+## Changelog
+
+### 0.1.1 — 2026-08-26
+
+- Added the sealed shared-state commitment interference proof to the current proven capacity.
+- Distinguished proven shared-state composition from any generalized resource, planner, or production-scale system.
+
+### 0.1.0 — 2026-08-26
+
+- Recorded the capacity and progress established through the sealed crew-arrival live-commitment proof.

@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.22
-**Status:** The crew-arrival live-commitment proof is sealed. No successor city scope is authorized.
+**Version:** 0.7.0-draft.24
+**Status:** The shared-state commitment interference proof is sealed. No successor city scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -44,6 +44,8 @@ The frozen [Bridge Access Traversal Contention Proof — v0.1.0](Bridge%20Access
 The sealed [Crew Deployment Opportunity-Cost Proof — v0.1.0](Crew%20Deployment%20Opportunity-Cost%20Proof%20-%20Draft.md) and its [evidence](Crew%20Deployment%20Opportunity-Cost%20Proof%20Evidence%20-%20v0.1.0.md) establish one shared deployment commitment, exact B/C physical evidence contracts, and the B/C/D opportunity-cost branches. They authorize no successor city scope.
 
 The sealed [Crew Arrival Into Live Commitment Proof — v0.1.0](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20-%20Draft.md) and its [evidence](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20Evidence%20-%20v0.1.0.md) establish causal continuity through crew arrival. Its gang/relay vocabulary is fixture-only. It distinguishes a selected deployment destination from clock-derived physical access while arrival itself remains free of strategic mutation; it proves pre-claim physical intervention, canonical claim resolution, and a fresh post-claim relay change that cannot rewrite historical ownership.
+
+The sealed [Shared-State Commitment Interference Proof — v0.1.0](Shared-State%20Commitment%20Interference%20Proof%20-%20Draft.md) and its [evidence](Shared-State%20Commitment%20Interference%20Proof%20Evidence%20-%20v0.1.0.md) establish canonical composition: two independently defined commitments share exactly one fixture-local state fact, then demonstrate primary, counterfactual, and reversed-order outcomes without foreign commitment references, callbacks, or pair-specific rules.
 
 ## Product framing
 
@@ -123,6 +125,18 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.24 — 2026-08-26
+
+- Sealed Shared-State Commitment Interference Proof v0.1.0. The canonical resolver proves composition through one shared state fact rather than authored X/Y coupling.
+- Recorded isolated X/Y definition hashes, X-absent counterfactual, reversed-order permutation, complete resource disposition, provenance, deterministic replay, 68 passing checks, and a self-excluding release manifest.
+- No Unreal, planner, resource-system, city-content, scale, multiplayer, or successor scope is authorized.
+
+### 0.7.0-draft.23 — 2026-08-26
+
+- Opened and froze the Shared-State Commitment Interference Proof v0.1.0 as the sole authorized implementation target.
+- Required one ordinary shared-capacity fact, isolated X/Y definition hashes, X-absent counterfactual, reversed-order permutation witness, full lifecycle/provenance, deterministic replay, and source audit.
+- No Unreal work, planner generalization, new city content, scale, multiplayer, or successor scope is authorized.
 
 ### 0.7.0-draft.22 — 2026-08-26
 
@@ -265,6 +279,6 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 
 The frozen three-area kernel has passed its primary run, counterfactual, replay-equivalence record, causal ledger, materialization projection, real first-person materialization, and one complete physical-to-canonical-to-physical persistence round trip.
 
-The crew deployment opportunity-cost proof and the crew-arrival live-commitment proof are sealed. Both are bounded proofs, not authority to expand city scale or add systems.
+The crew deployment opportunity-cost proof, crew-arrival live-commitment proof, and shared-state commitment interference proof are sealed. All are bounded proofs, not authority to expand city scale or add systems.
 
 Do not revise the frozen kernel or add map scale, additional city systems, or scripted front outcomes without a new user-directed scope decision. The proven round trip is one consequence, not authority to expand city scope.
