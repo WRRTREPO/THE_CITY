@@ -78,7 +78,7 @@ Verify the latest sealed release package:
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_bounded_agent_selection_release.py verify
+  python3 proof_kernel/verify_causal_lod_equivalence_release.py verify
 ```
 
 The `CityMaterializationProof/README.md` remains the focused UE 5.8

@@ -1,7 +1,7 @@
 e9bd1144beb10990298d06d97f69f1f4b40134cc36768d111fe1c25e0896f59f  Causal-LOD Equivalence Proof - Draft.md
 46cb54ba0aff176f89b1d5fc7a8509b8beb51dc6d983438b1b7bcc3755aaaeda  Causal-LOD Equivalence Proof Evidence - v0.1.0.md
 3ad7da30b23cb301ae25e6b4bd243e7ec26685c533a7ba6b55e44845602c1a99  Co-op Open-City FPS Simulation - v0.7 Working Continuation.md
-057daa1ff40bc739a0d8e0910e0c0495dd880818ef2c24032a90a1083bedb424  README.md
+b529b4cd5374122507dbbdb6e641c4cbfadddc232dce6a1393f2fbb39f508594  README.md
 5a696a5ee7c79a2bf2d62e34993d2863a9a127c6d02c685754c61240bc9a11aa  Resolution Semantics Law - v0.1.1.md
 b7d9b8f5f0e41db94c462f7f06a1e683f3730aee6a5b02209062f9e1f74190c4  Resolution Semantics Substrate Proof Evidence - v0.1.0.md
 89bc532fca01d1b60c89939c3468daa587e639e2a771a5d778ceceb0193fb64e  proof_kernel/CausalLodEquivalenceProofRecords/causal_lod_equivalence_R0.json
