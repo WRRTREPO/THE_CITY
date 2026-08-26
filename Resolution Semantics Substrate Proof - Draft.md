@@ -1,10 +1,10 @@
 # Resolution Semantics Substrate Proof
 
-**Version:** 0.1.0-draft.0
-**Status:** Specification review only. No implementation or successor scope is authorized.
+**Version:** 0.1.0
+**Status:** Frozen. No implementation or successor scope is authorized.
 **Parent law:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
-**Simulation version candidate:** 0.7.0-draft.31 — not fixed until this specification freezes.
+**Simulation version:** 0.7.0-draft.30 — fixed by the parent Resolution Semantics Law v0.1.1 for this proof.
 
 ## Claim
 
@@ -42,23 +42,22 @@ prohibited:
 
 All nouns below are structural fixture labels. They do not define production agents, sites, resources, content, or city ontology.
 
-## Exact record identity
+## Singular canonical identity and serialization
 
-~~~yaml
-record_schema: CanonicalResolutionEnvelope.v1
-payload_schema: ResolutionSemanticsSubstratePayload.v1
-scenario_id: resolution-semantics-substrate-v1
-scenario_version: 0.1.0
-simulation_version: 0.7.0-draft.31
-seed: resolution-semantics-substrate-v1/0001
+The canonical record is exactly `canonical_envelope`. Its one authoritative
+identity exists only at `canonical_envelope.identity`; this proof defines no
+duplicate top-level identity block or operational wrapper.
+
+```text
 canonical_json:
-  sort_keys: true
-  separators: [",", ":"]
-  ensure_ascii: true
-canonical_hash: sha256(canonical_json(canonical_envelope))
-~~~
+  sort_keys = true
+  separators = (",", ":")
+  ensure_ascii = true
 
-The payload schema is exact. Unknown, missing, redirected, or incompatible authoritative payload fields must be rejected. Resolution-local fields are not payload fields and must never appear inside canonical_envelope.
+canonical_hash = sha256(canonical_json(canonical_envelope))
+```
+
+The payload schema is exact. Unknown, missing, redirected, or incompatible authoritative payload fields must be rejected. Resolution-local fields are not payload fields and must never appear inside `canonical_envelope`.
 
 ## Exact authoritative payload schema
 
@@ -71,7 +70,7 @@ canonical_envelope:
     payload_schema: ResolutionSemanticsSubstratePayload.v1
     scenario_id: resolution-semantics-substrate-v1
     scenario_version: 0.1.0
-    simulation_version: 0.7.0-draft.31
+    simulation_version: 0.7.0-draft.30
     seed: resolution-semantics-substrate-v1/0001
 
   current_causal_state:
@@ -128,7 +127,7 @@ canonical_envelope:
 | durable_facts.substrate_marker | exact string stable | Current durable and gate-relevant fact. |
 | active_commitments.commitment_alpha | exact active commitment object above | Owns one future gate check and one reservation. |
 | resource_ownership.unit_alpha | exact reserved-ownership object above | Proves reservation is persistent, not local cache. |
-| future_causal_state.canonical_clock | exact time token t0/00 | Scheduler starting point. |
+| future_causal_state.canonical_clock | canonical time token; R0 initial value `t0/00` | Scheduler starting point. No later canonical record is produced in this proof. |
 | scheduled_consequential_decisions | one exact schedule item | Sole source of next boundary and due set. |
 | commitment_gate_check_schedule | exact map | Redundant authoritative scheduling witness; must agree with the schedule item. |
 | canonical_execution_keys | one ascending key | Canonical ordering source for the due set. |
@@ -337,9 +336,15 @@ Causal-LOD Equivalence may be selected
 
 ## Explicit boundary
 
-This candidate authorizes no code, test fixture, record migration, simulator refactor, Unreal work, random system, city content, planner extension, map scale, multiplayer, networking, rollback, or production streaming work.
+This proof authorizes no code, test fixture, record migration, simulator refactor, Unreal work, random system, city content, planner extension, map scale, multiplayer, networking, rollback, or production streaming work.
 
 ## Changelog
+
+### 0.1.0 — 2026-08-26
+
+- Froze the singular canonical-identity rule: record identity exists only inside `canonical_envelope.identity` and is necessarily included in canonical_hash.
+- Used parent-law-fixed simulation version `0.7.0-draft.30` and clarified canonical_clock as a time-token type whose R0 initial value is `t0/00`.
+- No implementation, Causal-LOD Equivalence fixture, or successor scope is authorized.
 
 ### 0.1.0-draft.0 — 2026-08-26
 

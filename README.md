@@ -7,10 +7,10 @@ strategic authority.
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
 **Current sealed proof record:** `a15c3a5`. The governing continuation is
-[v0.7.0-draft.31](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+[v0.7.0-draft.32](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
-is frozen; its [substrate proof](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
-is in specification review. No implementation or successor scope is authorized.
+and its [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
+are frozen. No implementation or successor scope is authorized.
 
 ## The machine
 

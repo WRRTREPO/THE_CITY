@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.31
-**Status:** The bounded agent commitment selection proof and Resolution Semantics Law v0.1.1 are sealed. The Resolution Semantics Substrate Proof is in specification review; no implementation or successor city scope is authorized.
+**Version:** 0.7.0-draft.32
+**Status:** The bounded agent commitment selection proof, Resolution Semantics Law v0.1.1, and Resolution Semantics Substrate Proof are sealed. No implementation or successor city scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -51,7 +51,7 @@ The sealed [Bounded Agent Commitment Selection Proof — v0.1.0](Bounded%20Agent
 
 The frozen [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md) is the prerequisite to any Causal-LOD Equivalence proof. It fixes `CanonicalResolutionEnvelope.v1` as the authority container and requires each concrete implementation to freeze its own exact, versioned authoritative payload schema. It also fixes canonical-envelope hashing, next-consequential-boundary discovery, promotion/demotion, authoritative-ledger, and no-randomness semantics. The historical [v0.1.0](Resolution%20Semantics%20Law%20-%20Draft.md) remains inspectable. No implementation, fixture, or successor city scope is authorized.
 
-The [Resolution Semantics Substrate Proof — v0.1.0-draft.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md) is in specification review. It proposes one exact neutral payload schema, one future due commitment and reservation, one canonical scheduler query, promotion/demotion transforms, four neutrality witnesses, and three adversarial failure dispositions. It authorizes no implementation, city scenario, Unreal work, randomness, Causal-LOD Equivalence execution, or successor scope.
+The frozen [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md) fixes one exact neutral payload schema, a singular canonical identity inside the hashed envelope, one future due commitment and reservation, one canonical scheduler query, promotion/demotion transforms, four neutrality witnesses, and three adversarial failure dispositions. It authorizes no implementation, city scenario, Unreal work, randomness, Causal-LOD Equivalence execution, or successor scope.
 
 ## Product framing
 
@@ -131,6 +131,11 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.32 — 2026-08-26
+
+- Froze Resolution Semantics Substrate Proof v0.1.0 with singular canonical identity, fixed simulation identity, exact payload, scheduler-boundary query, transition witnesses, and adversarial dispositions.
+- No canonical scheduler implementation, Causal-LOD Equivalence fixture, Unreal work, random system, city behavior, scale, multiplayer, or successor scope is authorized.
 
 ### 0.7.0-draft.31 — 2026-08-26
 
