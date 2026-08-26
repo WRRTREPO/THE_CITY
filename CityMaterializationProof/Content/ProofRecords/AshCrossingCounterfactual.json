@@ -1,0 +1,12 @@
+{
+  "record_name": "Counterfactual — No fire",
+  "canonical_sha256": "0b27ed07131ab5889d820476ef7d665c1f5c046872ea895b93b764801e7c7206",
+  "bridge_open": true,
+  "fire_intensity": 4,
+  "police_location": "C",
+  "police_availability": "deployed",
+  "police_present_C": 1,
+  "docklands_owner": "contested",
+  "gang_control": 62,
+  "rival_control": 38
+}

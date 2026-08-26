@@ -1,0 +1,12 @@
+{
+  "record_name": "Primary — Fire closes Ash Bridge",
+  "canonical_sha256": "d08e69d6b5fde3b27d10fb45f3bfd6143d856750c2dfd91f7b5851674fbeed76",
+  "bridge_open": false,
+  "fire_intensity": 5,
+  "police_location": "A",
+  "police_availability": "available",
+  "police_present_C": 0,
+  "docklands_owner": "gang",
+  "gang_control": 74,
+  "rival_control": 26
+}

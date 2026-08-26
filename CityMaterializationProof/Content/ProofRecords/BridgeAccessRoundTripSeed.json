@@ -1,0 +1,18 @@
+{
+  "bridge_access_point_state": "intact",
+  "bridge_capacity": 1,
+  "bridge_open": true,
+  "canonical_sha256": "a049c8cde65f14dd6f485353d224acafa1c3cc16a30ab0ce0d758076eb6ed69b",
+  "docklands_owner": "contested",
+  "fire_intensity": 4,
+  "gang_control": 62,
+  "parent_causal_record_hash": "0b27ed07131ab5889d820476ef7d665c1f5c046872ea895b93b764801e7c7206",
+  "police_availability": "deployed",
+  "police_location": "C",
+  "police_present_C": 1,
+  "proposal_terminal_dispositions": {},
+  "record_name": "Round trip seed \u2014 E_AB intact",
+  "record_schema": "BridgeAccessRoundTripRecord.v1",
+  "rival_control": 38,
+  "simulation_version": "0.7.0-draft.9"
+}

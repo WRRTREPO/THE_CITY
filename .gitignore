@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+
+# Python test by-products
+__pycache__/
+*.py[cod]
+
+# Unreal Engine generated and local-proof output
+**/Binaries/
+**/DerivedDataCache/
+**/Intermediate/
+**/Saved/
+**/RuntimeExchange/
+**/.vs/
+**/*.xcodeproj
+**/*.xcworkspace

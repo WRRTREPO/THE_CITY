@@ -1,0 +1,16 @@
+{
+  "FileVersion": 3,
+  "EngineAssociation": "5.8",
+  "Category": "Games",
+  "Description": "Record-driven first-person materialization proof for the frozen Ash Crossing causal kernel.",
+  "Modules": [
+    {
+      "Name": "CityMaterializationProof",
+      "Type": "Runtime",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "TargetPlatforms": [
+    "Mac"
+  ]
+}
