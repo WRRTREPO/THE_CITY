@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.15
-**Status:** Causal kernel, real FPS materialization, the single-consequence persistence round trip, and the provenance-corrected bridge-access traversal contention proof have passed. No city expansion is authorized by those proofs.
+**Version:** 0.7.0-draft.17
+**Status:** The crew deployment opportunity-cost proof is sealed. No successor city scope is authorized by this continuation.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -40,6 +40,8 @@ The real first-person embodiment of those sealed records is recorded in [Unreal 
 The bridge-access round trip is specified in [v0.1.1](Bridge%20Access%20Persistence%20Round-Trip%20Proof%20-%20Draft.md), with its reviewed original retained as [v0.1.0](Bridge%20Access%20Persistence%20Round-Trip%20Proof%20-%20v0.1.0.md). Its final implementation and passing evidence are recorded in [Bridge Access Persistence Round-Trip Evidence — v0.1.1](Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.1.md); the original [evidence v0.1.0](Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.0.md) remains inspectable.
 
 The frozen [Bridge Access Traversal Contention Proof — v0.1.0](Bridge%20Access%20Traversal%20Contention%20Proof%20-%20Draft.md) has a retained original execution witness in [v0.1.0](Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.0.md) and its final provenance-corrected evidence in [v0.1.1](Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.1.md). It establishes only the documented contention semantics.
+
+The sealed [Crew Deployment Opportunity-Cost Proof — v0.1.0](Crew%20Deployment%20Opportunity-Cost%20Proof%20-%20Draft.md) and its [evidence](Crew%20Deployment%20Opportunity-Cost%20Proof%20Evidence%20-%20v0.1.0.md) establish one shared deployment commitment, exact B/C physical evidence contracts, and the B/C/D opportunity-cost branches. They authorize no successor city scope.
 
 ## Product framing
 
@@ -119,6 +121,19 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.17 — 2026-08-26
+
+- Implemented and sealed the crew deployment opportunity-cost proof: canonical deployment request and exclusivity, exact Unreal B/C evidence emission, autonomous fire/police/gang progression, deterministic B/C/D histories, and fresh final-record materialization.
+- Proved that a single aircraft-bound crew spends one physical-evidence opportunity domain while active-world time advances unattended city processes.
+- Preserved Unreal as proposal/materialization-only; the Python canonical transaction layer remains sole authority for deployment, durable mutations, and the causal ledger.
+- No split-fireteam, intelligence, multiplayer, city-scale, or successor-system scope is authorized.
+
+### 0.7.0-draft.16 — 2026-08-26
+
+- Froze the crew deployment opportunity-cost proof: canonical deployment requests, one aircraft-bound crew commitment, exact B/C local evidence contracts, and a neutral D control branch.
+- Fixed takeoff as the active-world-clock boundary; excluded split fireteams and intelligence variance.
+- Historical freeze record. Implementation and evidence are recorded by draft.17; no city expansion is authorized.
 
 ### 0.7.0-draft.15 — 2026-08-26
 
@@ -219,6 +234,6 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 
 The frozen three-area kernel has passed its primary run, counterfactual, replay-equivalence record, causal ledger, materialization projection, real first-person materialization, and one complete physical-to-canonical-to-physical persistence round trip.
 
-The bridge-access traversal contention proof has passed. No successor proof is selected or authorized by this record.
+The crew deployment opportunity-cost proof has passed and is sealed. No successor scope follows from it automatically.
 
 Do not revise the frozen kernel or add map scale, additional city systems, or scripted front outcomes without a new user-directed scope decision. The proven round trip is one consequence, not authority to expand city scope.

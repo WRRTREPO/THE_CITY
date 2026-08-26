@@ -1,6 +1,7 @@
 #include "CityMaterializationActor.h"
 
 #include "BridgeAccessPoint.h"
+#include "CrewOperationPoint.h"
 #include "CityMaterializationProof.h"
 #include "Components/SceneComponent.h"
 #include "Components/PointLightComponent.h"
@@ -70,7 +71,50 @@ bool ACityMaterializationActor::LoadAuthoritativeRecord(FCityProofRecord& OutRec
     OutRecord.RecordName = Root->GetStringField(TEXT("record_name"));
     OutRecord.CanonicalHash = Root->GetStringField(TEXT("canonical_sha256"));
 
-    if (RecordSchema == TEXT("BridgeAccessTraversalContentionRecord.v1"))
+    if (RecordSchema == TEXT("CrewDeploymentOpportunityRecord.v1"))
+    {
+        if (!Root->HasTypedField<EJson::Object>(TEXT("routes")) ||
+            !Root->HasTypedField<EJson::Object>(TEXT("agents")) ||
+            !Root->HasTypedField<EJson::Object>(TEXT("areas")) ||
+            !Root->HasTypedField<EJson::Object>(TEXT("deployment")))
+        {
+            OutFailure = TEXT("Deployment record is missing canonical city sections.");
+            return false;
+        }
+
+        const TSharedPtr<FJsonObject> Routes = Root->GetObjectField(TEXT("routes"));
+        const TSharedPtr<FJsonObject> Agents = Root->GetObjectField(TEXT("agents"));
+        const TSharedPtr<FJsonObject> Areas = Root->GetObjectField(TEXT("areas"));
+        const TSharedPtr<FJsonObject> Deployment = Root->GetObjectField(TEXT("deployment"));
+        if (!Routes->HasTypedField<EJson::Object>(TEXT("E_AB")) ||
+            !Agents->HasTypedField<EJson::Object>(TEXT("police_unit_01")) ||
+            !Areas->HasTypedField<EJson::Object>(TEXT("B")) ||
+            !Areas->HasTypedField<EJson::Object>(TEXT("C")))
+        {
+            OutFailure = TEXT("Deployment record is missing its required bridge, police, or area facts.");
+            return false;
+        }
+
+        const TSharedPtr<FJsonObject> Bridge = Routes->GetObjectField(TEXT("E_AB"));
+        const TSharedPtr<FJsonObject> Police = Agents->GetObjectField(TEXT("police_unit_01"));
+        const TSharedPtr<FJsonObject> AreaB = Areas->GetObjectField(TEXT("B"));
+        const TSharedPtr<FJsonObject> AreaC = Areas->GetObjectField(TEXT("C"));
+        OutRecord.bBridgeOpen = Bridge->GetBoolField(TEXT("open"));
+        OutRecord.BridgeCapacity = Bridge->GetIntegerField(TEXT("capacity"));
+        OutRecord.BridgeAccessPointState = Bridge->GetStringField(TEXT("bridge_access_point_state"));
+        OutRecord.bCrewDeploymentOpportunityRecord = true;
+        OutRecord.CrewInteractionDomain = Deployment->GetStringField(TEXT("interaction_domain"));
+        OutRecord.bFireContainment = AreaB->GetBoolField(TEXT("fire_containment"));
+        OutRecord.bCrewDisruption = AreaC->GetBoolField(TEXT("crew_disruption"));
+        OutRecord.FireIntensity = AreaB->GetIntegerField(TEXT("fire_intensity"));
+        OutRecord.PoliceLocation = Police->GetStringField(TEXT("location"));
+        OutRecord.PoliceAvailability = Police->GetStringField(TEXT("availability"));
+        OutRecord.PolicePresentAtDocklands = AreaC->GetIntegerField(TEXT("police_present"));
+        OutRecord.DocklandsOwner = AreaC->GetStringField(TEXT("owner"));
+        OutRecord.GangControl = AreaC->GetIntegerField(TEXT("gang_control"));
+        OutRecord.RivalControl = AreaC->GetIntegerField(TEXT("rival_control"));
+    }
+    else if (RecordSchema == TEXT("BridgeAccessTraversalContentionRecord.v1"))
     {
         if (!Root->HasTypedField<EJson::Object>(TEXT("routes")) ||
             !Root->HasTypedField<EJson::Object>(TEXT("agents")) ||
@@ -156,6 +200,31 @@ void ACityMaterializationActor::SpawnBridgeAccessPoint(const FCityProofRecord& R
             ExchangeDirectory,
             Record.BridgeAccessPointState == TEXT("destroyed"),
             Record.bBridgeAccessContentionRecord);
+    }
+}
+
+void ACityMaterializationActor::SpawnCrewOperationPoint(const FCityProofRecord& Record)
+{
+    if (!Record.bCrewDeploymentOpportunityRecord)
+    {
+        return;
+    }
+
+    FString ExchangeDirectory = FPaths::ProjectSavedDir() / TEXT("DeploymentOpportunityExchange");
+    FParse::Value(FCommandLine::Get(), TEXT("CityProofExchange="), ExchangeDirectory);
+    if (Record.CrewInteractionDomain == TEXT("B") && !Record.bFireContainment)
+    {
+        if (ACrewOperationPoint* Point = GetWorld()->SpawnActor<ACrewOperationPoint>(ACrewOperationPoint::StaticClass(), FVector(-220.0f, 420.0f, 0.0f), FRotator::ZeroRotator))
+        {
+            Point->Configure(Record.CanonicalHash, ExchangeDirectory, TEXT("B"), false);
+        }
+    }
+    else if (Record.CrewInteractionDomain == TEXT("C") && !Record.bCrewDisruption)
+    {
+        if (ACrewOperationPoint* Point = GetWorld()->SpawnActor<ACrewOperationPoint>(ACrewOperationPoint::StaticClass(), FVector(1300.0f, 420.0f, 0.0f), FRotator::ZeroRotator))
+        {
+            Point->Configure(Record.CanonicalHash, ExchangeDirectory, TEXT("C"), false);
+        }
     }
 }
 
@@ -248,6 +317,19 @@ void ACityMaterializationActor::Materialize(const FCityProofRecord& Record)
     AddLabel(FVector(0.0f, 0.0f, 300.0f), TEXT("B — ASH BRIDGE"), FColor::White);
     AddLabel(FVector(1500.0f, 0.0f, 300.0f), TEXT("C — DOCKLANDS YARD"), FColor::White);
 
+    if (Record.bCrewDeploymentOpportunityRecord)
+    {
+        AddLabel(FVector(-1200.0f, 520.0f, 270.0f), FString::Printf(TEXT("ACTIVE CREW DOMAIN: %s\nphysical evidence only — canonical commit required"), *Record.CrewInteractionDomain), FColor::Cyan);
+        if (Record.bFireContainment)
+        {
+            AddLabel(FVector(-220.0f, 420.0f, 260.0f), TEXT("FIRE CONTAINMENT: AUTHORITATIVE"), FColor::Green);
+        }
+        if (Record.bCrewDisruption)
+        {
+            AddLabel(FVector(1300.0f, 420.0f, 260.0f), TEXT("SEIZURE DISRUPTION: AUTHORITATIVE"), FColor::Green);
+        }
+    }
+
     if (Record.bBridgeOpen)
     {
         AddBlock(FVector(0.0f, 0.0f, 0.0f), FVector(3.5f, 2.2f, 0.12f), FLinearColor(0.3f, 0.3f, 0.3f), true);
@@ -293,4 +375,5 @@ void ACityMaterializationActor::Materialize(const FCityProofRecord& Record)
     }
 
     SpawnBridgeAccessPoint(Record);
+    SpawnCrewOperationPoint(Record);
 }

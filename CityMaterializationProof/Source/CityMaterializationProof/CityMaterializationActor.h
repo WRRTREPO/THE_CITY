@@ -9,6 +9,7 @@ class UStaticMesh;
 class UStaticMeshComponent;
 class UMaterialInterface;
 class UTextRenderComponent;
+class ACrewOperationPoint;
 
 USTRUCT()
 struct FCityProofRecord
@@ -22,6 +23,10 @@ struct FCityProofRecord
     FString BridgeAccessPointState;
     bool bBridgeAccessRoundTripRecord = false;
     bool bBridgeAccessContentionRecord = false;
+    bool bCrewDeploymentOpportunityRecord = false;
+    FString CrewInteractionDomain;
+    bool bFireContainment = false;
+    bool bCrewDisruption = false;
     int32 FireIntensity = 0;
     FString PoliceLocation;
     FString PoliceAvailability;
@@ -46,6 +51,7 @@ private:
     bool LoadAuthoritativeRecord(FCityProofRecord& OutRecord, FString& OutFailure) const;
     void Materialize(const FCityProofRecord& Record);
     void SpawnBridgeAccessPoint(const FCityProofRecord& Record);
+    void SpawnCrewOperationPoint(const FCityProofRecord& Record);
     UStaticMeshComponent* AddBlock(const FVector& Location, const FVector& Scale, const FLinearColor& Color, bool bBlocksMovement);
     UTextRenderComponent* AddLabel(const FVector& Location, const FString& Text, const FColor& Color);
 

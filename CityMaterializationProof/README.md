@@ -76,9 +76,36 @@ The complete passing record is [Bridge Access Persistence Round-Trip Evidence â€
 
 The same proof project also materializes the sealed final records for the frozen `E_AB` traversal-contention proof. It remains a read-only materializer: Unreal emitted the captured physical proposal from R0, while Python resolved the collision with police entry and produced both final records.
 
-The original execution witness is [v0.1.0](../Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.0.md); the final provenance-corrected record is [v0.1.1](../Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.1.md). Verify the current release package with:
+The original execution witness is [v0.1.0](../Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.0.md); the final provenance-corrected record is [v0.1.1](../Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.1.md). Its package verifier remains attached to that sealed source identity:
 
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 python3 proof_kernel/verify_contention_release.py verify
 ```
+
+## Crew deployment opportunity cost
+
+The frozen deployment proof establishes one aircraft-bound crew commitment. A
+canonical deployment request reserves the crew and aircraft, starts active-world
+time at takeoff, and authorizes exactly one local FPS evidence domain. It does
+not authorize Unreal to write city facts.
+
+Two pre-interaction records may be exercised in fresh Unreal processes:
+
+```sh
+"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor" \
+  "/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/CityMaterializationProof.uproject" \
+  -game \
+  -CityProofRecord="/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/Content/ProofRecords/deployment_B_interaction_pre.json" \
+  -CityProofExchange="/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/RuntimeExchange"
+```
+
+Press `E` at the cyan operation surface. The B record can emit only fire
+containment evidence; the C record can emit only seizure-disruption evidence.
+Both outputs are proposals. Only `proof_kernel/deployment_opportunity.py`
+validates them and produces the final canonical B/C/D records.
+
+Those final records materialize three distinct histories: B preserves the route
+and police response, C retains the fire closure but blocks seizure, and D shows
+the unattended gang takeover. The complete sealed record is [Crew Deployment
+Opportunity-Cost Proof Evidence â€” v0.1.0](../Crew%20Deployment%20Opportunity-Cost%20Proof%20Evidence%20-%20v0.1.0.md).

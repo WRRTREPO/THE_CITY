@@ -1,0 +1,36 @@
+{
+	"proposal_id": "physical_disrupt_seizure_C_deployment_0001",
+	"protocol_version": "PhysicalConsequenceProposal.v1",
+	"source":
+	{
+		"system": "crew_physical_simulation",
+		"runtime_instance_id": "deployment_opportunity_runtime_01",
+		"source_record_hash": "683645537eb859dd0edf0993b3f7926e8556d59a7d40bf1e6ba243edee6b7866",
+		"source_simulation_version": "0.7.0-draft.16"
+	},
+	"instigator":
+	{
+		"kind": "crew",
+		"id": "crew_01_to_04"
+	},
+	"target":
+	{
+		"kind": "gang_signal_relay",
+		"id": "gang_signal_relay_C_01",
+		"area": "C"
+	},
+	"observed_outcome":
+	{
+		"state": "disabled",
+		"event_sequence": 1
+	},
+	"evidence":
+	{
+		"physical_actor_id": "gang_signal_relay_C_01",
+		"outcome_state": "disabled",
+		"evidence_digest": "md5:fae4574dedd8196dcd67e63d1a6b3087"
+	},
+	"proposed_mutations": [
+		"C.crew_disruption = true"
+	]
+}

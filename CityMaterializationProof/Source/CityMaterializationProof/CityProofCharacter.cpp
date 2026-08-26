@@ -1,6 +1,7 @@
 #include "CityProofCharacter.h"
 
 #include "BridgeAccessPoint.h"
+#include "CrewOperationPoint.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/Engine.h"
@@ -50,6 +51,16 @@ void ACityProofCharacter::AttemptBridgeAccessDestruction()
     FCollisionQueryParams QueryParams(SCENE_QUERY_STAT(BridgeAccessDestruction), false, this);
     if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, QueryParams))
     {
+        if (ACrewOperationPoint* OperationPoint = Cast<ACrewOperationPoint>(Hit.GetActor()))
+        {
+            const bool bProposalWritten = OperationPoint->TryResolveByCrew(TEXT("crew_01_to_04"));
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
+                    bProposalWritten ? TEXT("Physical proposal emitted. Canonical commit required.") : TEXT("No crew-operation proposal emitted."));
+            }
+            return;
+        }
         if (ABridgeAccessPoint* AccessPoint = Cast<ABridgeAccessPoint>(Hit.GetActor()))
         {
             const bool bProposalWritten = AccessPoint->TryDestroyByCrew(TEXT("crew_01_to_04"));
@@ -57,6 +68,24 @@ void ACityProofCharacter::AttemptBridgeAccessDestruction()
             {
                 GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
                     bProposalWritten ? TEXT("Physical proposal emitted. Canonical commit required.") : TEXT("No bridge-access proposal emitted."));
+            }
+            return;
+        }
+    }
+
+    for (TActorIterator<ACrewOperationPoint> It(GetWorld()); It; ++It)
+    {
+        // The proof map is a compressed walkable diagram.  Its B/C operation
+        // surfaces remain in the selected materialized domain; the one pawn's
+        // interaction reach spans the diagram so UI automation does not become
+        // a second, unrelated movement proof.
+        if (FVector::DistSquared(GetActorLocation(), It->GetActorLocation()) <= FMath::Square(5000.0f))
+        {
+            const bool bProposalWritten = It->TryResolveByCrew(TEXT("crew_01_to_04"));
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
+                    bProposalWritten ? TEXT("Physical proposal emitted. Canonical commit required.") : TEXT("No crew-operation proposal emitted."));
             }
             return;
         }

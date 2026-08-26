@@ -11,6 +11,7 @@ __pycache__/
 **/Intermediate/
 **/Saved/
 **/RuntimeExchange/
+**/RuntimeExchange*/
 **/.vs/
 **/*.xcodeproj
 **/*.xcworkspace

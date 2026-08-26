@@ -1,0 +1,36 @@
+{
+	"proposal_id": "physical_contain_fire_B_deployment_0001",
+	"protocol_version": "PhysicalConsequenceProposal.v1",
+	"source":
+	{
+		"system": "crew_physical_simulation",
+		"runtime_instance_id": "deployment_opportunity_runtime_01",
+		"source_record_hash": "f22ab50d5edfc4796d3c50d26f778b35b33e8739dcd62bbec146e094fecd9743",
+		"source_simulation_version": "0.7.0-draft.16"
+	},
+	"instigator":
+	{
+		"kind": "crew",
+		"id": "crew_01_to_04"
+	},
+	"target":
+	{
+		"kind": "fire_control",
+		"id": "fire_control_valve_B_01",
+		"area": "B"
+	},
+	"observed_outcome":
+	{
+		"state": "contained",
+		"event_sequence": 1
+	},
+	"evidence":
+	{
+		"physical_actor_id": "fire_control_valve_B_01",
+		"outcome_state": "contained",
+		"evidence_digest": "md5:8399d9d42ac5996ab2dabc38560c3174"
+	},
+	"proposed_mutations": [
+		"B.fire_containment = true"
+	]
+}

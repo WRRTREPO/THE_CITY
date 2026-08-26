@@ -27,8 +27,29 @@ class UnrealAuthorityBoundaryTests(unittest.TestCase):
         source = (UNREAL_SOURCE / "CityMaterializationActor.cpp").read_text(encoding="utf-8")
         self.assertIn("LoadAuthoritativeRecord", source)
         self.assertIn("BridgeAccessTraversalContentionRecord.v1", source)
+        self.assertIn("CrewDeploymentOpportunityRecord.v1", source)
+        self.assertIn("SpawnCrewOperationPoint", source)
         self.assertNotIn("SaveStringToFile", source)
         self.assertNotIn("FJsonSerializer::Serialize", source)
+
+    def test_deployment_operation_actor_emits_only_exact_physical_proposals(self) -> None:
+        source = (UNREAL_SOURCE / "CrewOperationPoint.cpp").read_text(encoding="utf-8")
+        self.assertIn("physical_contain_fire_B_deployment_0001.json", source)
+        self.assertIn("physical_disrupt_seizure_C_deployment_0001.json", source)
+        self.assertIn("fire_control_valve_B_01", source)
+        self.assertIn("gang_signal_relay_C_01", source)
+        self.assertIn("B.fire_containment = true", source)
+        self.assertIn("C.crew_disruption = true", source)
+        self.assertIn("deployment_opportunity_runtime_01", source)
+        self.assertIn("SaveStringToFile", source)
+        for forbidden_canonical_output in (
+            "committed_record.json",
+            "causal_ledger.json",
+            "proposal_terminal_dispositions",
+            "canonical.apply_physical_proposal",
+            "crew_deployment_request",
+        ):
+            self.assertNotIn(forbidden_canonical_output, source)
 
 
 if __name__ == "__main__":
