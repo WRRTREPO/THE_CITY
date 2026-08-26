@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.28
-**Status:** The bounded agent commitment selection proof is sealed. The Resolution Semantics Law is in specification review; no implementation or successor city scope is authorized.
+**Version:** 0.7.0-draft.29
+**Status:** The bounded agent commitment selection proof and Resolution Semantics Law are sealed. No implementation or successor city scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -49,7 +49,7 @@ The sealed [Shared-State Commitment Interference Proof — v0.1.0](Shared-State%
 
 The sealed [Bounded Agent Commitment Selection Proof — v0.1.0](Bounded%20Agent%20Commitment%20Selection%20Proof%20-%20Draft.md) and its [evidence](Bounded%20Agent%20Commitment%20Selection%20Proof%20Evidence%20-%20v0.1.0.md) establish one agent receiving a declared local perception, selecting from two ordinary feasible actions with explicit costs, then submitting a commitment proposal for canonical revalidation. It stops at active commitment creation and authorizes no generalized planner.
 
-The [Resolution Semantics Law — v0.1.0-draft.0](Resolution%20Semantics%20Law%20-%20Draft.md) is now under review as a prerequisite to any Causal-LOD Equivalence proof. It defines a proposed canonical envelope, resolution-local state, next-consequential-boundary, promotion/demotion, authoritative-ledger, and no-randomness substrate. It authorizes no implementation, fixture, or successor city scope.
+The frozen [Resolution Semantics Law — v0.1.0](Resolution%20Semantics%20Law%20-%20Draft.md) is the prerequisite to any Causal-LOD Equivalence proof. It fixes `CanonicalResolutionEnvelope.v1`, canonical-envelope hashing, next-consequential-boundary discovery, promotion/demotion, authoritative-ledger, and no-randomness semantics. It authorizes no implementation, fixture, or successor city scope.
 
 ## Product framing
 
@@ -129,6 +129,12 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.29 — 2026-08-26
+
+- Froze Resolution Semantics Law v0.1.0 with the fixed canonical-envelope schema, simulation identity, boundary-discovery result shape, authoritative-only ledger, and explicit no-randomness rule.
+- The law is a prerequisite substrate contract, not evidence that variable-resolution canonical simulation exists.
+- No scheduler implementation, Causal-LOD Equivalence fixture, Unreal work, random system, city behavior, scale, multiplayer, or successor scope is authorized.
 
 ### 0.7.0-draft.28 — 2026-08-26
 

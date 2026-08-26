@@ -1,7 +1,8 @@
 # Resolution Semantics Law
 
-**Version:** 0.1.0-draft.0
-**Status:** Specification review only. No implementation, scenario, or successor scope is authorized.
+**Version:** 0.1.0
+**Status:** Frozen. No implementation, scenario, or successor scope is authorized.
+**Simulation version:** 0.7.0-draft.29 — fixed for the first resolution-semantics substrate proof.
 **Parent:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 
 ## Why this law is required
@@ -96,9 +97,24 @@ authoritative_projection:
     - terminal_resource_dispositions
 ```
 
-The frozen implementation schema may organize these fields differently, but it must preserve their meaning. A field is authoritative when changing or losing it could change a future canonical decision, its ordering, its eligibility, or the explanation of a durable mutation.
+The first substrate uses this fixed identity and top-level envelope shape:
 
-`canonical_hash` is the hash of this projection alone. It is not a hash of runtime caches, diagnostics, materialization detail, or any other resolution-local representation.
+```yaml
+record_schema: CanonicalResolutionEnvelope.v1
+law_id: resolution-semantics-law-v1
+law_version: 0.1.0
+simulation_version: 0.7.0-draft.29
+
+canonical_envelope:
+  identity: {}
+  current_causal_state: {}
+  future_causal_state: {}
+  causal_provenance: {}
+```
+
+A field belongs in one of these declared envelope sections whenever changing or losing it could change a future canonical decision, its ordering, its eligibility, or the explanation of a durable mutation. Implementations may add named fields within these sections, but may not add a new top-level authoritative section or omit a required category without a new versioned law.
+
+`canonical_hash` is `sha256(canonical_json(canonical_envelope))`. It is not a hash of runtime caches, diagnostics, materialization detail, or any other resolution-local representation.
 
 ### Resolution-local state
 
@@ -131,7 +147,10 @@ The scheduler owns canonical time and decides when canonical work is due. It mus
 ```text
 next_consequential_boundary(canonical_envelope)
   → none
-  | exact decision boundary with its due commitments/processes
+  | {
+      decision_time,
+      due_work_ids: [canonical_execution_key ascending]
+    }
 ```
 
 The result is derived only from authoritative state. It must identify the earliest future boundary at which canonical work can evaluate a gate, consume or release a resource, change a commitment lifecycle, apply a derived effect, or append an authoritative causal-ledger entry.
@@ -157,7 +176,7 @@ invent a new due commitment
 delay a recorded boundary because the area is coarse
 ```
 
-The policy therefore cannot change `next_consequential_boundary` for a given canonical envelope.
+The policy therefore cannot change `next_consequential_boundary` for a given canonical envelope. The returned `due_work_ids` are the complete canonical due set for that decision time, before proposal generation or working-state revalidation.
 
 ## 3. Promotion and demotion
 
@@ -263,7 +282,7 @@ If a proposed optimization requires any of these, it is a new city law and must 
 
 ## 7. Future predecessor acceptance gate
 
-This document is ready to freeze only when its exact canonical-envelope schema, hash boundary, and scheduler interface are reviewed. A later, separately authorized substrate proof must establish only:
+The canonical-envelope identity, hash boundary, scheduler result shape, ledger boundary, and no-randomness rule are frozen. A later, separately authorized substrate proof must establish only:
 
 ```text
 A
@@ -307,9 +326,15 @@ Causal-LOD Equivalence may be selected
 
 ## Explicit boundary
 
-This draft authorizes no code, test fixture, record migration, simulator refactor, Unreal work, random system, city content, planner extension, map scale, multiplayer, networking, rollback, or production streaming work.
+This law authorizes no code, test fixture, record migration, simulator refactor, Unreal work, random system, city content, planner extension, map scale, multiplayer, networking, rollback, or production streaming work.
 
 ## Changelog
+
+### 0.1.0 — 2026-08-26
+
+- Froze `CanonicalResolutionEnvelope.v1`, `resolution-semantics-law-v1`, and simulation version `0.7.0-draft.29`.
+- Fixed `canonical_hash` as the SHA-256 of canonical JSON for the canonical envelope alone; fixed the next-boundary result as one decision time plus a complete ascending canonical due-work set.
+- Froze authoritative-only ledger semantics and the absence of authoritative random draws. Implementation remains separately unauthorized.
 
 ### 0.1.0-draft.0 — 2026-08-26
 
