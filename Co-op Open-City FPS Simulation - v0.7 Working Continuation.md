@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.24
-**Status:** The shared-state commitment interference proof is sealed. No successor city scope is authorized.
+**Version:** 0.7.0-draft.25
+**Status:** Bounded agent commitment selection is under specification review. Implementation is not authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -46,6 +46,8 @@ The sealed [Crew Deployment Opportunity-Cost Proof — v0.1.0](Crew%20Deployment
 The sealed [Crew Arrival Into Live Commitment Proof — v0.1.0](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20-%20Draft.md) and its [evidence](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20Evidence%20-%20v0.1.0.md) establish causal continuity through crew arrival. Its gang/relay vocabulary is fixture-only. It distinguishes a selected deployment destination from clock-derived physical access while arrival itself remains free of strategic mutation; it proves pre-claim physical intervention, canonical claim resolution, and a fresh post-claim relay change that cannot rewrite historical ownership.
 
 The sealed [Shared-State Commitment Interference Proof — v0.1.0](Shared-State%20Commitment%20Interference%20Proof%20-%20Draft.md) and its [evidence](Shared-State%20Commitment%20Interference%20Proof%20Evidence%20-%20v0.1.0.md) establish canonical composition: two independently defined commitments share exactly one fixture-local state fact, then demonstrate primary, counterfactual, and reversed-order outcomes without foreign commitment references, callbacks, or pair-specific rules.
+
+The next candidate is [Bounded Agent Commitment Selection Proof — v0.1.0-draft.0](Bounded%20Agent%20Commitment%20Selection%20Proof%20-%20Draft.md). It proposes the smallest agent-selection boundary: one agent receives a declared local perception, selects from two ordinary feasible actions with explicit costs, then submits a commitment proposal for canonical revalidation. It remains specification-only pending review and freeze.
 
 ## Product framing
 
@@ -125,6 +127,12 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.25 — 2026-08-26
+
+- Opened specification review for the Bounded Agent Commitment Selection Proof.
+- The candidate isolates local perception, action feasibility, explicit cost, deterministic score/tie selection, canonical commitment creation, and an excluded-fact witness.
+- No implementation, Unreal work, generalized planner, stale intelligence, new city content, scale, multiplayer, or successor behavior is authorized.
 
 ### 0.7.0-draft.24 — 2026-08-26
 
@@ -279,6 +287,6 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 
 The frozen three-area kernel has passed its primary run, counterfactual, replay-equivalence record, causal ledger, materialization projection, real first-person materialization, and one complete physical-to-canonical-to-physical persistence round trip.
 
-The crew deployment opportunity-cost proof, crew-arrival live-commitment proof, and shared-state commitment interference proof are sealed. All are bounded proofs, not authority to expand city scale or add systems.
+The crew deployment opportunity-cost proof, crew-arrival live-commitment proof, and shared-state commitment interference proof are sealed. Bounded agent commitment selection is under specification review only.
 
 Do not revise the frozen kernel or add map scale, additional city systems, or scripted front outcomes without a new user-directed scope decision. The proven round trip is one consequence, not authority to expand city scope.
