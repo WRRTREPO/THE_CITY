@@ -7,7 +7,7 @@ The project reads a selected record and materializes only its permitted facts. T
 - `Primary`: the fire closes Ash Bridge; police remain at A; Docklands is under gang control.
 - `Counterfactual`: Ash Bridge is open; police reach Docklands; ownership remains contested.
 
-No strategic simulation runs in Unreal. The Python kernel remains the causal authority. This project proves only the FPS/materialization boundary.
+No strategic simulation runs in Unreal. The Python canonical layer remains the causal authority. Unreal materializes authoritative records and may emit evidenced physical-consequence proposals, but it cannot commit city state or causal-ledger entries.
 
 The player begins on a collision floor at the proof map's `Z = 0` elevation. It is deliberate proof geometry, not a simulated city fact.
 
@@ -68,4 +68,6 @@ PYTHONDONTWRITEBYTECODE=1 python3 roundtrip.py apply \
 
 Terminate the first Unreal process. Start a fresh process with `-CityProofRecord` set to `RuntimeExchange/committed_record.json`. It must rematerialize a destroyed, impassable bridge access point without showing an active fire.
 
-The complete passing record is [Bridge Access Persistence Round-Trip Evidence — v0.1.0](../Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.0.md).
+Replaying the accepted proposal against the committed record is rejected without changing canonical state, and replaying the accepted transaction from the same R0 and proposal produces byte-identical R1.
+
+The complete passing record is [Bridge Access Persistence Round-Trip Evidence — v0.1.1](../Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.1.md).
