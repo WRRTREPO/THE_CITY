@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.36
-**Status:** Causal-LOD Equivalence Proof v0.1.0 is frozen and authorized for canonical-only implementation. No successor city scope is authorized.
+**Version:** 0.7.0-draft.37
+**Status:** Causal-LOD Equivalence Proof v0.1.0 is sealed. No successor city scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -53,7 +53,7 @@ The frozen [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20
 
 The frozen [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md) and its [sealed evidence](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md) establish the canonical-only predecessor to Causal-LOD Equivalence: exact payload validation, singular canonical-envelope hashing, one boundary-discovery query, promotion/demotion transforms, four neutrality witnesses, three fail-closed adversarial dispositions, replay, source audit, and a self-excluding release manifest. It does not implement high/coarse execution, a variable-resolution scheduler, actual Causal-LOD equivalence, Unreal, city content, randomness, planning, scale, multiplayer, or any successor scope.
 
-The frozen [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20-%20Draft.md) authorizes canonical-only implementation of one exact `CausalLodEquivalencePayload.v1`, one canonical t1/00 resolver, dense-inspection and boundary-jump local policies, promotion/demotion transition witnesses, runtime fail-closed dispositions, equivalence-oracle failures, source audit, replay, evidence, and release verification. R0 is the sole parent and transaction pre-state for t1/00; no authoritative intermediate clock-advance record is permitted. Unreal, city content, external inputs, randomness, planning, and successor scope remain excluded.
+The sealed [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20-%20Draft.md) and its [evidence](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md) establish one neutral canonical execution fixture under dense-inspection, boundary-jump, and mixed promotion/demotion policy sequences. Every witness uses byte-identical R0 as parent and transaction pre-state for the one t1/00 resolver and produces byte-identical R1 authority, ledger, disposition, future schedule, and no-next-boundary result. Local traces differ; policy has no causal authority. Unreal, city content, external inputs, randomness, planning, and successor scope remain excluded.
 
 ## Product framing
 
@@ -133,6 +133,12 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.37 — 2026-08-26
+
+- Sealed Causal-LOD Equivalence Proof v0.1.0: four materially different local execution histories converge on byte-identical canonical R1 through one R0-bound resolver transaction.
+- Recorded 104 passing tests, runtime fail-closed cases, equivalence-oracle failure preservation, source audit, replay, and a self-excluding release manifest.
+- This establishes only the neutral canonical equivalence fixture; no Unreal, city-content, external-input, random, planner, scale, multiplayer, or successor scope is authorized.
 
 ### 0.7.0-draft.36 — 2026-08-26
 
