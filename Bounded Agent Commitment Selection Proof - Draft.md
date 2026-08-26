@@ -1,8 +1,8 @@
 # Bounded Agent Commitment Selection Proof
 
-**Version:** 0.1.0-draft.0
-**Status:** Candidate scope under review. Implementation is not authorized.
-**Candidate simulation version:** 0.7.0-draft.25
+**Version:** 0.1.0
+**Status:** Frozen. Implementation is authorized only within this proof.
+**Simulation version:** 0.7.0-draft.25 — fixed for this proof.
 **Parent:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 
 ## Why this is next
@@ -135,19 +135,43 @@ canonical transaction creates the local commitment
 ### Perception exclusion witness
 
 ```text
-change only hidden fixture fact H
+change only hidden authoritative fixture fact H
         ↓
 agent_P perception is byte-identical
         ↓
-candidate set, scores, selected action, proposal, and committed result
+candidate set, scores, selected action, and semantic commitment intent
 remain byte-identical
 ```
 
+The two final records differ only in H itself. A changed authoritative fact
+cannot yield byte-identical whole records. Full-record source hashes,
+transaction references, and final hashes must therefore differ, while the
+selection semantics and commitment mutation differ only by those required hash
+references.
+
 ### Deterministic tie witness
 
-Adjust fixture values so two feasible actions have equal score. Stable action
-identifier ordering must select one deterministically. This is a fixture input,
-not a production priority policy.
+Set the visible remote opportunity value to `7`, yielding remote and local
+scores of `4`. Stable action identifier ordering must select one
+deterministically. This is a fixture input, not a production priority policy.
+
+## Exact freeze identity and commitment boundary
+
+```yaml
+scenario_id: bounded-agent-commitment-selection-v1
+scenario_version: 0.1.0
+simulation_version: 0.7.0-draft.25
+record_schema: BoundedAgentCommitmentSelectionRecord.v1
+seed: bounded-agent-commitment-selection-v1/0001
+decision_boundary: t0/00
+policy_version: bounded-agent-selection-policy-v1
+```
+
+This proof stops immediately after canonical commitment creation. A selected
+action becomes one active commitment with explicitly owned resource
+reservations; it does not silently terminate or claim to prove execution of
+the future commitment. A rejected action acquires no resource and creates no
+commitment.
 
 ## Required authority boundaries
 
@@ -179,7 +203,7 @@ forbidden:
 3. Primary selects the higher-scoring feasible remote action and proposes—rather than directly creates—the commitment.
 4. The canonical transaction layer revalidates all ordinary gates and performs the only commitment/resource mutation.
 5. Route-closed counterfactual changes only route availability; the unchanged local action is selected through ordinary feasibility.
-6. Hidden-fact witness produces byte-identical perception, selection, proposal, ledger, and record.
+6. Hidden-fact witness produces byte-identical perception, candidate set, score, selected action, and semantic commitment intent. Its full-record source hashes, transaction references, and final record may differ only because H differs.
 7. Tie witness uses stable deterministic ordering; no container order, wall-clock timing, or action-name special case decides it.
 8. Every selected or rejected action records perception, candidate set, feasibility gates, score, tie break, proposal, revalidation, and resource disposition.
 9. Same record, seed, policy version, and input sequence replay byte-identically.
@@ -187,12 +211,18 @@ forbidden:
 
 ## Explicit boundary
 
-This candidate does not authorize implementation, Unreal, physical evidence,
+This proof does not authorize Unreal, physical evidence,
 multiple agents, agent-to-agent strategy, stale intelligence, generalized
 planning, learning, economy, map scale, split crews, multiplayer, networking,
 rollback, repair, or city-content expansion.
 
 ## Changelog
+
+### 0.1.0 — 2026-08-26
+
+- Froze the bounded-agent selection proof for canonical-only implementation.
+- Corrected the hidden-fact witness: perception and selection semantics remain byte-identical while source hashes and final records differ only through the intentionally changed excluded fact H.
+- Fixed the tie witness at remote opportunity value `7` and explicitly bounded the proof at commitment creation with owned active reservations.
 
 ### 0.1.0-draft.0 — 2026-08-26
 
