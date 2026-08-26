@@ -1,6 +1,6 @@
 # Causal-LOD Equivalence Proof
 
-**Version:** 0.1.0-draft.0
+**Version:** 0.1.0-draft.1
 **Status:** Open for specification review. No implementation is authorized.
 **Parent law:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 **Predecessor:** [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md)
@@ -91,7 +91,7 @@ causal_provenance:
     reservation_alpha: release_unit_alpha_on_success
 ```
 
-### One resolver and exact R1 shape
+### One resolver, transaction ancestry, and exact R1 shape
 
 There is one canonical operation, not a dense resolver and a boundary-jump
 resolver:
@@ -104,7 +104,36 @@ It must reject any supplied boundary that differs from
 `next_consequential_boundary(canonical_envelope)`. It receives no resolution
 policy, local sample, cache, diagnostic, or trace.
 
-At the common `t1/00` boundary, it alone:
+R0 is the exact, immutable transaction pre-state for every witness. There is
+no authoritative scheduler-clock-advance record between R0 and the common
+transaction:
+
+```text
+R0.canonical_clock = t0/00
+R0 = exact transaction pre-state
+
+canonical_boundary = { t1/00, [t1/00/equivalence/commitment_alpha.resolve] }
+
+resolve_next_due(R0, canonical_boundary)
+  → validates canonical_boundary against R0 future schedule
+  → atomically advances clock and resolves due work
+  → R1
+```
+
+The transaction header must therefore contain:
+
+```yaml
+decision_time: t1/00
+parent_record_hash: hash(R0)
+transaction_pre_state_hash: hash(R0)
+boundary_derivation: next_consequential_boundary
+```
+
+An implementation must not insert an authoritative scheduler-clock-advance
+record, intermediate parent, ledger entry, or pre-state hash between R0 and
+this transaction.
+
+At the common `t1/00` boundary, the resolver alone:
 
 ```text
 revalidates substrate_marker == stable
@@ -118,9 +147,10 @@ revalidates substrate_marker == stable
 ```
 
 Candidate R1 therefore has one terminal commitment, an available `unit_alpha`,
-the stated terminal disposition, one ledger entry whose transaction pre-state
-is R0, and an empty future schedule/execution-key set. No policy may change
-this result or add a separate authoritative event before `t1/00`.
+the stated terminal disposition, one ledger entry whose parent and transaction
+pre-state hashes both identify R0, and an empty future schedule/execution-key
+set. No policy may change this result or add a separate authoritative event
+before `t1/00`.
 
 ## Resolution policies
 
@@ -166,7 +196,9 @@ remove state needed by `resolve_next_due`.
 ## Required witnesses
 
 All witnesses begin from byte-identical R0 with the same identity, seed, rule
-set, empty external-input sequence, and canonical due boundary.
+set, empty external-input sequence, and canonical due boundary. Each presents
+that same R0 hash as `parent_record_hash` and `transaction_pre_state_hash` to
+the one resolver transaction.
 
 ```text
 A. DENSE THROUGHOUT
@@ -198,6 +230,8 @@ must_match:
   commitment_terminal_state: identical
   reservation_disposition: identical
   authoritative_ledger: byte_identical
+  parent_record_hash: identical_hash_of_R0
+  transaction_pre_state_hash: identical_hash_of_R0
   future_schedule: byte_identical
   next_consequential_boundary: { decision_time: null, due_work_ids: [] }
 
@@ -210,7 +244,7 @@ The ledger records the one authoritative `t1/00` transaction only. It must not
 record dense inspection as causal history. Each witness must also replay
 byte-identically within its own policy sequence.
 
-## Required fail-closed cases
+## Runtime fail-closed cases
 
 The future implementation must reject, without canonical mutation, ledger
 append, resource change, or future-schedule creation:
@@ -220,8 +254,28 @@ append, resource change, or future-schedule creation:
 3. promotion carries local sample data into canonical authority;
 4. demotion removes any resolver-required fact, reservation, disposition, or due work;
 5. boundary jump omits or crosses authoritative due work;
-6. either policy selects a distinct resolver path or policy-specific outcome;
-7. terminal resource disposition, ledger ancestry, transaction pre-state, or future schedule differs across witnesses.
+6. either policy selects a distinct resolver path or policy-specific outcome.
+
+## Equivalence-oracle failures
+
+The following are not malformed-runtime rejections. They are failed proof
+results discovered after candidate witness outputs are produced and compared:
+
+```yaml
+equivalence_failure:
+  - final_canonical_envelope_differs
+  - canonical_hash_differs
+  - terminal_commitment_or_resource_disposition_differs
+  - authoritative_ledger_differs
+  - parent_record_hash_differs
+  - transaction_pre_state_hash_differs
+  - future_schedule_differs
+  - next_consequential_boundary_differs
+```
+
+Candidate outputs remain available as non-authoritative proof artifacts for
+inspection. They are not retroactively rewritten or transactionally rolled
+back merely because the equivalence oracle rejects the proof claim.
 
 ## Required source audit
 
@@ -246,6 +300,12 @@ canonical serializer, source-audit test plan, release artifacts, and
 simulation identity before canonical-only implementation is authorized.
 
 ## Changelog
+
+### 0.1.0-draft.1 — 2026-08-26
+
+- Defined the candidate transaction shape: byte-identical R0 is both the parent and exact transaction pre-state for the sole t1/00 resolver transaction; no authoritative intermediate clock-advance record is permitted.
+- Separated malformed-runtime fail-closed dispositions from post-run equivalence-oracle failures, preserving divergent candidate outputs as inspectable proof evidence.
+- No implementation or successor city scope is authorized.
 
 ### 0.1.0-draft.0 — 2026-08-26
 
