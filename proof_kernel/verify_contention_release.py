@@ -12,11 +12,12 @@ from contention import CASE_DESTRUCTION_FIRST, CASE_ENTRY_FIRST, write_case_arti
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROOF_RECORDS = PROJECT_ROOT / "CityMaterializationProof" / "Content" / "ProofRecords"
-MANIFEST = PROJECT_ROOT / "Bridge Access Traversal Contention Proof - v0.1.0 SHA256SUMS.txt"
+MANIFEST = PROJECT_ROOT / "Bridge Access Traversal Contention Proof - v0.1.1 SHA256SUMS.txt"
 
 SOURCE_PATHS = (
     "Bridge Access Traversal Contention Proof - Draft.md",
     "Bridge Access Traversal Contention Proof Evidence - v0.1.0.md",
+    "Bridge Access Traversal Contention Proof Evidence - v0.1.1.md",
     "Co-op Open-City FPS Simulation - v0.7 Working Continuation.md",
     "proof_kernel/contention.py",
     "proof_kernel/test_contention.py",

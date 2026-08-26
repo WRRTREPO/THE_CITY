@@ -13,6 +13,7 @@ from contention import (
     PHYSICAL_CONTRACT,
     PHYSICAL_PROPOSAL_ID,
     POLICE_COMMITMENT_ID,
+    deterministic_scheduler_advance,
     initial_record,
     make_physical_proposal,
     record_hash,
@@ -61,7 +62,9 @@ class BridgeContentionTests(unittest.TestCase):
         self.assertEqual(police["availability"], "available")
         self.assertEqual(police["dispatch_to_C"], {"result": "failed_gate", "failed_gate": "E_AB.open"})
         self.assertNotIn(POLICE_COMMITMENT_ID, final["commitments"])
-        self.assertEqual(police_entry(result)["result"], "failed_gate")
+        failed_entry = police_entry(result)
+        self.assertEqual(failed_entry["result"], "failed_gate")
+        self.assertEqual(failed_entry["resources"], ["no resource acquired"])
 
     def test_case_2_closed_route_honours_existing_lease_before_exit(self) -> None:
         result = run_case(CASE_ENTRY_FIRST)
@@ -85,6 +88,8 @@ class BridgeContentionTests(unittest.TestCase):
         self.assertEqual(exit_entry["decision_time"], "t1/15")
         self.assertEqual(exit_entry["batch_pre_state_hash"], exit_transaction["batch_pre_state_hash"])
         self.assertEqual(exit_transaction["batch_header"]["decision_boundary"], "t1/15")
+        self.assertEqual(exit_transaction["batch_header"]["parent_record_hash"], record_hash(result["intermediate_record"]))
+        self.assertEqual(exit_transaction["batch_header"]["boundary_derivation"], "scheduler_clock_advance")
         self.assertEqual(exit_transaction["batch_header"]["transaction_pre_state_hash"], exit_transaction["batch_pre_state_hash"])
         self.assertNotEqual(exit_entry["batch_pre_state_hash"], result["batch_pre_state_hash"])
         self.assertEqual(exit_entry["working_pre_state_hash"], exit_transaction["batch_pre_state_hash"])
@@ -93,6 +98,27 @@ class BridgeContentionTests(unittest.TestCase):
         self.assertEqual(final["routes"]["E_AB"]["leases"], [])
         self.assertIsNone(final["commitments"][POLICE_COMMITMENT_ID]["current_segment"])
         self.assertEqual(final["commitments"][POLICE_COMMITMENT_ID]["last_valid_location"], "B")
+
+    def test_t1_pre_state_is_explicit_scheduler_derivation_of_the_t0_parent(self) -> None:
+        result = run_case(CASE_ENTRY_FIRST)
+        exit_transaction = result["exit_transaction"]
+        parent = result["intermediate_record"]
+        expected = deterministic_scheduler_advance(parent, "t1/15")
+        self.assertEqual(exit_transaction["parent_record_hash"], record_hash(parent))
+        self.assertEqual(exit_transaction["exit_pre_record"], expected)
+        self.assertEqual(record_hash(expected), exit_transaction["batch_pre_state_hash"])
+        parent_without_clock = copy.deepcopy(parent)
+        exit_without_clock = copy.deepcopy(exit_transaction["exit_pre_record"])
+        parent_without_clock.pop("clock")
+        exit_without_clock.pop("clock")
+        self.assertEqual(parent_without_clock, exit_without_clock)
+
+    def test_t1_transaction_replays_from_the_same_parent_and_boundary_byte_identically(self) -> None:
+        first_parent = run_case(CASE_ENTRY_FIRST)["intermediate_record"]
+        second_parent = run_case(CASE_ENTRY_FIRST)["intermediate_record"]
+        from contention import resolve_t1_exit
+
+        self.assertEqual(canonical_json(resolve_t1_exit(first_parent)), canonical_json(resolve_t1_exit(second_parent)))
 
     def test_case_2_physical_source_is_bound_to_batch_not_working_pre_state(self) -> None:
         result = run_case(CASE_ENTRY_FIRST)

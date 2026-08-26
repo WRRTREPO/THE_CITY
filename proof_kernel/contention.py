@@ -275,6 +275,22 @@ def _apply_police_entry_failure(record: dict[str, Any], failed_gate: str) -> Non
     police["dispatch_to_C"] = {"result": "failed_gate", "failed_gate": failed_gate}
 
 
+def deterministic_scheduler_advance(
+    parent_record: dict[str, Any],
+    decision_boundary: str,
+) -> dict[str, Any]:
+    """Build a transaction pre-state by advancing only the canonical clock.
+
+    Scheduler-owned boundary construction is explicit provenance, not an actor
+    proposal.  The caller records the parent hash and this derivation in the
+    child transaction header before any t1 proposal is revalidated.
+    """
+
+    advanced = _copy(parent_record)
+    advanced["clock"] = decision_boundary
+    return advanced
+
+
 def resolve_t0_batch(
     case: str,
     physical_proposal: dict[str, Any] | None = None,
@@ -368,7 +384,7 @@ def resolve_t0_batch(
                 _apply_police_entry_failure(working, failed_gate)
                 result = "failed_gate"
                 mutations = [f"police_unit_01.dispatch_to_C.failed_gate = {failed_gate}"]
-                resources = ["release police_unit_01"]
+                resources = ["no resource acquired"]
             working_post_state_hash = record_hash(working)
             ledger.append(
                 _entry(
@@ -405,8 +421,8 @@ def resolve_t0_batch(
 def resolve_t1_exit(intermediate_record: dict[str, Any]) -> dict[str, Any]:
     """Complete only E_AB in its own t1/15 transaction boundary."""
 
-    exit_pre = _copy(intermediate_record)
-    exit_pre["clock"] = "t1/15"
+    parent_record_hash = record_hash(intermediate_record)
+    exit_pre = deterministic_scheduler_advance(intermediate_record, "t1/15")
     batch_pre_state_hash = record_hash(exit_pre)
     working = _copy(exit_pre)
     police = working["agents"]["police_unit_01"]
@@ -444,6 +460,8 @@ def resolve_t1_exit(intermediate_record: dict[str, Any]) -> dict[str, Any]:
     working_post_state_hash = record_hash(working)
     batch_header = {
         "decision_boundary": "t1/15",
+        "parent_record_hash": parent_record_hash,
+        "boundary_derivation": "scheduler_clock_advance",
         "transaction_pre_state_hash": batch_pre_state_hash,
         "input_sequence_id": "case_2_entry_first_exit_E_AB",
         "proposal_ids": [f"{POLICE_COMMITMENT_ID}.exit_E_AB"],
@@ -466,6 +484,7 @@ def resolve_t1_exit(intermediate_record: dict[str, Any]) -> dict[str, Any]:
         believed_inputs={"entered_segment_authority": LEASE_ID},
     )
     return {
+        "parent_record_hash": parent_record_hash,
         "batch_pre_state_hash": batch_pre_state_hash,
         "batch_header": batch_header,
         "exit_pre_record": exit_pre,
@@ -498,6 +517,7 @@ def run_case(case: str, physical_proposal: dict[str, Any] | None = None) -> dict
         "intermediate_record": t0["intermediate_record"],
         "intermediate_record_hash": t0["intermediate_record_hash"],
         "exit_transaction": exit_result,
+        "t1_15_batch": None if exit_result is None else {"header": _copy(exit_result["batch_header"]), "ledger": [_copy(exit_result["ledger"])]},
         "final_record": final_record,
         "final_record_hash": record_hash(final_record),
         "ledger": final_ledger,

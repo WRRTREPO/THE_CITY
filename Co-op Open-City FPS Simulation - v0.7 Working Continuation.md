@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.14
-**Status:** Causal kernel, real FPS materialization, the single-consequence persistence round trip, and the frozen bridge-access traversal contention proof have passed. No city expansion is authorized by those proofs.
+**Version:** 0.7.0-draft.15
+**Status:** Causal kernel, real FPS materialization, the single-consequence persistence round trip, and the provenance-corrected bridge-access traversal contention proof have passed. No city expansion is authorized by those proofs.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -39,7 +39,7 @@ The real first-person embodiment of those sealed records is recorded in [Unreal 
 
 The bridge-access round trip is specified in [v0.1.1](Bridge%20Access%20Persistence%20Round-Trip%20Proof%20-%20Draft.md), with its reviewed original retained as [v0.1.0](Bridge%20Access%20Persistence%20Round-Trip%20Proof%20-%20v0.1.0.md). Its final implementation and passing evidence are recorded in [Bridge Access Persistence Round-Trip Evidence — v0.1.1](Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.1.md); the original [evidence v0.1.0](Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.0.md) remains inspectable.
 
-The frozen [Bridge Access Traversal Contention Proof — v0.1.0](Bridge%20Access%20Traversal%20Contention%20Proof%20-%20Draft.md) now has passing implementation evidence in [v0.1.0](Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.0.md). It establishes only the documented contention semantics.
+The frozen [Bridge Access Traversal Contention Proof — v0.1.0](Bridge%20Access%20Traversal%20Contention%20Proof%20-%20Draft.md) has a retained original execution witness in [v0.1.0](Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.0.md) and its final provenance-corrected evidence in [v0.1.1](Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.1.md). It establishes only the documented contention semantics.
 
 ## Product framing
 
@@ -119,6 +119,12 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.15 — 2026-08-26
+
+- Corrected only the contention proof's cross-transaction provenance: `t1/15` now retains the t0 intermediate parent hash and a named scheduler-clock-advance derivation before revalidation.
+- Corrected failed-entry resource provenance to record that no resource was acquired.
+- Resealed the same contention behavior under new release identity; no traversal, ordering, authority, or city-law behavior changed.
 
 ### 0.7.0-draft.14 — 2026-08-26
 

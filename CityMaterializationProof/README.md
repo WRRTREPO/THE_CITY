@@ -76,7 +76,7 @@ The complete passing record is [Bridge Access Persistence Round-Trip Evidence â€
 
 The same proof project also materializes the sealed final records for the frozen `E_AB` traversal-contention proof. It remains a read-only materializer: Unreal emitted the captured physical proposal from R0, while Python resolved the collision with police entry and produced both final records.
 
-The completed record is [Bridge Access Traversal Contention Proof Evidence â€” v0.1.0](../Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.0.md). Verify its release package with:
+The original execution witness is [v0.1.0](../Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.0.md); the final provenance-corrected record is [v0.1.1](../Bridge%20Access%20Traversal%20Contention%20Proof%20Evidence%20-%20v0.1.1.md). Verify the current release package with:
 
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
