@@ -6,11 +6,11 @@ strategic authority.
 
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
-**Current sealed proof record:** `a15c3a5`. The governing continuation is
-[v0.7.0-draft.32](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+**Current sealed proof record:** [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md).
+The governing continuation is [v0.7.0-draft.33](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
-and its [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
-are frozen. No implementation or successor scope is authorized.
+and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
+are sealed. Causal-LOD Equivalence is not yet selected or implemented.
 
 ## The machine
 
@@ -54,6 +54,7 @@ proposals. Unreal cannot write city truth or causal-ledger entries.
 | [Crew Arrival into Live Commitment](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20Evidence%20-%20v0.1.0.md) | A crew enters an already-live commitment, changes a future gate, and cannot reopen settled history. |
 | [Shared-State Commitment Interference](Shared-State%20Commitment%20Interference%20Proof%20Evidence%20-%20v0.1.0.md) | Independently defined commitments interfere through ordinary shared-state revalidation, not authored coupling. |
 | [Bounded Agent Commitment Selection](Bounded%20Agent%20Commitment%20Selection%20Proof%20Evidence%20-%20v0.1.0.md) | A pure agent selector chooses from bounded perception and submits a proposal; canonical authority alone creates the active reservation. |
+| [Resolution Semantics Substrate](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md) | Exact canonical-envelope authority, next-boundary discovery, and promotion/demotion preserve causal truth before Causal-LOD Equivalence is attempted. |
 
 The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.2](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.2.md).
 
