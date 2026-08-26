@@ -6,9 +6,10 @@ strategic authority.
 
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
-**Current record:** sealed through `a15c3a5`. The governing continuation is
-[v0.7.0-draft.27](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
-No successor scope is currently authorized.
+**Current sealed record:** `a15c3a5`. The governing continuation is
+[v0.7.0-draft.28](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+The [Resolution Semantics Law](Resolution%20Semantics%20Law%20-%20Draft.md) is
+in specification review; no implementation or successor scope is authorized.
 
 ## The machine
 
