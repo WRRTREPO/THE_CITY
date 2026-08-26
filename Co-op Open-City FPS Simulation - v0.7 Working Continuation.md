@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.33
-**Status:** The Resolution Semantics Substrate Proof v0.1.0 implementation is sealed. Causal-LOD Equivalence is not yet selected, specified, or implemented.
+**Version:** 0.7.0-draft.34
+**Status:** Causal-LOD Equivalence Proof v0.1.0-draft.0 is open for specification review only. No equivalence implementation or successor city scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -52,6 +52,8 @@ The sealed [Bounded Agent Commitment Selection Proof — v0.1.0](Bounded%20Agent
 The frozen [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md) is the prerequisite to any Causal-LOD Equivalence proof. It fixes `CanonicalResolutionEnvelope.v1` as the authority container and requires each concrete implementation to freeze its own exact, versioned authoritative payload schema. It also fixes canonical-envelope hashing, next-consequential-boundary discovery, promotion/demotion, authoritative-ledger, and no-randomness semantics. The historical [v0.1.0](Resolution%20Semantics%20Law%20-%20Draft.md) remains inspectable. No implementation, fixture, or successor city scope is authorized.
 
 The frozen [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md) and its [sealed evidence](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md) establish the canonical-only predecessor to Causal-LOD Equivalence: exact payload validation, singular canonical-envelope hashing, one boundary-discovery query, promotion/demotion transforms, four neutrality witnesses, three fail-closed adversarial dispositions, replay, source audit, and a self-excluding release manifest. It does not implement high/coarse execution, a variable-resolution scheduler, actual Causal-LOD equivalence, Unreal, city content, randomness, planning, scale, multiplayer, or any successor scope.
+
+The new [Causal-LOD Equivalence Proof — v0.1.0-draft.0](Causal-LOD%20Equivalence%20Proof%20-%20Draft.md) is specification-only. It proposes a new exact `CausalLodEquivalencePayload.v1`, one canonical t1/00 resolver, dense-inspection and boundary-jump local policies, promotion/demotion transition witnesses, and a byte-identical canonical-history oracle. It explicitly excludes Unreal, city content, external inputs, randomness, planning, implementation, and any successor scope until the specification freezes.
 
 ## Product framing
 
@@ -131,6 +133,12 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.34 — 2026-08-26
+
+- Opened Causal-LOD Equivalence Proof v0.1.0-draft.0 as the next canonical-only specification scope.
+- Proposed a new payload/simulation identity, one shared resolver, dense-inspection versus boundary-jump policies, transition witnesses, authoritative-equivalence oracle, and fail-closed policy-leak cases.
+- No implementation, Unreal work, city behavior, external input, randomness, scale, multiplayer, or successor scope is authorized.
 
 ### 0.7.0-draft.33 — 2026-08-26
 
