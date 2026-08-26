@@ -10,6 +10,7 @@ class UStaticMeshComponent;
 class UMaterialInterface;
 class UTextRenderComponent;
 class ACrewOperationPoint;
+class ALiveCommitmentRelayPoint;
 
 USTRUCT()
 struct FCityProofRecord
@@ -24,6 +25,7 @@ struct FCityProofRecord
     bool bBridgeAccessRoundTripRecord = false;
     bool bBridgeAccessContentionRecord = false;
     bool bCrewDeploymentOpportunityRecord = false;
+    bool bCrewArrivalLiveCommitmentRecord = false;
     FString CrewInteractionDomain;
     bool bFireContainment = false;
     bool bCrewDisruption = false;
@@ -34,6 +36,11 @@ struct FCityProofRecord
     FString DocklandsOwner;
     int32 GangControl = 0;
     int32 RivalControl = 0;
+    FString Clock;
+    FString LiveClaimState;
+    FString LiveResolutionTime;
+    bool bLiveRelayActive = false;
+    bool bLivePhysicalAccess = false;
 };
 
 UCLASS()
@@ -52,6 +59,7 @@ private:
     void Materialize(const FCityProofRecord& Record);
     void SpawnBridgeAccessPoint(const FCityProofRecord& Record);
     void SpawnCrewOperationPoint(const FCityProofRecord& Record);
+    void SpawnLiveCommitmentRelayPoint(const FCityProofRecord& Record);
     UStaticMeshComponent* AddBlock(const FVector& Location, const FVector& Scale, const FLinearColor& Color, bool bBlocksMovement);
     UTextRenderComponent* AddLabel(const FVector& Location, const FString& Text, const FColor& Color);
 

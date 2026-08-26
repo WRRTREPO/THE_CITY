@@ -1,0 +1,36 @@
+{
+	"proposal_id": "physical_disable_claim_relay_C_live_0002",
+	"protocol_version": "PhysicalConsequenceProposal.v1",
+	"source":
+	{
+		"system": "crew_physical_simulation",
+		"runtime_instance_id": "live_commitment_runtime_01",
+		"source_record_hash": "9b7e6dcd5d8be788d6f9cfa3e137db42cbf74bb447d911f1d97b20d1fee2065a",
+		"source_simulation_version": "0.7.0-draft.21"
+	},
+	"instigator":
+	{
+		"kind": "crew",
+		"id": "crew_01_to_04"
+	},
+	"target":
+	{
+		"kind": "claim_relay",
+		"id": "gang_claim_relay_C_01",
+		"area": "C"
+	},
+	"observed_outcome":
+	{
+		"state": "disabled",
+		"event_sequence": 2
+	},
+	"evidence":
+	{
+		"physical_actor_id": "gang_claim_relay_C_01",
+		"outcome_state": "disabled",
+		"evidence_digest": "md5:8383b0fc454c34f0e835913691e19d2a"
+	},
+	"proposed_mutations": [
+		"C.relay.active = false"
+	]
+}

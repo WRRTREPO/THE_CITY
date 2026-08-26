@@ -1,8 +1,8 @@
 # Crew Arrival Into Live Commitment Proof
 
-**Version:** 0.1.0-draft.3
-**Status:** Candidate freeze under review. Implementation is not authorized.
-**Simulation version:** 0.7.0-draft.20 — fixed for this proof.
+**Version:** 0.1.0
+**Status:** Frozen. Implementation is authorized only within this proof.
+**Simulation version:** 0.7.0-draft.21 — fixed for this proof.
 **Parent:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 
 ## Claim
@@ -118,7 +118,7 @@ No replay-significant identity remains contextual.
 ```yaml
 scenario_id: crew-arrival-live-commitment-v1
 scenario_version: 0.1.0
-simulation_version: 0.7.0-draft.20
+simulation_version: 0.7.0-draft.21
 record_schema: CrewArrivalLiveCommitmentRecord.v1
 seed: crew-arrival-live-commitment-v1/0001
 ```
@@ -281,13 +281,25 @@ The proof freezes two ordered outcomes.
 ```text
 Rarrival
   → crew disables relay
-  → proposal commits at t0/30
+  → proposal commits at t0/27 against the exact Rarrival source record
   → C.relay.active = false
   → scheduler reaches t0/40
   → claim completion revalidates and fails relay gate
   → C remains contested (64 / 36)
   → claim releases all reservations
 ```
+
+The early proposal commits at `t0/27`, the same canonical boundary represented
+by `Rarrival`. This is required by the source-binding law:
+
+```text
+proposal.source_record_hash == hash(record observed by Unreal)
+```
+
+Advancing only `clock` to `t0/30` before validating a proposal emitted from
+`Rarrival` would make that proposal stale without adding any causal fact. The
+proof therefore uses the first lawful post-arrival boundary; it remains strictly
+before claim revalidation at `t0/40`.
 
 ### Claim wins before later evidence
 
@@ -416,6 +428,12 @@ canonical prehistory   materialization contract / source audit
 This draft does not authorize implementation, additional city scale, split crews, intelligence variance, autonomous general planning, civilian simulation, new factions, multiplayer, networking, rollback, repair, or generalized player action semantics.
 
 ## Changelog
+
+### 0.1.0 — 2026-08-26
+
+- Froze this proof for implementation after review. The sole demonstrated live commitment remains `gang_claim_C_001`; no adjacent city scope is authorized.
+- Bound early physical relay evidence to the exact `Rarrival` source record at `t0/27`, rather than creating a clock-only stale-source boundary at `t0/30`. This preserves the pre-`t0/40` causal window and the optimistic-concurrency law.
+- Fixed simulation identity as `0.7.0-draft.21` for the frozen implementation and replay target.
 
 ### 0.1.0-draft.3 — 2026-08-26
 

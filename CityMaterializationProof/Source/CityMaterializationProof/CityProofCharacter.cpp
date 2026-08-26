@@ -2,6 +2,7 @@
 
 #include "BridgeAccessPoint.h"
 #include "CrewOperationPoint.h"
+#include "LiveCommitmentRelayPoint.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Engine/Engine.h"
@@ -61,6 +62,16 @@ void ACityProofCharacter::AttemptBridgeAccessDestruction()
             }
             return;
         }
+        if (ALiveCommitmentRelayPoint* RelayPoint = Cast<ALiveCommitmentRelayPoint>(Hit.GetActor()))
+        {
+            const bool bProposalWritten = RelayPoint->TryDisableByCrew(TEXT("crew_01_to_04"));
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
+                    bProposalWritten ? TEXT("Physical proposal emitted. Canonical commit required.") : TEXT("No live-relay proposal emitted."));
+            }
+            return;
+        }
         if (ABridgeAccessPoint* AccessPoint = Cast<ABridgeAccessPoint>(Hit.GetActor()))
         {
             const bool bProposalWritten = AccessPoint->TryDestroyByCrew(TEXT("crew_01_to_04"));
@@ -86,6 +97,23 @@ void ACityProofCharacter::AttemptBridgeAccessDestruction()
             {
                 GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
                     bProposalWritten ? TEXT("Physical proposal emitted. Canonical commit required.") : TEXT("No crew-operation proposal emitted."));
+            }
+            return;
+        }
+    }
+
+    for (TActorIterator<ALiveCommitmentRelayPoint> It(GetWorld()); It; ++It)
+    {
+        // The live commitment uses the same compressed proof-map interaction
+        // reach as the existing operation surfaces. Proximity selects physical
+        // evidence generation only; it does not grant canonical authority.
+        if (FVector::DistSquared(GetActorLocation(), It->GetActorLocation()) <= FMath::Square(5000.0f))
+        {
+            const bool bProposalWritten = It->TryDisableByCrew(TEXT("crew_01_to_04"));
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
+                    bProposalWritten ? TEXT("Physical proposal emitted. Canonical commit required.") : TEXT("No live-relay proposal emitted."));
             }
             return;
         }

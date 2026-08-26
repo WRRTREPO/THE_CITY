@@ -28,7 +28,9 @@ class UnrealAuthorityBoundaryTests(unittest.TestCase):
         self.assertIn("LoadAuthoritativeRecord", source)
         self.assertIn("BridgeAccessTraversalContentionRecord.v1", source)
         self.assertIn("CrewDeploymentOpportunityRecord.v1", source)
+        self.assertIn("CrewArrivalLiveCommitmentRecord.v1", source)
         self.assertIn("SpawnCrewOperationPoint", source)
+        self.assertIn("SpawnLiveCommitmentRelayPoint", source)
         self.assertNotIn("SaveStringToFile", source)
         self.assertNotIn("FJsonSerializer::Serialize", source)
 
@@ -48,6 +50,26 @@ class UnrealAuthorityBoundaryTests(unittest.TestCase):
             "proposal_terminal_dispositions",
             "canonical.apply_physical_proposal",
             "crew_deployment_request",
+        ):
+            self.assertNotIn(forbidden_canonical_output, source)
+
+    def test_live_relay_actor_emits_only_fixture_exact_evidence(self) -> None:
+        source = (UNREAL_SOURCE / "LiveCommitmentRelayPoint.cpp").read_text(encoding="utf-8")
+        self.assertIn("physical_disable_claim_relay_C_live_0001.json", source)
+        self.assertIn("physical_disable_claim_relay_C_live_0002.json", source)
+        self.assertIn("gang_claim_relay_C_01", source)
+        self.assertIn("C.relay.active = false", source)
+        self.assertIn("live_commitment_runtime_01", source)
+        self.assertIn("SaveStringToFile", source)
+        for forbidden_canonical_output in (
+            "committed_record.json",
+            "causal_ledger.json",
+            "proposal_terminal_dispositions",
+            "canonical.apply_physical_relay_proposal",
+            "gang_claim_C_001.complete",
+            "C.owner = gang",
+            "mission_variant",
+            "arrival_stage",
         ):
             self.assertNotIn(forbidden_canonical_output, source)
 

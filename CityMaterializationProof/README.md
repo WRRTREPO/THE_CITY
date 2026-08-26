@@ -109,3 +109,34 @@ Those final records materialize three distinct histories: B preserves the route
 and police response, C retains the fire closure but blocks seizure, and D shows
 the unattended gang takeover. The complete sealed record is [Crew Deployment
 Opportunity-Cost Proof Evidence — v0.1.0](../Crew%20Deployment%20Opportunity-Cost%20Proof%20Evidence%20-%20v0.1.0.md).
+
+## Crew arrival into a live commitment
+
+The live-commitment proof demonstrates that the crew can enter a claim already
+in progress without Unreal creating or selecting an encounter. The materializer
+receives durable local facts and the active canonical commitment; it has no
+stage, mission, or timer authority.
+
+Use the sealed arrival record to materialize the active claim before its
+canonical resolution boundary:
+
+```sh
+"/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor" \
+  "/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/CityMaterializationProof.uproject" \
+  -game \
+  -CityProofRecord="/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/Content/ProofRecords/live_commitment_Rarrival.json" \
+  -CityProofExchange="/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/RuntimeExchange"
+```
+
+At the cyan relay surface, `E` may emit only an exact physical-evidence
+proposal. `proof_kernel/live_commitment.py` is the sole canonical resolver.
+It interprets the same relay-disable proposal differently according to the
+authoritative record: before the claim boundary it can prevent the claim;
+after settlement it can change the current relay fact without reopening gang
+ownership history.
+
+Three independently materialized final records demonstrate the resulting
+truths: control is gang-owned with an active relay; early intervention is
+contested with the relay inactive; late intervention is gang-owned at 72 / 28
+with the relay inactive. The complete sealed record is [Crew Arrival Into Live
+Commitment Proof Evidence — v0.1.0](../Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20Evidence%20-%20v0.1.0.md).

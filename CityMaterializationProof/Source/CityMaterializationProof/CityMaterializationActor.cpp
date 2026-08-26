@@ -2,6 +2,7 @@
 
 #include "BridgeAccessPoint.h"
 #include "CrewOperationPoint.h"
+#include "LiveCommitmentRelayPoint.h"
 #include "CityMaterializationProof.h"
 #include "Components/SceneComponent.h"
 #include "Components/PointLightComponent.h"
@@ -71,7 +72,57 @@ bool ACityMaterializationActor::LoadAuthoritativeRecord(FCityProofRecord& OutRec
     OutRecord.RecordName = Root->GetStringField(TEXT("record_name"));
     OutRecord.CanonicalHash = Root->GetStringField(TEXT("canonical_sha256"));
 
-    if (RecordSchema == TEXT("CrewDeploymentOpportunityRecord.v1"))
+    if (RecordSchema == TEXT("CrewArrivalLiveCommitmentRecord.v1"))
+    {
+        if (!Root->HasTypedField<EJson::Object>(TEXT("world")) ||
+            !Root->HasTypedField<EJson::Object>(TEXT("deployment")) ||
+            !Root->HasTypedField<EJson::Object>(TEXT("areas")) ||
+            !Root->HasTypedField<EJson::Object>(TEXT("commitments")))
+        {
+            OutFailure = TEXT("Live-commitment record is missing canonical city sections.");
+            return false;
+        }
+
+        const TSharedPtr<FJsonObject> World = Root->GetObjectField(TEXT("world"));
+        const TSharedPtr<FJsonObject> Deployment = Root->GetObjectField(TEXT("deployment"));
+        const TSharedPtr<FJsonObject> Areas = Root->GetObjectField(TEXT("areas"));
+        const TSharedPtr<FJsonObject> Commitments = Root->GetObjectField(TEXT("commitments"));
+        if (!Areas->HasTypedField<EJson::Object>(TEXT("C")) ||
+            !Commitments->HasTypedField<EJson::Object>(TEXT("gang_claim_C_001")))
+        {
+            OutFailure = TEXT("Live-commitment record is missing C or its canonical claim.");
+            return false;
+        }
+
+        const TSharedPtr<FJsonObject> AreaC = Areas->GetObjectField(TEXT("C"));
+        const TSharedPtr<FJsonObject> Claim = Commitments->GetObjectField(TEXT("gang_claim_C_001"));
+        if (!AreaC->HasTypedField<EJson::Object>(TEXT("relay")) ||
+            !Deployment->HasField(TEXT("physical_access_at")) ||
+            !Root->HasField(TEXT("clock")))
+        {
+            OutFailure = TEXT("Live-commitment record is missing relay or derived-access inputs.");
+            return false;
+        }
+
+        const TSharedPtr<FJsonObject> Relay = AreaC->GetObjectField(TEXT("relay"));
+        OutRecord.bCrewArrivalLiveCommitmentRecord = true;
+        OutRecord.Clock = Root->GetStringField(TEXT("clock"));
+        OutRecord.LiveClaimState = Claim->GetStringField(TEXT("state"));
+        OutRecord.LiveResolutionTime = Claim->GetStringField(TEXT("resolution_time"));
+        OutRecord.bLiveRelayActive = Relay->GetBoolField(TEXT("active"));
+        OutRecord.bLivePhysicalAccess = World->GetBoolField(TEXT("active_world")) &&
+            Deployment->GetStringField(TEXT("state")) == TEXT("active") &&
+            Deployment->GetStringField(TEXT("destination")) == TEXT("C") &&
+            OutRecord.Clock.Compare(Deployment->GetStringField(TEXT("physical_access_at")), ESearchCase::CaseSensitive) >= 0;
+        OutRecord.DocklandsOwner = AreaC->GetStringField(TEXT("owner"));
+        OutRecord.GangControl = AreaC->GetIntegerField(TEXT("gang_control"));
+        OutRecord.RivalControl = AreaC->GetIntegerField(TEXT("rival_control"));
+        OutRecord.FireIntensity = 0;
+        OutRecord.PoliceLocation = TEXT("unmaterialized");
+        OutRecord.PoliceAvailability = TEXT("unmaterialized");
+        OutRecord.PolicePresentAtDocklands = 0;
+    }
+    else if (RecordSchema == TEXT("CrewDeploymentOpportunityRecord.v1"))
     {
         if (!Root->HasTypedField<EJson::Object>(TEXT("routes")) ||
             !Root->HasTypedField<EJson::Object>(TEXT("agents")) ||
@@ -228,6 +279,21 @@ void ACityMaterializationActor::SpawnCrewOperationPoint(const FCityProofRecord& 
     }
 }
 
+void ACityMaterializationActor::SpawnLiveCommitmentRelayPoint(const FCityProofRecord& Record)
+{
+    if (!Record.bCrewArrivalLiveCommitmentRecord || !Record.bLivePhysicalAccess || !Record.bLiveRelayActive)
+    {
+        return;
+    }
+
+    FString ExchangeDirectory = FPaths::ProjectSavedDir() / TEXT("LiveCommitmentExchange");
+    FParse::Value(FCommandLine::Get(), TEXT("CityProofExchange="), ExchangeDirectory);
+    if (ALiveCommitmentRelayPoint* RelayPoint = GetWorld()->SpawnActor<ALiveCommitmentRelayPoint>(ALiveCommitmentRelayPoint::StaticClass(), FVector(1300.0f, 420.0f, 0.0f), FRotator::ZeroRotator))
+    {
+        RelayPoint->Configure(Record.CanonicalHash, ExchangeDirectory, Record.LiveClaimState, Record.bLiveRelayActive);
+    }
+}
+
 UStaticMeshComponent* ACityMaterializationActor::AddBlock(const FVector& Location, const FVector& Scale, const FLinearColor& Color, bool bBlocksMovement)
 {
     UStaticMeshComponent* Block = NewObject<UStaticMeshComponent>(this);
@@ -330,6 +396,26 @@ void ACityMaterializationActor::Materialize(const FCityProofRecord& Record)
         }
     }
 
+    if (Record.bCrewArrivalLiveCommitmentRecord)
+    {
+        const FColor CommitmentColor = Record.LiveClaimState == TEXT("active") ? FColor::Cyan : (Record.LiveClaimState == TEXT("succeeded") ? FColor::Red : FColor::Yellow);
+        AddLabel(FVector(-1200.0f, 520.0f, 270.0f), FString::Printf(TEXT("LIVE COMMITMENT: %s\nclock: %s | canonical resolution: %s\nphysical access C: %s"), *Record.LiveClaimState.ToUpper(), *Record.Clock, *Record.LiveResolutionTime, Record.bLivePhysicalAccess ? TEXT("AVAILABLE") : TEXT("NOT AVAILABLE")), CommitmentColor);
+        AddBlock(FVector(1250.0f, -220.0f, 85.0f), FVector(0.6f, 1.8f, 0.8f), FLinearColor(0.75f, 0.05f, 0.05f), true);
+        AddLabel(FVector(1250.0f, -220.0f, 250.0f), TEXT("PERIMETER / INGRESS ESTABLISHED"), FColor::Red);
+        if (Record.bLiveRelayActive)
+        {
+            if (!Record.bLivePhysicalAccess)
+            {
+                AddLabel(FVector(1300.0f, 420.0f, 300.0f), TEXT("RELAY ACTIVE — CURRENT CAUSAL INPUT"), FColor::Cyan);
+            }
+        }
+        else
+        {
+            AddBlock(FVector(1300.0f, 420.0f, 80.0f), FVector(0.65f, 0.65f, 0.35f), FLinearColor(0.10f, 0.32f, 0.25f), true);
+            AddLabel(FVector(1300.0f, 420.0f, 300.0f), TEXT("RELAY DISABLED — CANONICAL FACT"), FColor::Green);
+        }
+    }
+
     if (Record.bBridgeOpen)
     {
         AddBlock(FVector(0.0f, 0.0f, 0.0f), FVector(3.5f, 2.2f, 0.12f), FLinearColor(0.3f, 0.3f, 0.3f), true);
@@ -376,4 +462,5 @@ void ACityMaterializationActor::Materialize(const FCityProofRecord& Record)
 
     SpawnBridgeAccessPoint(Record);
     SpawnCrewOperationPoint(Record);
+    SpawnLiveCommitmentRelayPoint(Record);
 }
