@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.37
-**Status:** Causal-LOD Equivalence Proof v0.1.0 is sealed. No successor city scope is authorized.
+**Version:** 0.7.0-draft.38
+**Status:** Record-Relative Chronological Resolution Proof v0.1.0-draft.0 is under specification review. Implementation is not authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -54,6 +54,8 @@ The frozen [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20
 The frozen [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md) and its [sealed evidence](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md) establish the canonical-only predecessor to Causal-LOD Equivalence: exact payload validation, singular canonical-envelope hashing, one boundary-discovery query, promotion/demotion transforms, four neutrality witnesses, three fail-closed adversarial dispositions, replay, source audit, and a self-excluding release manifest. It does not implement high/coarse execution, a variable-resolution scheduler, actual Causal-LOD equivalence, Unreal, city content, randomness, planning, scale, multiplayer, or any successor scope.
 
 The sealed [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20-%20Draft.md) and its [evidence](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md) establish one neutral canonical execution fixture under dense-inspection, boundary-jump, and mixed promotion/demotion policy sequences. Every witness uses byte-identical R0 as parent and transaction pre-state for the one t1/00 resolver and produces byte-identical R1 authority, ledger, disposition, future schedule, and no-next-boundary result. Local traces differ; policy has no causal authority. Unreal, city content, external inputs, randomness, planning, and successor scope remain excluded.
+
+The candidate [Record-Relative Chronological Resolution Proof — v0.1.0-draft.0](Record-Relative%20Chronological%20Resolution%20Proof%20-%20Draft.md) is the next specification-only scope. It asks whether each next consequential boundary is rediscovered from the newly committed record after the prior boundary resolves. Its neutral X/Y/Z fixture makes X mutate one shared fact at t1/00, requires Y to revalidate that fact at t1/30, and resolves independent Z at t2/00. It is not implementation authority and does not authorize Unreal, city content, input, randomness, scale, or any successor scope.
 
 ## Product framing
 
@@ -133,6 +135,12 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.38 — 2026-08-26
+
+- Opened Record-Relative Chronological Resolution Proof v0.1.0-draft.0 as the next specification-only scope.
+- Proposed a new exact payload identity, neutral X/Y/Z commitments, per-commit record-relative boundary discovery, checkpoint-by-checkpoint dense/boundary-jump equivalence, runtime rejection, and source-audit requirements.
+- No implementation, Unreal, city content, external input, randomness, scale, multiplayer, or successor scope is authorized.
 
 ### 0.7.0-draft.37 — 2026-08-26
 
