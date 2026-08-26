@@ -1,8 +1,8 @@
 # Crew Arrival Into Live Commitment Proof
 
-**Version:** 0.1.0-draft.2
+**Version:** 0.1.0-draft.3
 **Status:** Candidate freeze under review. Implementation is not authorized.
-**Simulation version:** 0.7.0-draft.19 — fixed for this proof.
+**Simulation version:** 0.7.0-draft.20 — fixed for this proof.
 **Parent:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 
 ## Claim
@@ -118,7 +118,7 @@ No replay-significant identity remains contextual.
 ```yaml
 scenario_id: crew-arrival-live-commitment-v1
 scenario_version: 0.1.0
-simulation_version: 0.7.0-draft.19
+simulation_version: 0.7.0-draft.20
 record_schema: CrewArrivalLiveCommitmentRecord.v1
 seed: crew-arrival-live-commitment-v1/0001
 ```
@@ -358,6 +358,17 @@ Rarrival late evidence
   → relay becomes inactive; gang ownership remains historical fact
 ```
 
+The proof variable is the timing of valid physical evidence relative to the
+claim's canonical revalidation boundary, not arrival timing by itself. Branch C
+does not claim that arriving after settlement creates a distinct history. It
+materializes a fresh already-settled canonical record, then proves that a new
+physical occurrence may change current relay state without reopening the
+already-resolved ownership history.
+
+The resulting conclusion is exactly:
+
+> **No intervention before settlement permits the claim to resolve; valid physical evidence before settlement can prevent the claim; valid physical evidence after settlement can change current relay state without reopening already-resolved ownership history.**
+
 ## Acceptance gates
 
 1. Every pre-arrival action is canonically committed before Rarrival, including terminal resource disposition and provenance.
@@ -366,13 +377,15 @@ Rarrival late evidence
 4. Rarrival contains durable facts plus `gang_claim_C_001` as one active canonical commitment.
 5. Unreal materializes Rarrival from facts and commitment data only; no stage/variant/arrival selector exists on the demonstrated path.
 6. The claim remains canonical while its physical context is materialized; Unreal owns neither its timer nor its resolution.
-7. The physical relay outcome crosses only as evidenced proposal → canonical validation → atomic mutation → causal ledger.
-8. Pre-boundary relay disable changes the t0/40 claim gate and produces the exact failed terminal disposition.
-9. A fresh post-boundary physical relay occurrence may change `C.relay.active`, but cannot retroactively change completed gang ownership or control facts.
-10. Every success/failure terminal transition releases, consumes, transfers, or transforms every claim reservation.
-11. Replay from Rarrival plus the same ordered physical input is byte-identical for all branch records and ledgers.
-12. Fresh Unreal processes receiving only Rarrival and each final record materialize the live and terminal physical worlds consistently.
-13. Source audit proves no Unreal path selects a stage/mission variant, resolves `gang_claim_C_001`, mutates ownership/commitments, serializes canonical records, or writes the causal ledger.
+7. Branch A materializes `Rarrival`, emits no Unreal proposal, and reaches gang ownership only through the canonical t0/40 claim resolution.
+8. The physical relay outcome crosses only as evidenced proposal → canonical validation → atomic mutation → causal ledger.
+9. In Branch B, physically evidenced relay disable commits before t0/40, changes the claim gate, and produces the exact failed terminal disposition.
+10. In Branch C, the claim is already canonical history before Unreal starts; fresh post-boundary relay evidence may change `C.relay.active`, but cannot retroactively change completed gang ownership or control facts.
+11. The same proposal validator and canonical commit path handle Branches B and C. Their different consequences arise only from authoritative pre-state and canonical timing, never branch-specific resolver logic.
+12. Every success/failure terminal transition releases, consumes, transfers, or transforms every claim reservation.
+13. Replay from Rarrival plus the same ordered physical input is byte-identical for all branch records and ledgers.
+14. Every final Unreal process receives only its canonical final record. No branch reads prior Unreal-process memory, transient state, or branch-local hidden state.
+15. Source audit proves no Unreal path selects a stage/mission variant, resolves `gang_claim_C_001`, mutates ownership/commitments, serializes canonical records, or writes the causal ledger.
 
 ## DAG plan
 
@@ -403,6 +416,11 @@ canonical prehistory   materialization contract / source audit
 This draft does not authorize implementation, additional city scale, split crews, intelligence variance, autonomous general planning, civilian simulation, new factions, multiplayer, networking, rollback, repair, or generalized player action semantics.
 
 ## Changelog
+
+### 0.1.0-draft.3 — 2026-08-26
+
+- Advanced the fixed proof simulation identity to `0.7.0-draft.20` and corrected the branch interpretation: evidence timing relative to canonical claim settlement—not arrival timing alone—distinguishes pre- and post-boundary consequences.
+- Required an explicit no-proposal control branch, one shared B/C validator and commit path, and final-process isolation from prior Unreal state.
 
 ### 0.1.0-draft.2 — 2026-08-26
 

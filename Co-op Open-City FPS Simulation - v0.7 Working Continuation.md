@@ -1,6 +1,6 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.19
+**Version:** 0.7.0-draft.20
 **Status:** The crew-arrival live-commitment proof is in specification review. Implementation is not authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
@@ -123,6 +123,12 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.20 — 2026-08-26
+
+- Corrected the live-commitment proof interpretation: the decisive variable is physical-evidence timing relative to canonical claim settlement, not delayed arrival itself.
+- Required a no-proposal control, shared B/C canonical validation and commit path, and fresh-process isolation; advanced the candidate proof's fixed simulation identity to `0.7.0-draft.20`.
+- The proof remains in specification review. No implementation authority or successor city scope is authorized.
 
 ### 0.7.0-draft.19 — 2026-08-26
 
