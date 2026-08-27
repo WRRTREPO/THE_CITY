@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-26)\
 **Date:** 2026-08-26\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.49`\
+**Governing continuation:** `0.7.0-draft.50`\
 **Latest sealed proof:** `Same-Clock Successor Semantics Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.7`
@@ -35,7 +35,7 @@ release manifest: 24 / 24 verified, self-excluding
 
 Same-Clock's seal authorizes no extension of its own scope. The selected
 successor is [Integrated Unreal Promotion-Unload-Repromotion Proof —
-v0.1.0-draft.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md);
+v0.1.0-draft.1](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md);
 it authorizes no implementation.
 
 ## Current proof progression
@@ -415,7 +415,7 @@ sealed_commit:
   message: Seal same-clock successor proof
 
 continuation:
-  version: 0.7.0-draft.49
+  version: 0.7.0-draft.50
 
 latest_capacity_record:
   version: 0.1.7
@@ -486,8 +486,10 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
 Do not jump directly to production World Partition architecture.
 
 The active draft is [Integrated Unreal Promotion-Unload-Repromotion Proof —
-v0.1.0-draft.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md).
-It is specification-only. Its bounded sequence is:
+v0.1.0-draft.1](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md).
+It is specification-only. Draft.1 requires isolated source/return input
+domains, detached UE materialization-acceptance receipts, and a
+harness-supplied fixture interaction opportunity. Its bounded sequence is:
 
 ``` text
 sealed R0
@@ -541,7 +543,7 @@ or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 The successor choice is now made:
 
 ``` text
-B. Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0-draft.0
+B. Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0-draft.1
    specification review only
 ```
 

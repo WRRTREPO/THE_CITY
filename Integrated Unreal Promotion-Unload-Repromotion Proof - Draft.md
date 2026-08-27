@@ -1,12 +1,12 @@
 # Integrated Unreal Promotion-Unload-Repromotion Proof
 
-**Version:** 0.1.0-draft.0\
+**Version:** 0.1.0-draft.1\
 **Status:** Specification review only. Implementation is not authorized.\
 **Parent law:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)\
 **Sealed predecessors:** [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md); [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md); [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md); [Unreal Materialization Proof — v0.1.0](Unreal%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md); [Bridge Access Persistence Round-Trip Evidence — v0.1.1](Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.1.md)\
 **Related sealed scheduler hardening:** [Same-Clock Successor Semantics Proof — v0.1.0](Same-Clock%20Successor%20Semantics%20Proof%20Evidence%20-%20v0.1.0.md), not exercised by this fixture.\
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)\
-**Candidate simulation identity:** `0.7.0-draft.49` — exact identity and serialization remain freeze gates.
+**Candidate simulation identity:** `0.7.0-draft.50` — exact identity and serialization remain freeze gates.
 
 ## Question
 
@@ -21,7 +21,7 @@ only the already-sealed authority boundaries.
 ```text
 R0 @ t0/00
   ↓ representation-promotion request only
-fresh UE process #1 materializes R0
+fresh UE process #1 accepts and materializes R0
   ↓ physical action emits Q @ t0/30
 canonical admission and BQ transaction
   ↓
@@ -47,6 +47,7 @@ After a later freeze, this proof may implement only:
 - one interaction surface which may emit one exact Q;
 - one input transaction at `t0/30` and one autonomous transaction at `t1/00`;
 - one fresh UE source process, termination witness, and fresh return process;
+- isolated source-input, source-output, and return-input proof domains;
 - a dense canonical reference, an integrated boundary-jump witness, and a
   Q-absent control; and
 - tests, source audit, build, evidence, replay, and a self-excluding manifest.
@@ -90,7 +91,7 @@ record_schema: CanonicalResolutionEnvelope.v1
 payload_schema: IntegratedUnrealPromotionUnloadRepromotionPayload.v1
 scenario_id: integrated-unreal-promotion-unload-repromotion-v1
 scenario_version: 0.1.0
-simulation_version: 0.7.0-draft.49
+simulation_version: 0.7.0-draft.50
 seed: integrated-unreal-promotion-unload-repromotion-v1/0001
 ```
 
@@ -154,13 +155,77 @@ raw_payload_sha256: <SHA-256 of exact UTF-8 payload bytes>
 expected_record_schema: CanonicalResolutionEnvelope.v1
 expected_payload_schema: IntegratedUnrealPromotionUnloadRepromotionPayload.v1
 expected_scenario_id: integrated-unreal-promotion-unload-repromotion-v1
-expected_simulation_version: 0.7.0-draft.49
+expected_simulation_version: 0.7.0-draft.50
 ```
 
 UE computes SHA-256 over the raw UTF-8 payload bytes before parsing. It refuses
 materialization and exposes no proposal capability if receipt, bytes, schema,
 scenario, or identity disagree. The frozen version must define receipt JSON,
 UTF-8, field-presence, null, and hash-hex rules exactly.
+
+### Process-domain isolation
+
+The harness creates three physically distinct proof domains:
+
+```text
+source_input/
+  canonical_payload_R0.json
+  launch_receipt_R0.json
+
+source_output/
+  Q only
+
+return_input/
+  canonical_payload_Rfinal.json
+  launch_receipt_Rfinal.json
+```
+
+Fresh UE process #1 may read `source_input/` and write its one Q to
+`source_output/`. It may not read `return_input/`. Fresh UE process #2 may
+read `return_input/` only; it has no access to `source_input/` or
+`source_output/` and no writeable proof-exchange directory. The harness must
+also assert that UE #2 receives no predecessor-path, Q-path, branch-selector,
+save, configuration, session, cache, or inherited command-line input capable
+of carrying fixture truth.
+
+Before UE #2 launches, the harness records a complete allowed-file list and
+raw-byte hashes for `return_input/` and rejects every extra visible proof
+input. Process death alone is not accepted as filesystem isolation evidence.
+
+### Materialization acceptance receipt
+
+After receipt validation, parse, and physical materialization, each UE process
+emits one detached `IntegratedMaterializationAcceptanceReceipt.v1` on a
+structured process-output channel captured by the harness. It is operational
+evidence, not canonical state and not a file in any proof-input domain.
+
+The source receipt records:
+
+```yaml
+process_instance_id: <operational only>
+accepted_raw_payload_sha256: D0
+accepted_canonical_hash: H0
+materialized_actor_id: integrated_gate_token_01
+materialized_gate_state: enabled
+materialized_alpha_state: active
+proposal_capability_enabled: true
+```
+
+The return receipt records:
+
+```yaml
+process_instance_id: <operational only>
+accepted_raw_payload_sha256: Dfinal
+accepted_canonical_hash: Hfinal
+materialized_actor_id: integrated_gate_token_01
+materialized_gate_state: disabled
+materialized_alpha_state: failed_gate
+proposal_capability_enabled: false
+```
+
+The control's return receipt must instead report its own Rcontrol hash,
+`enabled`, `succeeded`, and `proposal_capability_enabled: false`. A missing,
+contradictory, or duplicate acceptance receipt fails the proof witness.
 
 ## Promotion, materialization, and Q
 
@@ -173,11 +238,18 @@ promotion_request:
   materialization_domain: integrated_fixture_surface
 ```
 
-Fresh UE process #1 receives only R0 and its matching receipt. It must visibly
-materialize `gate_token = enabled` and `alpha = active, due t1/00`.
+Fresh UE process #1 receives R0, its matching receipt, and only the
+non-authoritative fixture-local interaction-opportunity context described
+below. It must visibly materialize `gate_token = enabled` and `alpha = active,
+due t1/00`.
 
-At logical time `t0/30`, activation of `integrated_gate_token_01` may change
-only disposable local representation and emit one Q:
+The harness supplies `t0/30` to UE #1 as a sealed fixture-local interaction
+opportunity through non-authoritative execution context. UE does not derive
+canonical time, active-world time, or occurrence-time authority. It proves
+only that physical interaction occurred under that supplied opportunity.
+
+At that supplied opportunity, activation of `integrated_gate_token_01` may
+change only disposable local representation and emit one Q:
 
 ```yaml
 input_id: physical_disable_integrated_gate_token_0001
@@ -244,9 +316,10 @@ Q cannot cancel, terminalize, reschedule, or directly fail alpha. It changes
 only alpha's later ordinary gate input.
 
 After Rinput is durable, the proof terminates UE process #1 and records an
-operational termination witness. Its local world, cache, and exchange
-directory are unavailable to the next canonical step. This proves sequencing;
-process existence is never a canonical gate.
+operational termination witness. The harness then proves the source domains
+are inaccessible to the later canonical/return stages under the isolated
+domain law above. This proves sequencing; process existence is never a
+canonical gate.
 
 Only then may the harness call `next_execution_boundary(Rinput)`. It must
 rediscover the Rinput-bound alpha capability:
@@ -288,9 +361,10 @@ An R0-bound autonomous capability retained after Rinput must fail as stale.
 
 ## Return materialization
 
-Fresh UE process #2 receives only Rfinal plus its matching receipt. It receives
-no R0, Q, BQ, source exchange directory, cache, prior UE save, prior actor
-state, or branch selector. After receipt verification, it must visibly
+Fresh UE process #2 receives only the two allowed `return_input/` files:
+Rfinal and its matching receipt. It receives no R0, Q, BQ, source exchange
+directory, cache, prior UE save, prior actor state, or branch selector. After
+receipt verification and acceptance-receipt emission, it must visibly
 materialize:
 
 ```yaml
@@ -308,7 +382,7 @@ crew action occurred as a presentation selector.
 | --- | --- | --- |
 | Dense reference | Dense canonical execution receives the exact captured Q as ordered external input; no UE state participates in resolution. | R0 → Rinput → Rfinal. |
 | Integrated primary | Boundary jump; promotion; fresh UE #1 emits Q; Q commits; UE #1 terminates; alpha is rediscovered; fresh UE #2 reads Rfinal only. | R0 → Rinput → Rfinal plus lifecycle witnesses. |
-| Q-absent control | Same R0 and boundary jump, without Q; fresh UE materializes final truth. | R0 → Rcontrol, token enabled / alpha succeeded. |
+| Q-absent control | Fresh control UE source process accepts/materializes R0; no interaction and no Q; source process terminates; boundary jump resolves alpha; fresh control return process receives Rcontrol only. | R0 → Rcontrol, token enabled / alpha succeeded, under the same isolation lifecycle. |
 
 Dense reference and integrated primary require byte-identical canonical
 authority at each shared checkpoint:
@@ -348,7 +422,9 @@ The frozen specification must require at least:
 8. UE code path writing canonical records/ledgers, resolving alpha, or
    selecting canonical policy → audit failure; and
 9. return UE process receiving predecessor, Q, exchange, cache, or branch
-   input → harness failure before materialization.
+   input → harness failure before materialization; and
+10. missing, contradictory, or duplicate materialization acceptance receipt →
+    witness failure.
 
 The audit must show one canonical resolver serves dense and boundary-jump
 witnesses. It receives only canonical record-bound capabilities and admitted
@@ -369,6 +445,9 @@ Partition, same-clock behavior, or adjacent city systems.
 
 ## Decision record
 
+- Draft.1 adds mechanical process-domain isolation, detached UE acceptance
+  receipts, harness-supplied interaction opportunity semantics, and the full
+  source/destroy/return lifecycle for the Q-absent control.
 - This draft selects no World Partition or production streaming architecture.
 - Same-clock successor semantics is a sealed predecessor, not an exercised
   fixture behavior.
