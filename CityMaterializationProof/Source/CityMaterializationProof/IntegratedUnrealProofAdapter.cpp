@@ -236,10 +236,15 @@ UStaticMeshComponent* AIntegratedUnrealProofAdapter::AddBlock(const FVector& Loc
     Block->SetStaticMesh(CubeMesh);
     Block->SetWorldLocation(Location);
     Block->SetWorldScale3D(Scale);
-    Block->SetCollisionEnabled(bBlocksMovement ? ECollisionEnabled::QueryAndPhysics : ECollisionEnabled::NoCollision);
     if (bBlocksMovement)
     {
         Block->SetCollisionProfileName(TEXT("BlockAll"));
+        Block->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        Block->SetCollisionResponseToAllChannels(ECR_Block);
+    }
+    else
+    {
+        Block->SetCollisionEnabled(ECollisionEnabled::NoCollision);
     }
     if (ShapeMaterial != nullptr)
     {
@@ -268,7 +273,28 @@ UTextRenderComponent* AIntegratedUnrealProofAdapter::AddLabel(const FVector& Loc
 
 void AIntegratedUnrealProofAdapter::Materialize(const FIntegratedUnrealMaterializationRecord& Record)
 {
-    AddBlock(FVector(0.0f, 0.0f, -10.0f), FVector(40.0f, 20.0f, 0.1f), FLinearColor(0.08f, 0.08f, 0.08f), true);
+    // This is a physical representation only, but it still has to be a safe
+    // walkable witness.  The entry map supplies no dependable light or floor,
+    // so the adapter owns both locally.  Neither component is canonical state.
+    UPointLightComponent* KeyLight = NewObject<UPointLightComponent>(this, TEXT("IntegratedProofKeyLight"));
+    KeyLight->SetupAttachment(SceneRoot);
+    KeyLight->SetWorldLocation(FVector(-500.0f, -350.0f, 1500.0f));
+    KeyLight->SetIntensity(180000.0f);
+    KeyLight->SetAttenuationRadius(7000.0f);
+    KeyLight->SetLightColor(FLinearColor(0.82f, 0.90f, 1.0f));
+    KeyLight->RegisterComponent();
+
+    UPointLightComponent* GateLight = NewObject<UPointLightComponent>(this, TEXT("IntegratedProofGateLight"));
+    GateLight->SetupAttachment(SceneRoot);
+    GateLight->SetWorldLocation(FVector(0.0f, 220.0f, 650.0f));
+    GateLight->SetIntensity(60000.0f);
+    GateLight->SetAttenuationRadius(3000.0f);
+    GateLight->SetLightColor(Record.GateState == TEXT("enabled") ? FLinearColor(0.1f, 0.9f, 0.82f) : FLinearColor(0.1f, 0.55f, 0.28f));
+    GateLight->RegisterComponent();
+
+    // BasicShapes/Cube is 100 cm high. This produces a 40 cm-thick surface
+    // with its top exactly at Z=0, underneath the 96 cm half-height player.
+    AddBlock(FVector(0.0f, 0.0f, -20.0f), FVector(40.0f, 20.0f, 0.4f), FLinearColor(0.12f, 0.14f, 0.18f), true);
     AddLabel(FVector(-850.0f, -420.0f, 360.0f), FString::Printf(TEXT("INTEGRATED UNREAL LIFECYCLE\ncanonical: %s\ngate: %s | alpha: %s\nproposal capability: %s"), *Record.CanonicalHash.Left(12), *Record.GateState.ToUpper(), *Record.AlphaState.ToUpper(), Record.bProposalCapabilityEnabled ? TEXT("ENABLED") : TEXT("DISABLED")), FColor::White);
     if (AIntegratedGateTokenPoint* Gate = GetWorld()->SpawnActor<AIntegratedGateTokenPoint>(AIntegratedGateTokenPoint::StaticClass(), FVector(0.0f, 220.0f, 0.0f), FRotator::ZeroRotator))
     {

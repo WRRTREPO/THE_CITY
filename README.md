@@ -6,8 +6,8 @@ strategic authority.
 
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
-**Current sealed proof record:** [Same-Clock Successor Semantics Proof — v0.1.0](Same-Clock%20Successor%20Semantics%20Proof%20Evidence%20-%20v0.1.0.md).
-The governing continuation is [v0.7.0-draft.48](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+**Current sealed proof record:** [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md).
+The governing continuation is [v0.7.0-draft.55](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -61,8 +61,9 @@ proposals. Unreal cannot write city truth or causal-ledger entries.
 | [Record-Relative Chronological Resolution](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md) | After every committed boundary, the next due work is rediscovered from that successor record; dense and boundary-jump policies match at R0/R1/R2/R3. |
 | [External Input Boundary](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md) | Valid external evidence can become an earlier canonical boundary inside a skipped interval; the later autonomous commitment revalidates its ordinary gate from the input successor record. |
 | [Same-Clock Successor Semantics](Same-Clock%20Successor%20Semantics%20Proof%20Evidence%20-%20v0.1.0.md) | One boundary can create one later-phase successor at the same canonical time under finite canonical authority; the successor is rediscovered from its committed parent record. |
+| [Integrated Unreal Promotion-Unload-Repromotion](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md) | A real UE source interaction emits exact Q; its source process is destroyed before canonical continuation; an isolated fresh UE process materializes the evolved final record only. |
 
-The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.7](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.7.md).
+The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.8](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.8.md).
 
 ## Verification
 
@@ -77,7 +78,8 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   test_live_commitment.py test_shared_state_interference.py \
   test_bounded_agent_selection.py test_resolution_semantics_substrate.py \
   test_causal_lod_equivalence.py test_record_relative_chronological_resolution.py \
-  test_external_input_boundary.py test_same_clock_successor_semantics.py
+  test_external_input_boundary.py test_same_clock_successor_semantics.py \
+  test_integrated_unreal_promotion_unload_repromotion.py
 ```
 
 Verify the latest sealed release package:
@@ -85,7 +87,7 @@ Verify the latest sealed release package:
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_same_clock_successor_release.py verify
+  python3 proof_kernel/verify_integrated_unreal_promotion_unload_repromotion_release.py verify
 ```
 
 The `CityMaterializationProof/README.md` remains the focused UE 5.8

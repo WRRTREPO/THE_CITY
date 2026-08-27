@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import copy
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -53,6 +54,8 @@ from integrated_unreal_promotion_unload_repromotion import (
 from integrated_unreal_lifecycle_harness import (
     Q_FILENAME,
     accept_q_and_prepare_return,
+    capture_acceptance_receipt,
+    export_witness_artifacts,
     prepare,
     record_source_termination,
     resolve_after_unload,
@@ -232,12 +235,76 @@ class IntegratedUnrealPromotionUnloadRepromotionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw) / "control"
             prepare(root)
+            self.assertIn("-IntegratedProofProcessInstanceId=control_source_process_01", source_launch_command(root, True))
             record_source_termination(root, 999999)
             control = resolve_control_after_unload(root)
             self.assertEqual(control["rcontrol"]["current_causal_state"]["commitments"]["alpha"]["state"], "succeeded")
             self.assertFalse((root / "source_input").exists())
             self.assertFalse((root / "source_output").exists())
             self.assertTrue(any("Rcontrol" in value for value in return_launch_command(root, True)))
+
+    def test_control_harness_rejects_any_source_q_before_continuation(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw) / "control_with_stray_q"
+            prepare(root)
+            (root / "source_output" / Q_FILENAME).write_text(canonical_json(external_evidence_q(initial_canonical_envelope())) + "\n", encoding="utf-8")
+            record_source_termination(root, 999999)
+            with self.assertRaisesRegex(ValueError, "Q-absent control source output must be empty"):
+                resolve_control_after_unload(root)
+
+    def test_harness_captures_one_valid_structured_source_receipt(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw) / "receipt_capture"
+            prepare(root)
+            r0 = initial_canonical_envelope()
+            receipt = materialization_acceptance_receipt(r0, "source_process_01", True)
+            (root / "process_output" / "source_process_01.log").write_text(
+                "ordinary UE output\nINTEGRATED_MATERIALIZATION_RECEIPT:" + canonical_json(receipt) + "\n",
+                encoding="utf-8",
+            )
+            self.assertEqual(capture_acceptance_receipt(root, "source"), receipt)
+            self.assertEqual(
+                json.loads((root / "evidence" / "primary_source_acceptance_receipt.json").read_text(encoding="utf-8")),
+                receipt,
+            )
+
+    def test_export_requires_two_complete_clean_lifecycle_witnesses(self) -> None:
+        def write_receipt_log(root: Path, process_id: str, record: dict, proposal_capability_enabled: bool) -> None:
+            receipt = materialization_acceptance_receipt(record, process_id, proposal_capability_enabled)
+            (root / "process_output" / f"{process_id}.log").write_text(
+                "INTEGRATED_MATERIALIZATION_RECEIPT:" + canonical_json(receipt) + "\n",
+                encoding="utf-8",
+            )
+
+        with tempfile.TemporaryDirectory() as raw:
+            primary = Path(raw) / "primary"
+            control = Path(raw) / "control"
+            output = Path(raw) / "export"
+            r0 = initial_canonical_envelope()
+
+            prepare(primary)
+            write_receipt_log(primary, "source_process_01", r0, True)
+            capture_acceptance_receipt(primary, "source")
+            (primary / "source_output" / Q_FILENAME).write_text(canonical_json(external_evidence_q(r0)) + "\n", encoding="utf-8")
+            accept_q_and_prepare_return(primary)
+            record_source_termination(primary, 999999)
+            continued = resolve_after_unload(primary)
+            write_receipt_log(primary, "return_process_01", continued["rfinal"], False)
+            capture_acceptance_receipt(primary, "return")
+
+            prepare(control)
+            write_receipt_log(control, "control_source_process_01", r0, True)
+            capture_acceptance_receipt(control, "source", control=True)
+            record_source_termination(control, 999999)
+            controlled = resolve_control_after_unload(control)
+            write_receipt_log(control, "control_return_process_01", controlled["rcontrol"], False)
+            capture_acceptance_receipt(control, "return", control=True)
+
+            summary = export_witness_artifacts(primary, control, output)
+            self.assertTrue(summary["primary"]["source_domains_removed_before_rediscovery"])
+            self.assertTrue(summary["control"]["source_output_empty_before_continuation"])
+            self.assertTrue((output / "physical_primary_Q.json").is_file())
+            self.assertTrue((output / "physical_control_Rcontrol.json").is_file())
 
 
 if __name__ == "__main__":

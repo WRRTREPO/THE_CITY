@@ -1,12 +1,12 @@
 # THE_CITY — Current Proof State and Repo-Agent Instruction
 
-**Version:** 0.1.0 (current amendment: 2026-08-26)\
-**Date:** 2026-08-26\
+**Version:** 0.1.0 (current amendment: 2026-08-27)\
+**Date:** 2026-08-27\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.52`\
-**Latest sealed proof:** `Same-Clock Successor Semantics Proof v0.1.0`\
+**Governing continuation:** `0.7.0-draft.55`\
+**Latest sealed proof:** `Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0`\
 **Latest capacity record:**
-`THE_CITY Development Capacity and Progress Note v0.1.7`
+`THE_CITY Development Capacity and Progress Note v0.1.8`
 
 ## Authority boundary
 
@@ -16,7 +16,7 @@ continuation, sealed evidence, capacity record, or repository state.
 
 ## Verdict
 
-Forks 1 and 2 are complete. Fork 4 is frozen for bounded implementation only.
+Forks 1, 2, and 4 are complete in their exact sealed scopes.
 
 `Same-Clock Successor Semantics Proof v0.1.0` is implemented, proven,
 sealed, and pushed at:
@@ -33,10 +33,12 @@ focused proof:   13 / 13 passing
 release manifest: 24 / 24 verified, self-excluding
 ```
 
-Same-Clock's seal authorizes no extension of its own scope. The selected
-successor is [Integrated Unreal Promotion-Unload-Repromotion Proof —
-v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md).
-It authorizes only the bounded implementation named in that frozen proof.
+The [Integrated Unreal Promotion-Unload-Repromotion Proof —
+v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md)
+is now proven and sealed. Its 62-member self-excluding release package records
+one real UE source interaction, source-process destruction before canonical
+continuation, and isolated fresh primary/control return materializations.
+It authorizes no successor scope.
 
 ## Current proof progression
 
@@ -58,7 +60,7 @@ Same-Clock Successor Semantics
         ├── Stochastic Identity
         │       DEFERRED
         └── Integrated Unreal Promotion / Unload / Repromotion
-                FROZEN / BOUNDED IMPLEMENTATION AUTHORIZED
+                PROVEN / SEALED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -305,7 +307,7 @@ Until then:
 
 ## Fork 4 --- Integrated Unreal promotion / unload / repromotion
 
-**Status: FROZEN / BOUNDED IMPLEMENTATION AUTHORIZED**
+**Status: PROVEN / SEALED**
 
 Already proven separately:
 
@@ -320,7 +322,7 @@ Already proven separately:
 6.  player-originated evidence can interrupt skipped causal time without
     granting local authority.
 
-The selected draft isolates the integrated lifecycle without claiming movement
+The sealed proof isolates the integrated lifecycle without claiming movement
 or streaming:
 
 ``` text
@@ -335,7 +337,7 @@ boundary-jump canonical alpha resolution
 fresh UE return process reads Rfinal only
 ```
 
-The frozen implementation target remains unproven and excludes World Partition,
+The sealed fixture excludes World Partition,
 production streaming cells, repeated promotion/demotion, multiple simultaneous
 areas, real crew movement across promotion boundaries, asynchronous loading,
 production navigation, population materialization, networking, save/load, and
@@ -370,10 +372,13 @@ streaming identity
    ░░░░░░░░░░░░░░░░░░░░
    NOT STARTED
 
-4. Actual Unreal variable-resolution promotion / streaming
-   ███████░░░░░░░░░░░░░
-   PREREQUISITES PROVEN
-   FROZEN / BOUNDED IMPLEMENTATION AUTHORIZED
+4. Integrated Unreal promotion / unload / repromotion
+   ████████████████████
+   PROVEN / SEALED
+
+5. Actual Unreal variable-resolution promotion / streaming
+   ░░░░░░░░░░░░░░░░░░░░
+   NOT SELECTED / NOT PROVEN
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -411,18 +416,14 @@ That is now proven evidence.
 Treat these as the current governing records:
 
 ``` yaml
-sealed_commit:
-  id: 52b5646
-  message: Seal same-clock successor proof
-
 continuation:
-  version: 0.7.0-draft.52
+  version: 0.7.0-draft.55
 
 latest_capacity_record:
-  version: 0.1.7
+  version: 0.1.8
 
 latest_sealed_proof:
-  name: Same-Clock Successor Semantics Proof
+  name: Integrated Unreal Promotion-Unload-Repromotion Proof
   version: 0.1.0
 ```
 
@@ -452,8 +453,8 @@ preserve original
 ## No implicit successor work
 
 The sealed predecessors do not authorize Fork 3 or any generalization or
-adjacent scope under Fork 4. Fork 4 is separately frozen for only the bounded
-implementation named below.
+adjacent scope under Fork 4. Fork 4 is sealed only for its bounded witnessed
+lifecycle; it does not authorize a successor implementation.
 
 Do not begin any of the following without explicit successor selection:
 
@@ -484,16 +485,15 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   python3 proof_kernel/verify_same_clock_successor_release.py verify
 ```
 
-## Selected Fork 4 boundary
+## Sealed Fork 4 boundary
 
 Do not jump directly to production World Partition architecture.
 
-The active draft is [Integrated Unreal Promotion-Unload-Repromotion Proof —
-v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md).
-It is frozen for bounded implementation only. It distinguishes proof-input
-files from the source process's harness-supplied non-authoritative interaction
-context and requires the Q-absent control source acceptance receipt. Its
-bounded sequence is:
+The sealed [Integrated Unreal Promotion-Unload-Repromotion Proof —
+v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md)
+distinguishes proof-input files from the source process's harness-supplied
+non-authoritative interaction context and requires the Q-absent control source
+acceptance receipt. Its bounded sequence was witnessed as:
 
 ``` text
 sealed R0
@@ -544,16 +544,8 @@ The prior scheduler-hardening work is complete.
 There is no remaining implementation debt on External Input Boundary v0.1.1
 or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 
-The successor choice is now made:
+No successor proof is selected. Stochastic identity remains deferred until a
+concrete requirement makes authoritative uncertainty necessary.
 
-``` text
-B. Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0
-   bounded implementation only
-```
-
-Stochastic identity remains deferred until a concrete requirement makes
-authoritative uncertainty necessary.
-
-Until the frozen proof passes its evidence gate:
-
-> **Do not expand the machine. Implement only the frozen proof.**
+> **Do not expand the machine. Select and freeze one new proof boundary before
+> implementation.**
