@@ -3,10 +3,10 @@
 **Version:** 0.1.0 (current amendment: 2026-08-27)\
 **Date:** 2026-08-27\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.58`\
-**Latest sealed proof:** `Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0`\
+**Governing continuation:** `0.7.0-draft.59`\
+**Latest sealed proof:** `Concurrent External Evidence Arbitration Proof v0.1.0`\
 **Latest capacity record:**
-`THE_CITY Development Capacity and Progress Note v0.1.8`
+`THE_CITY Development Capacity and Progress Note v0.1.9`
 
 ## Authority boundary
 
@@ -40,6 +40,13 @@ one real UE source interaction, source-process destruction before canonical
 continuation, and isolated fresh primary/control return materializations.
 It authorizes no successor scope.
 
+The [Concurrent External Evidence Arbitration Proof —
+v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md)
+is now proven and sealed. Its 111-member self-excluding release records W1–W4
+through eight distinct UE source processes with disjoint proof roots, one R0-bound external batch, one
+canonical ordering path, private provisional state, one atomic R1, singleton
+controls, and the declared failure surface. It authorizes no successor scope.
+
 ## Current proof progression
 
 ``` text
@@ -63,7 +70,7 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Concurrent External Evidence Arbitration
-                FROZEN / IMPLEMENTATION AUTHORIZED / UNSEALED
+                PROVEN / SEALED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -202,7 +209,7 @@ Fork 1 does not prove:
 -   same-time input versus autonomous ordering;
 -   late evidence;
 -   malformed-input retry or consumption semantics;
--   multiple input streams;
+-   live or open-ended multiple input streams;
 -   multiple autonomous commitments under input pressure;
 -   randomness;
 -   Unreal execution of this exact temporal mechanism;
@@ -384,8 +391,8 @@ streaming identity
    NOT SELECTED / NOT PROVEN
 
 6. Concurrent external evidence arbitration
-   ██░░░░░░░░░░░░░░░░░░
-   FROZEN / IMPLEMENTATION AUTHORIZED / UNSEALED
+   ████████████████████
+   PROVEN / SEALED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -407,12 +414,16 @@ one committed boundary can create later-phase work at the same canonical time
         ↓
 the successor must be rediscovered from the new record
         ↓
+two physical evidence sources with disjoint proof roots can enter one R0-bound batch
+        ↓
+canonical ordering and private working-state revalidation publish one R1
+        ↓
 without policy, local representation, input cursor, or Unreal becoming
 strategic authority
 ```
 
-> **Player action can enter skipped causal time without giving local
-> resolution authority.**
+> **Independent physical evidence sources can contend without acquiring
+> ordering, mutation, or chronology authority.**
 
 That is now proven evidence.
 
@@ -424,13 +435,13 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.58
+  version: 0.7.0-draft.59
 
 latest_capacity_record:
-  version: 0.1.8
+  version: 0.1.9
 
 latest_sealed_proof:
-  name: Integrated Unreal Promotion-Unload-Repromotion Proof
+  name: Concurrent External Evidence Arbitration Proof
   version: 0.1.0
 ```
 
@@ -468,7 +479,7 @@ Do not begin any of the following without explicit successor selection:
 -   stochastic systems;
 -   Unreal variable-resolution streaming;
 -   World Partition integration;
--   same-time external-input arbitration or generalized external-input handling;
+-   live input collection or generalized external-input handling;
 -   general multi-member phase batching;
 -   multiple input streams;
 -   richer commitment populations;
@@ -489,7 +500,7 @@ The latest sealed release verifier is:
 ``` sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_integrated_unreal_promotion_unload_repromotion_release.py verify
+  python3 proof_kernel/verify_concurrent_external_evidence_arbitration_release.py verify
 ```
 
 ## Sealed Fork 4 boundary
@@ -544,27 +555,24 @@ proof_contract:
 A passing fixture does not authorize generalization beyond its frozen
 claim.
 
-## Frozen implementation boundary
+## Sealed concurrent-arbitration boundary
 
-The frozen [Concurrent External Evidence Arbitration Proof —
-v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md)
-is selected as the sole bounded implementation target. It defines exactly two isolated R0-bound
-physical evidence sources, side-effect-free admission, one exact sealed fixture
-candidate set, one R0-bound external arbitration batch, one frozen canonical
-member order, sequential provisional-state revalidation, and one atomic
-successor. Admission, provisional evaluation, publication-time adjudication,
-committed mutation, ordinary failed gate, and input/event anti-reacquisition
-are distinct. Provisional identities are mechanically type-disjoint from
-canonical record identity. Candidate completeness is fixture input, not a live
+The sealed [Concurrent External Evidence Arbitration Proof —
+v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md)
+defines exactly two isolated R0-bound physical evidence sources,
+side-effect-free admission, one exact sealed fixture candidate set, one
+R0-bound external arbitration batch, one frozen canonical member order,
+sequential private provisional-state revalidation, and one atomic successor.
+Admission, provisional evaluation, publication-time adjudication, committed
+mutation, ordinary failed gate, and input/event anti-reacquisition remain
+distinct. Provisional identities are mechanically type-disjoint from canonical
+record identity. Candidate completeness is fixture input, not a live
 collection or transport law.
 
-It authorizes only its exact fixture-local canonical module, two-domain Unreal
-evidence surface/harness, W1–W4, singleton controls, declared failure suite,
-source audit, evidence, and self-excluding release verifier. It does not
-authorize generalized resolver behavior, live input collection, 2+2 player
-topology, networking, retry, re-admission, movement, streaming, same-clock
-successor work, autonomous work, randomness, additional input classes, or city
-expansion.
+The seal does not authorize generalized resolver behavior, live input
+collection, 2+2 player topology, networking, retry, re-admission, movement,
+streaming, same-clock successor work, autonomous work, randomness, additional
+input classes, or city expansion.
 
 ## Current working decision
 
@@ -573,9 +581,8 @@ The prior scheduler-hardening work is complete.
 There is no remaining implementation debt on External Input Boundary v0.1.1
 or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 
-Concurrent External Evidence Arbitration v0.1.0 is the sole current bounded
-implementation-and-evidence unit. Stochastic identity remains deferred until a
-concrete requirement makes authoritative uncertainty necessary.
+Concurrent External Evidence Arbitration v0.1.0 is complete and sealed.
+Stochastic identity remains deferred. No successor proof is selected.
 
-> **Implement only the frozen proof DAG and stop at verified evidence and its
-> self-excluding release seal. Do not infer adjacent architecture.**
+> **Hold at the evidence seal. Do not infer or begin adjacent architecture
+> without a new explicit scope decision.**

@@ -6,13 +6,14 @@ strategic authority.
 
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
-**Current sealed proof record:** [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md).
-The governing continuation is [v0.7.0-draft.55](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+**Current sealed proof record:** [Concurrent External Evidence Arbitration Proof — v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md).
+The governing continuation is [v0.7.0-draft.59](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
 external-input interception, and same-clock successor semantics are proven
-only in their stated neutral canonical fixtures.
+only in their stated neutral canonical fixtures. Concurrent external evidence
+arbitration is proven only for one sealed two-member R0-bound batch.
 
 ## The machine
 
@@ -62,8 +63,9 @@ proposals. Unreal cannot write city truth or causal-ledger entries.
 | [External Input Boundary](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md) | Valid external evidence can become an earlier canonical boundary inside a skipped interval; the later autonomous commitment revalidates its ordinary gate from the input successor record. |
 | [Same-Clock Successor Semantics](Same-Clock%20Successor%20Semantics%20Proof%20Evidence%20-%20v0.1.0.md) | One boundary can create one later-phase successor at the same canonical time under finite canonical authority; the successor is rediscovered from its committed parent record. |
 | [Integrated Unreal Promotion-Unload-Repromotion](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md) | A real UE source interaction emits exact Q; its source process is destroyed before canonical continuation; an isolated fresh UE process materializes the evolved final record only. |
+| [Concurrent External Evidence Arbitration](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md) | Two UE domains with disjoint proof roots physically emit distinct evidence against the same R0; one canonical batch orders, revalidates, and publishes one atomic R1 independent of physical or presentation order. |
 
-The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.8](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.8.md).
+The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.9](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.9.md).
 
 ## Verification
 
@@ -79,7 +81,8 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   test_bounded_agent_selection.py test_resolution_semantics_substrate.py \
   test_causal_lod_equivalence.py test_record_relative_chronological_resolution.py \
   test_external_input_boundary.py test_same_clock_successor_semantics.py \
-  test_integrated_unreal_promotion_unload_repromotion.py
+  test_integrated_unreal_promotion_unload_repromotion.py \
+  test_concurrent_external_evidence_arbitration.py
 ```
 
 Verify the latest sealed release package:
@@ -87,7 +90,7 @@ Verify the latest sealed release package:
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_integrated_unreal_promotion_unload_repromotion_release.py verify
+  python3 proof_kernel/verify_concurrent_external_evidence_arbitration_release.py verify
 ```
 
 The `CityMaterializationProof/README.md` remains the focused UE 5.8
@@ -99,7 +102,8 @@ project-wide architecture record.
 This is not a production-scale city simulation. The record does not yet prove:
 
 - map-scale streaming, population, performance, or long-horizon stability;
-- multiple crews, split fireteams, networking, rollback, save/load, or host migration;
+- multiple crews, split fireteams, live input collection, networking,
+  rollback, save/load, or host migration;
 - stale intelligence, agent memory, learning, generalized planning, or multi-agent strategy;
 - economy, civilians, traffic, repair, damage gradation, or production content density;
 - that the demonstrated opportunity pressure remains readable and fun at scale.

@@ -2,6 +2,7 @@
 
 #include "CityMaterializationActor.h"
 #include "CityProofCharacter.h"
+#include "ConcurrentExternalEvidenceProofAdapter.h"
 #include "IntegratedUnrealProofAdapter.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
@@ -18,8 +19,19 @@ void ACityProofGameMode::BeginPlay()
     Super::BeginPlay();
 
     FString IntegratedPayloadPath;
+    FString ConcurrentPayloadPath;
     FParse::Value(FCommandLine::Get(), TEXT("IntegratedProofPayload="), IntegratedPayloadPath);
-    if (IntegratedPayloadPath.IsEmpty())
+    FParse::Value(FCommandLine::Get(), TEXT("ConcurrentEvidencePayload="), ConcurrentPayloadPath);
+    // Any concurrent-proof selector enters the dedicated fail-closed adapter.
+    // An incomplete selector set must never fall through to the legacy city
+    // materializer and accidentally acquire a different representation path.
+    const FString CommandLine(FCommandLine::Get());
+    const bool bConcurrentProofRequested = CommandLine.Contains(TEXT("ConcurrentEvidence"));
+    if (bConcurrentProofRequested)
+    {
+        GetWorld()->SpawnActor<AConcurrentExternalEvidenceProofAdapter>(AConcurrentExternalEvidenceProofAdapter::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+    }
+    else if (IntegratedPayloadPath.IsEmpty())
     {
         GetWorld()->SpawnActor<ACityMaterializationActor>(ACityMaterializationActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
     }

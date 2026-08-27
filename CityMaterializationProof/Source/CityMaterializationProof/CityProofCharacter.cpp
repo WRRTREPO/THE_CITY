@@ -1,6 +1,7 @@
 #include "CityProofCharacter.h"
 
 #include "BridgeAccessPoint.h"
+#include "ConcurrentEvidenceSurface.h"
 #include "CrewOperationPoint.h"
 #include "IntegratedGateTokenPoint.h"
 #include "LiveCommitmentRelayPoint.h"
@@ -83,6 +84,16 @@ void ACityProofCharacter::AttemptBridgeAccessDestruction()
             }
             return;
         }
+        if (AConcurrentEvidenceSurface* ConcurrentSurface = Cast<AConcurrentEvidenceSurface>(Hit.GetActor()))
+        {
+            const bool bProposalWritten = ConcurrentSurface->TryAllocateByCrew(TEXT("crew_01_to_04"));
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
+                    bProposalWritten ? TEXT("Concurrent physical evidence emitted. Canonical batch required.") : TEXT("No concurrent evidence emitted."));
+            }
+            return;
+        }
         if (ABridgeAccessPoint* AccessPoint = Cast<ABridgeAccessPoint>(Hit.GetActor()))
         {
             const bool bProposalWritten = AccessPoint->TryDestroyByCrew(TEXT("crew_01_to_04"));
@@ -139,6 +150,20 @@ void ACityProofCharacter::AttemptBridgeAccessDestruction()
             {
                 GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
                     bProposalWritten ? TEXT("Integrated physical Q emitted. Canonical commit required.") : TEXT("No integrated proposal emitted."));
+            }
+            return;
+        }
+    }
+
+    for (TActorIterator<AConcurrentEvidenceSurface> It(GetWorld()); It; ++It)
+    {
+        if (FVector::DistSquared(GetActorLocation(), It->GetActorLocation()) <= FMath::Square(5000.0f))
+        {
+            const bool bProposalWritten = It->TryAllocateByCrew(TEXT("crew_01_to_04"));
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
+                    bProposalWritten ? TEXT("Concurrent physical evidence emitted. Canonical batch required.") : TEXT("No concurrent evidence emitted."));
             }
             return;
         }

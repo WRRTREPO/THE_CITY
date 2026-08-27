@@ -1,7 +1,7 @@
 # Concurrent External Evidence Arbitration Proof
 
 **Version:** 0.1.0
-**Status:** Frozen specification. Implementation is authorized only for the bounded DAG and acceptance gates in this record; evidence is not yet sealed.
+**Status:** Frozen specification. The bounded implementation is proven and sealed by the [v0.1.0 evidence record](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md); no successor scope is authorized.
 **Selected:** 2026-08-27
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 **Sealed predecessors:** [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md); [Shared-State Commitment Interference Proof — v0.1.0](Shared-State%20Commitment%20Interference%20Proof%20Evidence%20-%20v0.1.0.md); [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md); [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md)
