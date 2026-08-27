@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.52
-**Status:** Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0 is frozen. Bounded implementation is authorized.
+**Version:** 0.7.0-draft.53
+**Status:** Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0 remains frozen, unsealed, and the sole bounded implementation target. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.0 is parallel doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -141,6 +141,23 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.53 — 2026-08-27
+
+- Opened [THE_CITY Modern Canonical Machine Contract v0.1.0-draft.0](THE_CITY%20Modern%20Canonical%20Machine%20Contract%20-%20Draft.md) for doctrine-extraction review only.
+- The candidate consolidates already-proven authority laws across the frozen
+  foundational contract, Resolution Semantics, Causal-LOD equivalence,
+  record-relative chronology, external input, same-clock successors,
+  historical finality, and sealed Unreal authority boundaries.
+- It grants no implementation authority, changes no capacity claim, does not
+  supersede sealed proof evidence, and does not authorize stochastic,
+  production-streaming, topology, networking, rollback, save/load, or
+  city-scale work.
+- The frozen Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0
+  remains the sole current implementation authority. Its implementation
+  checkpoint is unsealed and the physical-action witness remains outstanding.
+- Doctrine review is parallel documentation work and does not replace or alter
+  that implementation decision.
 
 ### 0.7.0-draft.52 — 2026-08-26
 
