@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-27)\
 **Date:** 2026-08-27\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.56`\
+**Governing continuation:** `0.7.0-draft.57`\
 **Latest sealed proof:** `Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.8`
@@ -63,7 +63,7 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Concurrent External Evidence Arbitration
-                SPECIFICATION REVIEW ONLY
+                FREEZE REVIEW ONLY
 ```
 
 Record-relative chronological resolution remains an essential
@@ -385,7 +385,7 @@ streaming identity
 
 6. Concurrent external evidence arbitration
    ██░░░░░░░░░░░░░░░░░░
-   SPECIFICATION REVIEW ONLY / IMPLEMENTATION CLOSED
+   FREEZE REVIEW ONLY / IMPLEMENTATION CLOSED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -424,7 +424,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.56
+  version: 0.7.0-draft.57
 
 latest_capacity_record:
   version: 0.1.8
@@ -547,11 +547,16 @@ claim.
 ## Selected specification boundary
 
 The candidate [Concurrent External Evidence Arbitration Proof —
-v0.1.0-draft.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md)
-is selected for specification review only. It proposes exactly two isolated
-R0-bound physical evidence sources, one side-effect-free admitted set, one
-R0-bound external arbitration batch, one frozen canonical member order,
-sequential provisional-state revalidation, and one atomic successor.
+v0.1.0-draft.1](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md)
+is selected for freeze review only. It proposes exactly two isolated R0-bound
+physical evidence sources, side-effect-free admission, one exact sealed fixture
+candidate set, one R0-bound external arbitration batch, one frozen canonical
+member order, sequential provisional-state revalidation, and one atomic
+successor. Admission, provisional evaluation, publication-time adjudication,
+committed mutation, ordinary failed gate, and input/event anti-reacquisition
+are distinct. Provisional identities are mechanically type-disjoint from
+canonical record identity. Candidate completeness is fixture input, not a live
+collection or transport law.
 
 It does not authorize code, 2+2 player topology, networking, retry,
 re-admission, movement, streaming, same-clock successor work, autonomous work,
@@ -564,8 +569,8 @@ The prior scheduler-hardening work is complete.
 There is no remaining implementation debt on External Input Boundary v0.1.1
 or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 
-Concurrent External Evidence Arbitration v0.1.0-draft.0 is the sole current
-specification-review unit. Stochastic identity remains deferred until a
+Concurrent External Evidence Arbitration v0.1.0-draft.1 is the sole current
+freeze-review unit. Stochastic identity remains deferred until a
 concrete requirement makes authoritative uncertainty necessary.
 
 > **Do not implement the candidate. Review and freeze its exact identity,
