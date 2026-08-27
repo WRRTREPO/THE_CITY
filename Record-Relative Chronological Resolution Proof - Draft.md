@@ -1,11 +1,11 @@
 # Record-Relative Chronological Resolution Proof
 
-**Version:** 0.1.0-draft.1
-**Status:** Under specification review. Implementation is not authorized.
+**Version:** 0.1.0
+**Status:** Frozen. Canonical-only implementation is authorized within this exact boundary.
 **Parent law:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 **Predecessors:** [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md); [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md)
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
-**Candidate simulation version:** `0.7.0-draft.39` — fixed if this proof freezes.
+**Simulation version:** `0.7.0-draft.39` — fixed for this proof.
 
 ## Claim
 
@@ -486,8 +486,7 @@ The source audit must prove:
 
 ## Explicit boundary
 
-This draft authorizes no implementation. If frozen, a separate authorization
-would be required for exactly one canonical-only implementation: payload
+This freeze authorizes exactly one canonical-only implementation: payload
 validator, canonical serializer/hash, one scheduler query, one resolver, two
 local policies, four witnesses, checkpoint oracle, runtime rejection checks,
 replay/source audit, evidence, and a self-excluding manifest.
@@ -498,6 +497,17 @@ randomness, additional commitment composition, networking, multiplayer,
 rollback, save/load, map scale, production streaming, or city expansion.
 
 ## Changelog
+
+### 0.1.0 — 2026-08-26
+
+- Froze Record-Relative Chronological Resolution Proof with the
+  `RecordRelativeChronologicalResolutionPayload.v1` identity fixed to
+  simulation version `0.7.0-draft.39`.
+- Authorized only the stated canonical implementation: record-bound boundary
+  capabilities, X/Y/Z checkpoints, dense/boundary-jump witnesses, validation,
+  replay, source audit, evidence, and a self-excluding release manifest.
+- No Unreal, city content, external input, randomness, scale, multiplayer, or
+  successor scope is authorized.
 
 ### 0.1.0-draft.1 — 2026-08-26
 
