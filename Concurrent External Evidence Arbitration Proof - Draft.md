@@ -1,11 +1,11 @@
 # Concurrent External Evidence Arbitration Proof
 
-**Version:** 0.1.0-draft.1
-**Status:** Candidate specification ready for freeze review. Implementation is not authorized.
+**Version:** 0.1.0
+**Status:** Frozen specification. Implementation is authorized only for the bounded DAG and acceptance gates in this record; evidence is not yet sealed.
 **Selected:** 2026-08-27
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 **Sealed predecessors:** [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md); [Shared-State Commitment Interference Proof — v0.1.0](Shared-State%20Commitment%20Interference%20Proof%20Evidence%20-%20v0.1.0.md); [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md); [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md)
-**Candidate simulation identity:** `0.7.0-draft.57`; not frozen.
+**Frozen simulation identity:** `0.7.0-draft.57`.
 
 ## Question
 
@@ -30,13 +30,13 @@ one atomic canonical successor
 It does not introduce retry, re-admission, networking, split crews, movement,
 streaming, or two sequential external transactions.
 
-## Candidate proof boundary
+## Frozen proof boundary
 
 ```yaml
 next_working_unit:
   name: Concurrent External Evidence Arbitration Proof
-  version: 0.1.0-draft.1
-  status: specification_only
+  version: 0.1.0
+  status: frozen_implementation_authorized
 
 scope:
   canonical_source_records: 1
@@ -114,9 +114,9 @@ authorize later work.
 
 QB is not re-admitted against R1. No R1 exists until the complete batch closes.
 
-## Candidate identity
+## Frozen identity
 
-The following identity is proposed for freeze review:
+The following identity is frozen:
 
 ```yaml
 record_schema: CanonicalResolutionEnvelope.v1
@@ -127,26 +127,67 @@ simulation_version: 0.7.0-draft.57
 seed: concurrent-external-evidence-arbitration-v1/0001
 ```
 
-The exact payload schema, Q schemas, batch capability, ledger object, receipts,
-and canonical serialization must be frozen before implementation. A new
-authoritative field after freeze requires a new payload schema and simulation
-identity.
+The exact payload, Q, batch-capability, ledger, receipt, and serialization
+contracts are frozen below. A new authoritative field requires a new payload
+schema and simulation identity.
 
-The predecessor canonical-JSON law remains the candidate serializer: sorted
+The predecessor canonical-JSON law remains the frozen serializer: sorted
 object keys, compact separators, `ensure_ascii = true`, no duplicate keys or
 non-finite numbers, declared array order preserved, and lowercase SHA-256.
 Stored artifacts have one terminal LF; hashed JSON values do not.
 
 No canonical record or ledger entry may contain its own successor hash.
 
-## Minimal authoritative fixture
+## Exact frozen serialization contract
 
-R0 contains no autonomous commitment or future consequential schedule. It
-contains only the identity above, one available shared slot, the two exact
-permitted external-consequence contracts, replay protection state, and genesis
-provenance.
+The following definitions are normative. Later abbreviated YAML fragments are
+readability projections of these definitions and grant no additional field.
+
+### Fixed domain table and derived identities
 
 ```yaml
+domain_A:
+  source_domain: domain_A
+  physical_actor_id: arbitration_surface_A_01
+  input_id: physical_allocate_shared_slot_A_0001
+  physical_event_id: domain_A_allocation_event_0001
+  allocation_owner: domain_A
+
+domain_B:
+  source_domain: domain_B
+  physical_actor_id: arbitration_surface_B_01
+  input_id: physical_allocate_shared_slot_B_0001
+  physical_event_id: domain_B_allocation_event_0001
+  allocation_owner: domain_B
+```
+
+For a complete canonical envelope `R`:
+
+```text
+canonical_hash(R) = lowercase_sha256(UTF-8(canonical_json(R)))
+stored_payload(R) = UTF-8(canonical_json(R) + "\n")
+raw_payload_sha256(R) = lowercase_sha256(stored_payload(R))
+
+H0 = canonical_hash(R0)
+D0 = raw_payload_sha256(R0)
+HQ(X) = lowercase_sha256(UTF-8(canonical_json(Q(X))))
+stored_Q(X) = UTF-8(canonical_json(Q(X)) + "\n")
+DQ(X) = lowercase_sha256(stored_Q(X))
+```
+
+`HQ(X)` is evidence-object identity only. It is never a canonical-record hash
+and rejects in every canonical record-identity field.
+
+### Exact R0
+
+```yaml
+identity:
+  record_schema: CanonicalResolutionEnvelope.v1
+  payload_schema: ConcurrentExternalEvidenceArbitrationPayload.v1
+  scenario_id: concurrent-external-evidence-arbitration-v1
+  scenario_version: 0.1.0
+  simulation_version: 0.7.0-draft.57
+  seed: concurrent-external-evidence-arbitration-v1/0001
 current_causal_state:
   shared_slot:
     allocation_owner: null
@@ -155,16 +196,19 @@ current_causal_state:
       physical_actor_id: arbitration_surface_A_01
       permitted_input_id: physical_allocate_shared_slot_A_0001
       permitted_physical_event_id: domain_A_allocation_event_0001
+      target: {kind: proof_shared_slot, id: shared_slot_01}
+      observed_outcome: allocation_requested
       permitted_owner: domain_A
     domain_B:
       physical_actor_id: arbitration_surface_B_01
       permitted_input_id: physical_allocate_shared_slot_B_0001
       permitted_physical_event_id: domain_B_allocation_event_0001
+      target: {kind: proof_shared_slot, id: shared_slot_01}
+      observed_outcome: allocation_requested
       permitted_owner: domain_B
 future_causal_state:
   canonical_clock: t0/00
   unresolved_work: []
-
 causal_provenance:
   adjudicated_external_input_ids: []
   adjudicated_physical_event_ids: []
@@ -174,12 +218,208 @@ causal_provenance:
     source: frozen_initial_fixture
 ```
 
-The two consequence contracts authorize different physical actors and
-different allocation owners but read and write the same ordinary
-`shared_slot`. Neither contract names the other domain, input, or outcome.
+No other R0 field is permitted.
 
-The final frozen specification must replace this semantic R0 with one exact,
-exhaustive JSON record shape.
+### Exact Q(X)
+
+For `X` equal to one row of the fixed domain table, Q is exactly:
+
+```yaml
+protocol_version: ConcurrentExternalEvidence.v1
+input_id: X.input_id
+physical_event_id: X.physical_event_id
+source:
+  system: crew_physical_simulation
+  domain: X.source_domain
+  source_record_hash: H0
+  source_payload_raw_sha256: D0
+occurrence_time: t0/30
+target: {kind: proof_shared_slot, id: shared_slot_01}
+observed_outcome: {state: allocation_requested}
+proposed_effect:
+  op: replace
+  path: /current_causal_state/shared_slot/allocation_owner
+  value: X.allocation_owner
+evidence:
+  physical_actor_id: X.physical_actor_id
+  outcome_state: allocation_requested
+  evidence_digest: evidence_digest(X)
+```
+
+`evidence_digest(X)` is lowercase SHA-256 of canonical JSON for this complete Q
+with only `evidence.evidence_digest` omitted. No additional or missing Q field
+is permitted.
+
+### Exact detached Unreal contracts
+
+Each source launch receives exact stored R0 plus:
+
+```yaml
+receipt_schema: ConcurrentUnrealLaunchReceipt.v1
+artifact_role: canonical_materialization_input
+raw_byte_sha256: D0
+canonical_hash: H0
+expected_record_schema: CanonicalResolutionEnvelope.v1
+expected_payload_schema: ConcurrentExternalEvidenceArbitrationPayload.v1
+expected_scenario_id: concurrent-external-evidence-arbitration-v1
+expected_simulation_version: 0.7.0-draft.57
+```
+
+After verification and materialization, source X emits exactly one acceptance
+receipt:
+
+```yaml
+receipt_schema: ConcurrentMaterializationAcceptanceReceipt.v1
+process_instance_id: operational_process_instance_id
+materialization_domain: X.source_domain
+accepted_canonical_hash: H0
+accepted_raw_payload_sha256: D0
+materialized_physical_actor_id: X.physical_actor_id
+materialized_shared_slot_owner: null
+proposal_capability_enabled: true
+```
+
+After physical interaction, source X emits Q(X) and exactly one:
+
+```yaml
+receipt_schema: ConcurrentEvidenceEmissionReceipt.v1
+process_instance_id: same_operational_process_instance_id
+materialization_domain: X.source_domain
+accepted_canonical_hash: H0
+accepted_raw_payload_sha256: D0
+materialized_physical_actor_id: X.physical_actor_id
+emitted_input_id: X.input_id
+emitted_physical_event_id: X.physical_event_id
+emitted_q_canonical_hash: HQ(X)
+emitted_q_raw_sha256: DQ(X)
+```
+
+The operational process string is noncanonical, unique per launched process,
+and excluded from Q, BEXT, R1, and every canonical ordering input.
+
+### Exact admitted member and sealed fixture contracts
+
+An admitted member for X is exactly:
+
+```yaml
+admitted_member_schema: AdmittedExternalMember.v1
+input_id: X.input_id
+physical_event_id: X.physical_event_id
+source_record_hash: H0
+source_raw_payload_sha256: D0
+q_canonical_hash: HQ(X)
+q_raw_sha256: DQ(X)
+evidence_digest: evidence_digest(X)
+occurrence_time: t0/30
+derived_external_phase: 10
+derived_canonical_external_priority: 100
+immutable_admission_observations:
+  - {name: canonical_q_shape_matches, observed_value: exact, required_value: exact, result: true}
+  - {name: evidence_digest_matches, observed_value: true, required_value: true, result: true}
+  - {name: exact_consequence_contract_matches, observed_value: true, required_value: true, result: true}
+  - {name: source_record_hash_matches, observed_value: H0, required_value: H0, result: true}
+  - {name: source_raw_payload_sha256_matches, observed_value: D0, required_value: D0, result: true}
+  - {name: occurrence_time_matches_fixture, observed_value: t0/30, required_value: t0/30, result: true}
+  - {name: input_id_not_adjudicated, observed_value: true, required_value: true, result: true}
+  - {name: physical_event_id_not_adjudicated, observed_value: true, required_value: true, result: true}
+  - {name: shared_slot_available, observed_value: null, required_value: null, result: true}
+```
+
+The primary `ConcurrentExternalCandidateSetFixture.v1` is the exact two-member
+object already shown below. QA-only and QB-only controls use the same schema,
+their own fixed fixture IDs ending `-qa-only-v1` / `-qb-only-v1`, and the
+corresponding one-element input/event sets. No fixture array position is an
+ordering input.
+
+### Exact BEXT
+
+For the primary admitted-member map, BEXT is exactly:
+
+```yaml
+batch_schema: ConcurrentExternalArbitrationBatch.v1
+kind: external_arbitration_batch
+source_record_hash: H0
+batch_pre_state_hash: H0
+decision_time: t0/30
+external_phase: 10
+ordering_law: ConcurrentExternalMemberOrder.v1
+member_set_digest: member_set_digest
+member_ids:
+  - physical_allocate_shared_slot_A_0001
+  - physical_allocate_shared_slot_B_0001
+```
+
+`member_set_digest` is lowercase SHA-256 of canonical JSON for the complete
+`AdmittedExternalMember.v1` objects sorted by `input_id`. Singleton BEXTs use
+the same schema with the corresponding one-element `member_ids` array and
+digest. No caller-supplied order field is permitted.
+
+### Exact provisional identities
+
+For each working point, the projection is exactly:
+
+```yaml
+batch_working_state_schema: ExternalArbitrationWorkingState.v1
+batch_pre_state_hash: H0
+provisional_current_causal_state: derived_complete_current_state
+provisional_future_causal_state: byte_identical_R0_future_state
+```
+
+`P0` uses owner `null`; `PA` uses owner `domain_A`; singleton `PB` uses owner
+`domain_B`. The only identity representation is the tagged
+`ExternalBatchWorkingStateIdentity.v1` object defined below. The two angle-
+bracket clauses above are exact derivation rules, not extensible fields.
+
+### Exact R1 and controls
+
+Primary R1 is the complete R0 envelope with only these exact changes:
+
+```yaml
+current_causal_state.shared_slot.allocation_owner: domain_A
+future_causal_state.canonical_clock: t0/30
+causal_provenance.adjudicated_external_input_ids:
+  - physical_allocate_shared_slot_A_0001
+  - physical_allocate_shared_slot_B_0001
+causal_provenance.adjudicated_physical_event_ids:
+  - domain_A_allocation_event_0001
+  - domain_B_allocation_event_0001
+causal_provenance.canonical_ancestry:
+  parent_record_hash: H0
+  boundary_derivation: external_arbitration_batch
+causal_provenance.authoritative_causal_ledger:
+  - kind: external_arbitration_batch
+    simulation_version: 0.7.0-draft.57
+    decision_time: t0/30
+    external_phase: 10
+    batch_pre_state_hash: H0
+    boundary: primary_BEXT
+    members: [QA_member_result, QB_member_result]
+```
+
+The exact member-result schema is the exhaustive field list defined under
+“One canonical successor and one ledger representation.” QA instantiates it
+with sequence `0`, P0→PA, gate observation `null == null` true, its one
+authorized proposed effect, provisional outcome
+`mutation_applied_to_working_state`, adjudication `mutation_committed`, both
+replay identities `adjudicated_by_atomic_batch`, and resource disposition
+`shared_slot_allocated_to_domain_A`. QB instantiates it with sequence `1`,
+PA→PA, gate observation `domain_A == null` false, its one authorized proposed
+effect, provisional outcome `ordinary_gate_failed`, adjudication `failed_gate`,
+both replay identities `adjudicated_by_atomic_batch`, and resource disposition
+`no_resource_acquired`.
+
+QA-only and QB-only successors use the same envelope and ledger schemas, the
+corresponding singleton fixture/BEXT/member result, owner `domain_A` or
+`domain_B`, and only that input/event identity in the adjudication arrays.
+They introduce no alternate resolver or field.
+
+## Minimal authoritative fixture
+
+R0 is exactly the envelope under “Exact R0.” It contains no autonomous
+commitment or future consequential schedule. Its two consequence contracts
+authorize different physical actors and allocation owners but read and write
+the same ordinary `shared_slot`. Neither contract names the other domain,
+input, or outcome.
 
 ## Two isolated Unreal evidence domains
 
@@ -216,19 +456,19 @@ verifying the raw R0 bytes and materializing its own interaction surface. The
 receipt is operational evidence only.
 
 Each domain must also emit one detached evidence-emission receipt beside its
-Q. The candidate receipt contract binds:
+Q. The frozen receipt contract binds:
 
 ```yaml
 receipt_schema: ConcurrentEvidenceEmissionReceipt.v1
-process_instance_id: <domain-specific operational identity>
+process_instance_id: operational_process_instance_id
 materialization_domain: domain_A | domain_B
 accepted_canonical_hash: H0
 accepted_raw_payload_sha256: D0
 materialized_physical_actor_id: arbitration_surface_A_01 | arbitration_surface_B_01
 emitted_input_id: physical_allocate_shared_slot_A_0001 | physical_allocate_shared_slot_B_0001
 emitted_physical_event_id: domain_A_allocation_event_0001 | domain_B_allocation_event_0001
-emitted_q_canonical_hash: <hash of exact Q JSON>
-emitted_q_raw_sha256: <hash of exact stored Q bytes>
+emitted_q_canonical_hash: HQ(X)
+emitted_q_raw_sha256: DQ(X)
 ```
 
 The harness and canonical admission cross-check the materialization receipt,
@@ -428,29 +668,29 @@ by which production code would determine completeness are not claimed.
 
 ## BEXT: record-bound batch capability
 
-Each successful admission returns an immutable member capability with this
-candidate shape:
+Each successful admission returns the immutable member capability frozen in
+the exact contract above. This field projection uses `X` from the domain table:
 
 ```yaml
 admitted_member_schema: AdmittedExternalMember.v1
-input_id: ...
-physical_event_id: ...
+input_id: X.input_id
+physical_event_id: X.physical_event_id
 source_record_hash: H0
 source_raw_payload_sha256: D0
-q_canonical_hash: <hash of complete Q JSON>
-q_raw_sha256: <hash of exact stored Q bytes>
-evidence_digest: ...
+q_canonical_hash: HQ(X)
+q_raw_sha256: DQ(X)
+evidence_digest: evidence_digest(X)
 occurrence_time: t0/30
 derived_external_phase: 10
 derived_canonical_external_priority: 100
-immutable_admission_observations: [...]
+immutable_admission_observations: exact_nine_entry_admission_list
 ```
 
 This is a side-effect-free record-bound capability, not canonical city state.
 The resolver must re-verify every exact Q object and raw-byte identity against
 its admitted-member capability, BEXT, H0, and D0 before any working mutation.
 
-Successful batch construction returns one record-bound capability, proposed as:
+Successful batch construction returns one frozen record-bound capability:
 
 ```yaml
 kind: external_arbitration_batch
@@ -459,7 +699,7 @@ batch_pre_state_hash: H0
 decision_time: t0/30
 external_phase: 10
 ordering_law: ConcurrentExternalMemberOrder.v1
-member_set_digest: <digest of canonical set projection>
+member_set_digest: member_set_digest
 member_ids:
   - physical_allocate_shared_slot_A_0001
   - physical_allocate_shared_slot_B_0001
@@ -488,10 +728,9 @@ BEXT vector. It must not enumerate the map to derive order and must assert the
 map key set equals BEXT before its first lookup. It receives no
 caller-positioned member container.
 
-## Candidate canonical member-ordering law
+## Frozen canonical member-ordering law
 
-The following `ConcurrentExternalMemberOrder.v1` key is proposed for freeze
-review:
+The following `ConcurrentExternalMemberOrder.v1` key is frozen:
 
 ```text
 external_member_key = (
@@ -502,7 +741,7 @@ external_member_key = (
 )
 ```
 
-The key components, types, and comparisons proposed for this fixture are:
+The key components, types, and comparisons frozen for this fixture are:
 
 ```yaml
 occurrence_time:
@@ -540,7 +779,7 @@ while producing the same member map and BEXT. Any occurrence time, phase, or
 priority that differs from the exact frozen fixture constants also rejects.
 
 This key is new external-arbitration law. It is not inherited implicitly from
-autonomous commitment ordering and remains an explicit freeze-review decision.
+autonomous commitment ordering and is frozen only for this fixture.
 
 ## Sequential revalidation inside one atomic transaction
 
@@ -603,7 +842,7 @@ identity_schema: ExternalBatchWorkingStateIdentity.v1
 identity_kind: provisional_external_batch_working_state
 digest_algorithm: sha256
 digest_domain: THE_CITY_EXTERNAL_ARBITRATION_WORKING_STATE_V1
-digest: <64 lowercase hexadecimal characters>
+digest: working_projection_digest
 ```
 
 They are domain-separated identities of the exact mutation-state projection
@@ -616,8 +855,8 @@ working-state identity unchanged.
 ```yaml
 batch_working_state_schema: ExternalArbitrationWorkingState.v1
 batch_pre_state_hash: H0
-provisional_current_causal_state: <complete current state at this working point>
-provisional_future_causal_state: <complete unchanged future state>
+provisional_current_causal_state: derived_complete_current_state
+provisional_future_causal_state: byte_identical_R0_future_state
 ```
 
 ```text
@@ -642,8 +881,7 @@ materialization input, or successor identity is required. Those canonical
 references must independently equal the recomputed hash of an actual complete
 canonical record. Storing a tagged working identity inside the final canonical
 ledger records provisional provenance; it does not promote the provisional
-state to canonical authority. The final frozen draft must replace the
-placeholders above with exact exhaustive objects.
+state to canonical authority. The exact frozen derivation above is exhaustive.
 
 ## One canonical successor and one ledger representation
 
@@ -687,31 +925,51 @@ Both canonical replay-protection arrays are ordered by canonical member
 sequence. Presentation-sequence order, fixture-array position, and map
 iteration order cannot affect their serialized order.
 
-Each member result records:
+Each member result uses the exhaustive schema and exact QA/QB instantiations
+frozen above:
 
 ```yaml
-input_id: ...
-physical_event_id: ...
-source_domain: ...
+input_id: X.input_id
+physical_event_id: X.physical_event_id
+source_domain: X.source_domain
 canonical_member_sequence: 0 | 1
-evidence_digest: ...
+evidence_digest: evidence_digest(X)
 evidence_source_record_hash: H0
 evidence_source_raw_payload_sha256: D0
-canonical_member_key: [...]
-immutable_admission_observations: [...]
+canonical_member_key: [t0/30, 10, 100, X.input_id]
+immutable_admission_observations: exact_nine_entry_admission_list
 admission_disposition: admitted_against_batch_pre_state
 batch_membership_disposition: included_in_bext
 working_pre_state_identity: ExternalBatchWorkingStateIdentity.v1
 working_post_state_identity: ExternalBatchWorkingStateIdentity.v1
-working_state_gate_observations: [...]
-authorized_mutations: [...]
+working_state_gate_observations: exact_X_gate_observation
+authorized_mutations: [Q(X).proposed_effect]
 provisional_evaluation_outcome: mutation_applied_to_working_state | ordinary_gate_failed
 adjudication_disposition: mutation_committed | failed_gate
 replay_disposition:
   input_id: adjudicated_by_atomic_batch
   physical_event_id: adjudicated_by_atomic_batch
-resource_disposition: ...
+resource_disposition: shared_slot_allocated_to_domain_A | shared_slot_allocated_to_domain_B | no_resource_acquired
 ```
+
+The exact primary gate observations are:
+
+```yaml
+QA:
+  - path: current_causal_state.shared_slot.allocation_owner
+    observed_value: null
+    required_value: null
+    result: true
+QB:
+  - path: current_causal_state.shared_slot.allocation_owner
+    observed_value: domain_A
+    required_value: null
+    result: false
+```
+
+The QB-only control observes `null`, requires `null`, returns `true`, and uses
+`shared_slot_allocated_to_domain_B`. The QA-only control uses the exact QA
+observation and `shared_slot_allocated_to_domain_A`.
 
 The prospective member ledger can contain these values in the private candidate
 R1 buffer, but `adjudication_disposition` and `replay_disposition` acquire
@@ -938,10 +1196,10 @@ output coincidence without the required dataflow isolation is insufficient.
 
 ## Acceptance gates
 
-The proof may freeze only after the exact identity, payload, R0, R1, QA, QB,
-digest projections, receipt schemas, BEXT schema, ordering key, working-state
-projection, member provenance, serialization, and failure dispositions are
-exhaustive.
+The proof froze only after the exact identity, payload, R0, R1, QA, QB, digest
+projections, receipt schemas, BEXT schema, ordering key, working-state
+projection, member provenance, serialization, and failure dispositions became
+exhaustive in this record.
 
 Implementation may later pass only if:
 
@@ -988,7 +1246,7 @@ resolver             evidence domains   audit
 
 ## Explicit non-claims
 
-This candidate does not prove or authorize:
+This proof does not prove or authorize:
 
 - split crews, player identities, or 2+2 topology;
 - networking, sockets, packet order, latency, trust, or host arbitration;
@@ -1005,6 +1263,20 @@ This candidate does not prove or authorize:
 No successor gameplay or city scope follows from this proof.
 
 ## Changelog
+
+### 0.1.0 — 2026-08-27
+
+- Froze `ConcurrentExternalEvidenceArbitrationPayload.v1` under simulation
+  identity `0.7.0-draft.57` after the draft.1 contract-level red-team passed.
+- Froze exact R0, Q, receipt, admitted-member, sealed-fixture, BEXT,
+  provisional-identity, R1, control, serialization, ordering, publication, and
+  failure contracts.
+- Authorized only the exact two-source, one-R0, one-sealed-fixture,
+  one-external-batch implementation DAG, W1–W4, singleton controls, declared
+  failure suite, source audit, evidence, and self-excluding release manifest.
+- Kept live collection, networking, 2+2 topology, movement, streaming,
+  autonomous members, retry, randomness, additional input classes, generalized
+  arbitration, and all adjacent architecture closed.
 
 ### 0.1.0-draft.1 — 2026-08-27
 

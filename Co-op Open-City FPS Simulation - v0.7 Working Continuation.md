@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.57
-**Status:** Concurrent External Evidence Arbitration Proof v0.1.0-draft.1 is ready for freeze review only. Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0 remains the latest sealed capacity. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only. No implementation scope is authorized.
+**Version:** 0.7.0-draft.58
+**Status:** Concurrent External Evidence Arbitration Proof v0.1.0 is frozen as the sole bounded implementation target; evidence is not yet sealed. Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0 remains the latest sealed capacity. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only. No adjacent implementation scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -63,7 +63,7 @@ The sealed [Same-Clock Successor Semantics Proof — v0.1.0](Same-Clock%20Succes
 
 The sealed [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md) and its [evidence](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md) establish one neutral integration of sealed canonical boundary-jump/input semantics with fresh UE materialization, an exact UE-emitted evidence input, source-process destruction, later canonical resolution, and fresh return materialization. A real UE source process materialized R0, physically emitted Q, and was terminated after Rinput committed; canonical alpha then resolved from Rinput without the source world, and isolated fresh UE return processes materialized Rfinal and the no-Q Rcontrol from their final records alone. It fixes `IntegratedUnrealPromotionUnloadRepromotionPayload.v1` / `0.7.0-draft.51`, canonical/raw-byte identity rules, isolated input domains, detached UE receipts, and harness-supplied source opportunity semantics. Travel, World Partition, streaming, same-clock work, and city-content expansion remain excluded.
 
-The candidate [Concurrent External Evidence Arbitration Proof — v0.1.0-draft.1](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md) opens exactly one new semantic boundary for freeze review: two isolated Unreal domains independently emit distinct evidence inputs bound to the same R0; side-effect-free admission and an exact sealed fixture set construct one R0-bound external batch; one proposed canonical ordering key and sequential provisional-state revalidation produce one atomic successor independent of physical or presentation order. Draft.1 distinguishes admission, provisional evaluation, canonical adjudication, committed mutation, ordinary failed gate, and anti-reacquisition; makes provisional identities mechanically type-disjoint from canonical record identities; and proves no live collection or transport-completeness law. The candidate introduces no retry, re-admission, network, split-player, movement, streaming, autonomous, same-clock-successor, random, or city-scale behavior. Implementation remains unauthorized until the exact identity, payloads, Qs, receipts, fixture set, BEXT, ordering key, working-state projection, provenance, and failure dispositions pass freeze review.
+The frozen [Concurrent External Evidence Arbitration Proof — v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md) opens exactly one new semantic boundary for bounded implementation: two isolated Unreal domains independently emit distinct evidence inputs bound to the same R0; side-effect-free admission and an exact sealed fixture set construct one R0-bound external batch; one frozen canonical ordering key and sequential provisional-state revalidation produce one atomic successor independent of physical or presentation order. It distinguishes admission, provisional evaluation, canonical adjudication, committed mutation, ordinary failed gate, and anti-reacquisition; makes provisional identities mechanically type-disjoint from canonical record identities; and proves no live collection or transport-completeness law. Only its exact payload, receipts, two-source evidence fixture, W1–W4, singleton controls, declared failures, source audit, evidence, and release verifier are authorized. Retry, re-admission, network, split-player, movement, streaming, autonomous, same-clock-successor, random, generalized resolver, additional-input-class, and city-scale behavior remain closed.
 
 ## Product framing
 
@@ -143,6 +143,22 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.58 — 2026-08-27
+
+- Froze [Concurrent External Evidence Arbitration Proof —
+  v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md)
+  under `ConcurrentExternalEvidenceArbitrationPayload.v1` and simulation
+  identity `0.7.0-draft.57`.
+- Authorized only the exact two-source, one-R0, one-sealed-fixture,
+  one-external-batch DAG, canonical member-ordering path, private provisional
+  state, singular publication point, W1–W4, singleton controls, declared
+  failures, source audit, evidence, and self-excluding release verifier.
+- Preserved Integrated Unreal Promotion-Unload-Repromotion v0.1.0 as the latest
+  sealed capacity pending physical and release evidence for this proof.
+- Authorized no live collection, networking, 2+2 topology, movement, streaming,
+  autonomous members, retry, randomness, additional input classes, generalized
+  resolver, capacity advancement, or adjacent architecture.
 
 ### 0.7.0-draft.57 — 2026-08-27
 
@@ -590,10 +606,13 @@ The frozen three-area kernel, physical round trip, deployment opportunity,
 live-arrival, shared-state, selection, resolution, Causal-LOD, chronology,
 external-input, and same-clock proofs remain sealed predecessor evidence.
 
-The sole current working unit is freeze review of [Concurrent External
-Evidence Arbitration Proof — v0.1.0-draft.1](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md).
-Review only its proposed two-source/one-R0/one-sealed-fixture/one-external-batch law, exact
-authority boundaries, ordering key, provisional-state provenance, atomicity,
-physical-domain isolation, witness matrix, and rejection surface. Do not
-implement it or add 2+2 players, networking, retry, movement, travel, World
-Partition, streaming, autonomous work, randomness, or city-scale behavior.
+The sole current working unit is implementation and evidence acquisition for
+[Concurrent External Evidence Arbitration Proof — v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md).
+Implement only its exact two-source/one-R0/one-sealed-fixture/one-external-batch
+law, frozen authority boundaries, ordering key, private provisional-state
+provenance, singular publication point, physical-domain isolation, W1–W4,
+singleton controls, rejection surface, source audit, evidence, and release
+verifier. Stop at the evidence seal. Do not add 2+2 players, networking, live
+collection, retry, movement, travel, World Partition, streaming, autonomous
+members, randomness, generalized resolver behavior, additional input classes,
+or city-scale architecture.
