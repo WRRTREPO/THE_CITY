@@ -1,0 +1,1 @@
+{"mapping_id":"topology_materialization_R0_0001","mapping_schema":"CanonicalTopologyMaterializationMap.v1","routes":{"topology_route_0001":"representation_route_slot_01"},"sites":{"topology_site_0001":"representation_site_slot_01","topology_site_0002":"representation_site_slot_02"},"source_canonical_hash":"666d75281d3478e586edd12464d2736169f423c2d7b128bd3d2d2b1b2b826b29"}

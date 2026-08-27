@@ -3,10 +3,10 @@
 **Version:** 0.1.0 (current amendment: 2026-08-27)\
 **Date:** 2026-08-27\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.62`\
-**Latest sealed proof:** `Concurrent External Evidence Arbitration Proof v0.1.0`\
+**Governing continuation:** `0.7.0-draft.63`\
+**Latest sealed proof:** `Canonical Spatial Topology Identity Proof v0.1.0`\
 **Latest capacity record:**
-`THE_CITY Development Capacity and Progress Note v0.1.9`
+`THE_CITY Development Capacity and Progress Note v0.1.10`
 
 ## Authority boundary
 
@@ -48,11 +48,16 @@ canonical ordering path, private provisional state, one atomic R1, singleton
 controls, and the declared failure surface. It authorizes no successor scope.
 
 [Canonical Spatial Topology Identity Proof —
-v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20-%20Draft.md) is now
-frozen as the sole bounded implementation-and-evidence target under
-`CanonicalSpatialTopologyIdentityPayload.v1` / `0.7.0-draft.61`. Its evidence
-is not sealed, and it does not advance capacity or authorize production Bridge
-endpoints, movement, streaming, networking, or adjacent architecture.
+v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md)
+is now implemented, proven, and sealed under
+`CanonicalSpatialTopologyIdentityPayload.v1` / `0.7.0-draft.61`. It records
+195/195 regressions, 18/18 focused checks, 28/28 declared fail-closed families,
+a successful UE 5.8 build, two fresh isolated successful Unreal witnesses,
+one prelaunch refusal, three real compiled-adapter refusal witnesses, and a
+self-excluding 107/107 release manifest. It advances
+capacity only for the exact two-site/one-route identity fixture and authorizes
+no production Bridge endpoints, movement, streaming, networking, or adjacent
+architecture.
 
 ## Current proof progression
 
@@ -80,8 +85,10 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Canonical Spatial Topology Identity
-                FROZEN / IMPLEMENTATION AUTHORIZED
-                EVIDENCE UNSEALED
+                PROVEN / SEALED
+                ↓
+        Successor
+                NONE SELECTED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -406,8 +413,8 @@ streaming identity
    PROVEN / SEALED
 
 7. Canonical spatial topology identity
-   ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-   FROZEN / IMPLEMENTATION AUTHORIZED / EVIDENCE UNSEALED
+   ████████████████████
+   PROVEN / SEALED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -433,12 +440,16 @@ two physical evidence sources with disjoint proof roots can enter one R0-bound b
         ↓
 canonical ordering and private working-state revalidation publish one R1
         ↓
+conceptual references, canonical site/route identity, and disposable Unreal
+representation remain separate through one access mutation and reconstruction
+        ↓
 without policy, local representation, input cursor, or Unreal becoming
 strategic authority
 ```
 
-> **Independent physical evidence sources can contend without acquiring
-> ordering, mutation, or chronology authority.**
+> **Canonical spatial identity survives conceptual relabeling, one canonical
+> access mutation, complete representation destruction, and fresh Unreal
+> reconstruction.**
 
 That is now proven evidence.
 
@@ -450,22 +461,20 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.62
+  version: 0.7.0-draft.63
 
 latest_capacity_record:
-  version: 0.1.9
+  version: 0.1.10
 
 latest_sealed_proof:
-  name: Concurrent External Evidence Arbitration Proof
-  version: 0.1.0
-
-active_frozen_proof:
   name: Canonical Spatial Topology Identity Proof
   version: 0.1.0
   payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
   simulation_identity: 0.7.0-draft.61
-  authority: bounded_implementation_and_evidence_only
-  evidence_status: not_sealed
+  evidence_status: passed_and_sealed
+
+active_proof:
+  value: none_selected
 ```
 
 Older continuation snapshots, README files, draft states, and superseded
@@ -497,9 +506,9 @@ The sealed predecessors do not authorize Fork 3 or any generalization or
 adjacent scope under Fork 4. Fork 4 is sealed only for its bounded witnessed
 lifecycle; it does not authorize a successor implementation.
 
-Canonical Spatial Topology Identity v0.1.0 is separately frozen as the sole
-bounded implementation-and-evidence target. That freeze authorizes only its
-exact DAG; it authorizes no capacity advancement or adjacent spatial behavior.
+Canonical Spatial Topology Identity v0.1.0 is separately sealed only in its
+exact two-site/one-route scope. Its seal authorizes no adjacent spatial
+behavior or successor implementation.
 
 Do not begin any of the following without a separately reviewed freeze and
 explicit implementation authority:
@@ -529,7 +538,7 @@ The latest sealed release verifier is:
 ``` sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_concurrent_external_evidence_arbitration_release.py verify
+  python3 proof_kernel/verify_canonical_spatial_topology_identity_release.py verify
 ```
 
 ## Sealed Fork 4 boundary
@@ -613,13 +622,11 @@ or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 Concurrent External Evidence Arbitration v0.1.0 is complete and sealed.
 Stochastic identity remains deferred.
 
-Canonical Spatial Topology Identity v0.1.0 is the sole current working unit.
-Implement only its exact fixture ID value spaces, type-disjoint validation,
-unordered-request normalization, explicit endpoint references, detached
-conceptual-assignment boundary, access-only R0-to-R1 mutation, read-only Unreal
-adapter, fresh-process reconstruction, rejection surface, replay, source audit,
-evidence, and self-excluding release verifier.
+Canonical Spatial Topology Identity v0.1.0 is complete and sealed. Its exact
+fixture ID spaces, unordered-request normalization, endpoint relation,
+access-only R0-to-R1 mutation, read-only Unreal reconstruction, rejection
+surface, replay, source audit, and release package are predecessor evidence.
 
-> **Stop at verified evidence and the release seal. Do not implement or infer
-> adjacent spatial architecture without a separate reviewed freeze and explicit
+> **No successor proof is selected. Do not implement or infer adjacent spatial
+> architecture without a separate reviewed selection, freeze, and explicit
 > authority.**

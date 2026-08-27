@@ -140,3 +140,40 @@ truths: control is gang-owned with an active relay; early intervention is
 contested with the relay inactive; late intervention is gang-owned at 72 / 28
 with the relay inactive. The complete sealed record is [Crew Arrival Into Live
 Commitment Proof Evidence — v0.1.0](../Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20Evidence%20-%20v0.1.0.md).
+
+## Canonical spatial topology identity
+
+The topology proof uses a dedicated read-only adapter. Each fresh process sees
+one isolated root containing exactly `canonical_payload.json`,
+`materialization_map.json`, and `launch_receipt.json`. The adapter verifies raw
+bytes and canonical identity before materializing two site Actors and one route
+Actor. It exposes no interaction or evidence/Q path.
+
+The proof harness performs the complete source-destroy-resolve-return sequence:
+
+```sh
+cd "/Users/boandersson/Desktop/Games/THE_CITY/proof_kernel"
+TOPOLOGY_RUNTIME=$(mktemp -d /private/tmp/the-city-topology-runtime.XXXXXX)
+TOPOLOGY_EVIDENCE_PARENT=$(mktemp -d /private/tmp/the-city-topology-evidence.XXXXXX)
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
+  python3 canonical_spatial_topology_identity_harness.py acquire \
+  --runtime-root "$TOPOLOGY_RUNTIME" \
+  --evidence-output "$TOPOLOGY_EVIDENCE_PARENT/evidence"
+```
+
+The final evidence output must not already exist. The harness writes to a
+private sibling staging directory and publishes the complete 30-file physical
+witness set exactly once; any failed source, return, or refusal-control run
+publishes nothing. The harness validates that detached set before publication;
+the 30 artifacts are then imported into the proof records and the complete
+canonical release verifier validates them together with canonical authority.
+
+The source process materializes `available`, then dies before the H0-bound
+canonical transaction. The return process receives R1 only and reconstructs
+the same canonical site IDs, route ID, and endpoint pair with `blocked` access.
+One malformed input root is rejected before launch, while three direct
+compiled-adapter conformance controls prove exact detached refusal diagnostics
+without materialization or canonical mutation.
+This does not establish movement, directionality, distance, pathfinding,
+production Bridge topology, World Partition, or streaming. The complete record
+is [Canonical Spatial Topology Identity Proof Evidence — v0.1.0](../Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md).

@@ -1,11 +1,12 @@
 # Canonical Spatial Topology Identity Proof
 
 **Version:** 0.1.0\
-**Status:** frozen; implementation is authorized only within this exact boundary\
+**Status:** passed and sealed within this exact frozen boundary\
 **Selected:** 2026-08-27\
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)\
 **Conceptual source:** [THE_CITY Conceptual City Topology and Developer Framing v0.3.0](THE_CITY_Conceptual_City_Topology_Developer_Framing_v0.3.0.md)\
 **Latest sealed predecessor:** [Concurrent External Evidence Arbitration Proof — v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md)\
+**Sealed evidence:** [Canonical Spatial Topology Identity Proof Evidence — v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md)\
 **Simulation identity:** `0.7.0-draft.61` — frozen for this proof
 
 ## Question
