@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.48
-**Status:** Same-Clock Successor Semantics Proof v0.1.0 is sealed. No successor city scope is authorized.
+**Version:** 0.7.0-draft.49
+**Status:** Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0-draft.0 is under specification review only. Implementation is not authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -60,6 +60,8 @@ The sealed [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Re
 The sealed [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20-%20v0.1.1.md) and its [evidence](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md) supersede the immutable [v0.1.0](External%20Input%20Boundary%20Proof%20-%20Draft.md) only for the canonical self-hash repair. Its neutral fixture proves that valid Q at t0/30 becomes an R0-bound BQ, commits Rinput, and changes only alpha's later ordinary t1/00 gate. Q-absent control retains the same alpha definition and succeeds. Four local-policy witnesses converge byte-identically at R0/Rinput/Rfinal; rejected envelopes and local authority attempts remain outside canonical truth. Pre-state hashes and singular successor ancestry remain canonical; successor hashes are verified only after complete record construction. No Unreal, transport, wall-clock synchronization, city content, randomness, same-time input ordering, late evidence, or successor scope is authorized.
 
 The sealed [Same-Clock Successor Semantics Proof — v0.1.0](Same-Clock%20Successor%20Semantics%20Proof%20-%20Draft.md) and its [evidence](Same-Clock%20Successor%20Semantics%20Proof%20Evidence%20-%20v0.1.0.md) establish one bounded canonical same-clock successor chain. Canonical boundaries are `(decision_time, simulation_phase)` and their complete `work_id`-ordered due sets are members, not extra transactions. X at `(t1/00, 10)` consumes one finite canonical budget unit to create Y at `(t1/00, 20)`; R1 invalidates BX despite retaining the same canonical clock, so Y is rediscovered from R1 before it resolves. Four policy histories converge byte-identically at R0/R1/R2; twelve malformed or authority-leaking attempts fail without canonical mutation. No same-time external-input arbitration, general multi-member phase batching, Unreal, city content, randomness, or successor city scope is authorized.
+
+The [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0-draft.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md) is the selected successor specification only. It proposes one neutral integration of sealed canonical boundary-jump/input semantics with a fresh UE materialization, an exact UE-emitted evidence input, source-process destruction, later canonical resolution, and a fresh return materialization. It keeps canonical execution policy, representation lifecycle, and authority distinct; it does not authorize implementation, travel, World Partition, streaming, same-clock work, or city-content expansion.
 
 ## Product framing
 
@@ -139,6 +141,19 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.49 — 2026-08-26
+
+- Selected the first integrated Unreal promotion/unload/repromotion proof as
+  the next specification-only working unit.
+- Opened `IntegratedUnrealPromotionUnloadRepromotionPayload.v1` as a candidate
+  neutral payload: one physical evidence input at `t0/30`, one later ordinary
+  autonomous gate read at `t1/00`, and no same-clock behavior.
+- Required fresh UE source and return processes, detached raw-byte integrity
+  receipts, process-destruction evidence before rediscovering the later
+  canonical boundary, and isolated final-record return input.
+- No implementation, Unreal source change, World Partition, travel,
+  asynchronous streaming, stochasticity, or city expansion is authorized.
 
 ### 0.7.0-draft.48 — 2026-08-26
 
@@ -448,8 +463,13 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 
 ## Next working unit
 
-The frozen three-area kernel has passed its primary run, counterfactual, replay-equivalence record, causal ledger, materialization projection, real first-person materialization, and one complete physical-to-canonical-to-physical persistence round trip.
+The frozen three-area kernel, physical round trip, deployment opportunity,
+live-arrival, shared-state, selection, resolution, Causal-LOD, chronology,
+external-input, and same-clock proofs remain sealed predecessor evidence.
 
-The crew deployment opportunity-cost proof, crew-arrival live-commitment proof, shared-state commitment interference proof, and bounded agent commitment selection proof are sealed. All are bounded proofs, not authority to expand city scale or add systems.
-
-Do not revise the frozen kernel or add map scale, additional city systems, or scripted front outcomes without a new user-directed scope decision. The proven round trip is one consequence, not authority to expand city scope.
+The sole current working unit is specification review of [Integrated Unreal
+Promotion-Unload-Repromotion Proof — v0.1.0-draft.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md).
+Do not implement it or revise a sealed proof until its exact payload,
+receipt, Q/BQ, lifecycle witness, failure matrix, and source audit freeze.
+Do not add map scale, travel, World Partition, additional city systems, or
+scripted outcomes under this selection.

@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-26)\
 **Date:** 2026-08-26\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.48`\
+**Governing continuation:** `0.7.0-draft.49`\
 **Latest sealed proof:** `Same-Clock Successor Semantics Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.7`
@@ -16,7 +16,7 @@ continuation, sealed evidence, capacity record, or repository state.
 
 ## Verdict
 
-Forks 1 and 2 are complete.
+Forks 1 and 2 are complete. Fork 4 is selected for specification review only.
 
 `Same-Clock Successor Semantics Proof v0.1.0` is implemented, proven,
 sealed, and pushed at:
@@ -33,7 +33,10 @@ focused proof:   13 / 13 passing
 release manifest: 24 / 24 verified, self-excluding
 ```
 
-No successor city scope is authorized by the seal.
+Same-Clock's seal authorizes no extension of its own scope. The selected
+successor is [Integrated Unreal Promotion-Unload-Repromotion Proof —
+v0.1.0-draft.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md);
+it authorizes no implementation.
 
 ## Current proof progression
 
@@ -52,12 +55,10 @@ External Input During Skipped Time
         ↓
 Same-Clock Successor Semantics
         PROVEN
-        ↓
-Stochastic Identity
-        NOT STARTED
-        ↓
-Actual Unreal Variable-Resolution Promotion / Streaming
-        NOT PROVEN
+        ├── Stochastic Identity
+        │       DEFERRED
+        └── Integrated Unreal Promotion / Unload / Repromotion
+                SPECIFICATION REVIEW ONLY
 ```
 
 Record-relative chronological resolution remains an essential
@@ -302,9 +303,9 @@ Until then:
 
 > **Authoritative randomness remains prohibited.**
 
-## Fork 4 --- Actual Unreal promotion / streaming under variable resolution
+## Fork 4 --- Integrated Unreal promotion / unload / repromotion
 
-**Status: PREREQUISITES PROVEN / INTEGRATED PROOF NOT STARTED**
+**Status: SPECIFICATION REVIEW ONLY / IMPLEMENTATION NOT AUTHORIZED**
 
 Already proven separately:
 
@@ -319,39 +320,25 @@ Already proven separately:
 6.  player-originated evidence can interrupt skipped causal time without
     granting local authority.
 
-Still unproven is the integrated production-shaped loop:
+The selected draft isolates the integrated lifecycle without claiming movement
+or streaming:
 
 ``` text
-distant canonical area
-        ↓
-coarse / boundary-jump execution
-        ↓
-crew approaches
-        ↓
-Unreal representation streams / materializes
-        ↓
-simulation representation promotes
-        ↓
-player observes / interacts
-        ↓
-durable physical consequence emits evidence
-        ↓
-canonical transaction
-        ↓
-crew leaves
-        ↓
-representation demotes / unloads
-        ↓
-canonical simulation continues
-        ↓
-later re-promotion preserves history
+sealed R0
+        ↓ representation promotion request only
+fresh UE source process
+        ↓ evidenced Q
+canonical Rinput
+        ↓ destroy source process
+boundary-jump canonical alpha resolution
+        ↓ Rfinal
+fresh UE return process reads Rfinal only
 ```
 
-This is not yet proven under World Partition, production streaming
-cells, repeated promotion/demotion, multiple simultaneous areas, real
-crew movement across promotion boundaries, asynchronous loading,
-production navigation, population materialization, networking,
-save/load, or city scale.
+The draft remains unproven and excludes World Partition, production streaming
+cells, repeated promotion/demotion, multiple simultaneous areas, real crew
+movement across promotion boundaries, asynchronous loading, production
+navigation, population materialization, networking, save/load, and city scale.
 
 Preserve the identity law:
 
@@ -385,7 +372,7 @@ streaming identity
 4. Actual Unreal variable-resolution promotion / streaming
    ███████░░░░░░░░░░░░░
    PREREQUISITES PROVEN
-   INTEGRATED PROOF NOT STARTED
+   SPECIFICATION REVIEW ONLY
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -428,7 +415,7 @@ sealed_commit:
   message: Seal same-clock successor proof
 
 continuation:
-  version: 0.7.0-draft.48
+  version: 0.7.0-draft.49
 
 latest_capacity_record:
   version: 0.1.7
@@ -494,28 +481,29 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   python3 proof_kernel/verify_same_clock_successor_release.py verify
 ```
 
-## If Fork 4 is selected instead
+## Selected Fork 4 boundary
 
 Do not jump directly to production World Partition architecture.
 
-Open a bounded integrated Unreal proof first:
+The active draft is [Integrated Unreal Promotion-Unload-Repromotion Proof —
+v0.1.0-draft.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md).
+It is specification-only. Its bounded sequence is:
 
 ``` text
-canonical coarse state
-→ approach
-→ promotion
-→ fresh Unreal materialization
-→ one evidenced player consequence
-→ canonical commit
-→ departure
-→ demotion / unload
-→ continued canonical resolution
-→ re-promotion
-→ same durable consequence remains
+sealed R0
+→ non-authoritative promotion request
+→ fresh Unreal source process
+→ exact Q
+→ canonical Rinput
+→ destroy source process
+→ boundary-jump canonical alpha resolution
+→ Rfinal
+→ fresh Unreal return process from Rfinal only
 ```
 
-Keep canonical spatial identity separate from Unreal/streaming
-identities.
+It does not prove approach, departure, movement, World Partition, or streaming.
+Keep canonical execution policy, representation lifecycle, and authority
+separate.
 
 ## Acceptance discipline for every successor proof
 
@@ -543,29 +531,23 @@ proof_contract:
 A passing fixture does not authorize generalization beyond its frozen
 claim.
 
-## Current next decision
+## Current working decision
 
 The prior scheduler-hardening work is complete.
 
 There is no remaining implementation debt on External Input Boundary v0.1.1
 or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 
-The next legitimate decision is:
+The successor choice is now made:
 
 ``` text
-A. Stochastic identity
-   only if a concrete city requirement needs authoritative uncertainty
-
-or
-
-B. First integrated Unreal variable-resolution promotion/streaming proof
-   if the project now needs to cross from canonical proof machinery
-   toward the actual FPS embodiment loop
+B. Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0-draft.0
+   specification review only
 ```
 
 Stochastic identity remains deferred until a concrete requirement makes
 authoritative uncertainty necessary.
 
-Until a successor is explicitly selected:
+Until the selected draft freezes:
 
-> **Hold the sealed state. Do not expand the machine.**
+> **Do not implement or expand the machine.**
