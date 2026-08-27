@@ -1,12 +1,12 @@
-# THE_CITY --- Current Proof State and Repo-Agent Instruction
+# THE_CITY — Current Proof State and Repo-Agent Instruction
 
-**Version:** 0.1.0\
+**Version:** 0.1.0 (current amendment: 2026-08-26)\
 **Date:** 2026-08-26\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.46`\
-**Latest sealed proof:** `External Input Boundary Proof v0.1.1`\
+**Governing continuation:** `0.7.0-draft.48`\
+**Latest sealed proof:** `Same-Clock Successor Semantics Proof v0.1.0`\
 **Latest capacity record:**
-`THE_CITY Development Capacity and Progress Note v0.1.6`
+`THE_CITY Development Capacity and Progress Note v0.1.7`
 
 ## Authority boundary
 
@@ -16,21 +16,21 @@ continuation, sealed evidence, capacity record, or repository state.
 
 ## Verdict
 
-Fork 1 is complete.
+Forks 1 and 2 are complete.
 
-`External Input Boundary Proof v0.1.1` is implemented, proven, sealed,
-and pushed at:
+`Same-Clock Successor Semantics Proof v0.1.0` is implemented, proven,
+sealed, and pushed at:
 
 ``` text
-634c0d7 — Seal external input boundary proof
+52b5646 — Seal same-clock successor proof
 ```
 
 Evidence:
 
 ``` text
-full regression: 130 / 130 passing
+full regression: 143 / 143 passing
 focused proof:   13 / 13 passing
-release manifest: 25 / 25 verified, self-excluding
+release manifest: 24 / 24 verified, self-excluding
 ```
 
 No successor city scope is authorized by the seal.
@@ -51,7 +51,7 @@ External Input During Skipped Time
         PROVEN
         ↓
 Same-Clock Successor Semantics
-        NOT PROVEN
+        PROVEN
         ↓
 Stochastic Identity
         NOT STARTED
@@ -209,54 +209,71 @@ Fork 1 does not prove:
 
 ## Fork 2 --- Same-clock successor semantics
 
-**Status: NOT PROVEN / NEXT CLEAN SCHEDULER RISK**
+**Status: PROVEN / SEALED**
 
-The existing scheduler permits unresolved work where:
+Frozen and sealed identity:
 
-``` text
-decision_time >= canonical_clock
+``` yaml
+proof: Same-Clock Successor Semantics Proof v0.1.0
+payload: SameClockSuccessorSemanticsPayload.v1
+simulation_identity: 0.7.0-draft.47
+governing_continuation_after_seal: 0.7.0-draft.48
 ```
 
-But the chronological proof deliberately prohibited creation of new
-same-clock successor work. External Input Boundary also excludes
-same-time input/autonomous arbitration.
-
-The unresolved case is:
+The proven machine is:
 
 ``` text
-X resolves at t1/00
-        ↓
-X lawfully creates Y
-with decision_time = t1/00
-        ↓
-???
+R0
+→ BX @ (t1/00, phase 10)
+→ X resolves atomically
+→ consumes budget 1 → 0
+→ creates Y @ (t1/00, phase 20)
+→ R1 remains at t1/00
+→ BX is stale because its source record is no longer current
+→ rediscover BY from R1
+→ Y resolves atomically
+→ R2 remains at t1/00
+→ none
 ```
 
-A possible future law might be:
+### Proven law
+
+One canonical boundary may create same-clock successor work only when the
+successor is at a strictly later canonical phase, finite canonical generation
+authority remains, and the successor is rediscovered from the committed
+successor record.
 
 ``` text
-same decision_time
-+ later lawful phase / canonical execution key
-→ Y remains immediately due
+canonical boundary = (decision_time, simulation_phase)
+boundary members   = complete work_id-ordered due set
+work_id ordering   ≠ transaction ordering
 ```
 
-That is not current law.
+This fixture has exactly one member per boundary. It does not establish
+general multi-member batching.
 
-A future proof must decide and mechanically prove:
+Record identity, not clock advancement, invalidates prior scheduling
+authority. R1 and R2 both carry `t1/00`, yet BX cannot resolve R1 because it
+is bound to `hash(R0)`; BY must be bound to `hash(R1)`.
 
--   whether same-clock successor creation is legal;
--   what ordering domain owns it;
--   whether a successor may execute at the same canonical decision time;
--   what prevents infinite same-clock work generation;
--   how phase/key monotonicity is enforced;
--   how already-settled work is excluded after rediscovery;
--   whether same-clock work interacts with external-input arbitration;
-    and
--   fail-closed behavior for cyclic, duplicate, stale, crossing, or
-    retrograde work.
+Four dense, boundary-jump, and mixed execution histories converge
+byte-identically at R0/R1/R2. Twelve malformed or authority-leaking attempts
+fail before canonical mutation: retrograde or over-limit phase, duplicate or
+cyclic member, exhausted budget, stale or crossing boundary, and local
+authority leakage.
 
-No implementation is authorized until this proof is explicitly selected,
-reviewed, and frozen.
+### Fork 2 exclusions
+
+Fork 2 does not prove:
+
+-   same-time external-input arbitration;
+-   general multi-member phase batching;
+-   multiple independent same-clock creators;
+-   unbounded successor generation;
+-   stochasticity;
+-   Unreal execution of this mechanism;
+-   city content, planner behavior, or production scheduling;
+-   networking, rollback, save/load, or map scale.
 
 ## Fork 3 --- Stochastic identity
 
@@ -358,8 +375,8 @@ streaming identity
    PROVEN / SEALED
 
 2. Same-clock successor semantics
-   ░░░░░░░░░░░░░░░░░░░░
-   NOT PROVEN
+   ████████████████████
+   PROVEN / SEALED
 
 3. Stochastic identity
    ░░░░░░░░░░░░░░░░░░░░
@@ -386,6 +403,10 @@ player-originated evidence can interrupt skipped causal time
         ↓
 the resulting canonical fact can alter later autonomous eligibility
         ↓
+one committed boundary can create later-phase work at the same canonical time
+        ↓
+the successor must be rediscovered from the new record
+        ↓
 without policy, local representation, input cursor, or Unreal becoming
 strategic authority
 ```
@@ -403,18 +424,18 @@ Treat these as the current governing records:
 
 ``` yaml
 sealed_commit:
-  id: 634c0d7
-  message: Seal external input boundary proof
+  id: 52b5646
+  message: Seal same-clock successor proof
 
 continuation:
-  version: 0.7.0-draft.46
+  version: 0.7.0-draft.48
 
 latest_capacity_record:
-  version: 0.1.6
+  version: 0.1.7
 
 latest_sealed_proof:
-  name: External Input Boundary Proof
-  version: 0.1.1
+  name: Same-Clock Successor Semantics Proof
+  version: 0.1.0
 ```
 
 Older continuation snapshots, README files, draft states, and superseded
@@ -442,15 +463,15 @@ preserve original
 
 ## No implicit successor work
 
-Fork 1 being sealed does not authorize Forks 2--4.
+The seals do not authorize Forks 3--4 or an extension of Fork 2.
 
 Do not begin any of the following without explicit successor selection:
 
--   same-clock successor implementation;
 -   stochastic systems;
 -   Unreal variable-resolution streaming;
 -   World Partition integration;
--   generalized external-input handling;
+-   same-time external-input arbitration or generalized external-input handling;
+-   general multi-member phase batching;
 -   multiple input streams;
 -   richer commitment populations;
 -   production topology;
@@ -459,65 +480,19 @@ Do not begin any of the following without explicit successor selection:
 -   save/load; or
 -   city-scale expansion.
 
-## If Fork 2 is selected
+## Fork 2 closure
 
-Open **Same-Clock Successor Semantics** as a specification only.
+Same-Clock Successor Semantics is sealed. Do not reopen it by adding
+multi-member batching, same-time input ordering, another creator, or a new
+phase policy. Those are separate successor decisions.
 
-Do not write implementation before freeze.
+The release verifier is:
 
-Use the smallest neutral machine:
-
-``` text
-R0 @ t1/00
-→ X resolves
-→ R1 remains at t1/00
-→ X has lawfully created Y due at t1/00
-→ rediscover from R1
-→ determine whether Y is immediately due
+``` sh
+cd "/Users/boandersson/Desktop/Games/THE_CITY"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
+  python3 proof_kernel/verify_same_clock_successor_release.py verify
 ```
-
-The proof must define and test:
-
-``` yaml
-same_clock_successor:
-  legality:
-    - may canonical resolution create unresolved work at canonical_clock?
-
-  ordering:
-    - exact phase/key relation required for a lawful successor
-    - successor may not sort before the work that created it
-    - retrograde ordering must fail closed
-
-  rediscovery:
-    - next boundary comes from the successor record
-    - already-settled work cannot reacquire authority
-
-  termination:
-    - prevent infinite same-clock successor chains
-    - require a mechanically provable monotonic progression law
-    - fail closed when monotonic progress is impossible
-
-  authority:
-    - canonical state alone determines same-clock eligibility
-    - policy/cache/trace cannot manufacture or retain work
-
-  provenance:
-    - every successor boundary is bound to the exact source record
-
-  equivalence:
-    - dense, boundary-jump, and mixed policies converge at every canonical checkpoint
-
-  rejection:
-    - stale boundary
-    - crossing boundary
-    - retrograde phase/key
-    - duplicate successor
-    - cyclic successor generation
-    - local-policy scheduler override
-```
-
-Do not solve same-time external-input arbitration inside this proof
-unless explicitly authorized.
 
 ## If Fork 4 is selected instead
 
@@ -570,16 +545,16 @@ claim.
 
 ## Current next decision
 
-The previous unfinished job is complete.
+The prior scheduler-hardening work is complete.
 
-There is no remaining implementation debt on External Input Boundary
-v0.1.1 inside its sealed scope.
+There is no remaining implementation debt on External Input Boundary v0.1.1
+or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 
 The next legitimate decision is:
 
 ``` text
-A. Same-Clock Successor Semantics
-   recommended if continuing canonical scheduler hardening
+A. Stochastic identity
+   only if a concrete city requirement needs authoritative uncertainty
 
 or
 
