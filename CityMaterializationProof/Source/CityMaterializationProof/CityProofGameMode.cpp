@@ -2,9 +2,11 @@
 
 #include "CityMaterializationActor.h"
 #include "CityProofCharacter.h"
+#include "IntegratedUnrealProofAdapter.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "Misc/CommandLine.h"
 
 ACityProofGameMode::ACityProofGameMode()
 {
@@ -15,7 +17,16 @@ void ACityProofGameMode::BeginPlay()
 {
     Super::BeginPlay();
 
-    GetWorld()->SpawnActor<ACityMaterializationActor>(ACityMaterializationActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+    FString IntegratedPayloadPath;
+    FParse::Value(FCommandLine::Get(), TEXT("IntegratedProofPayload="), IntegratedPayloadPath);
+    if (IntegratedPayloadPath.IsEmpty())
+    {
+        GetWorld()->SpawnActor<ACityMaterializationActor>(ACityMaterializationActor::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+    }
+    else
+    {
+        GetWorld()->SpawnActor<AIntegratedUnrealProofAdapter>(AIntegratedUnrealProofAdapter::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+    }
 
     APlayerController* Controller = GetWorld()->GetFirstPlayerController();
     if (Controller != nullptr)

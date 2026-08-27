@@ -2,6 +2,7 @@
 
 #include "BridgeAccessPoint.h"
 #include "CrewOperationPoint.h"
+#include "IntegratedGateTokenPoint.h"
 #include "LiveCommitmentRelayPoint.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -72,6 +73,16 @@ void ACityProofCharacter::AttemptBridgeAccessDestruction()
             }
             return;
         }
+        if (AIntegratedGateTokenPoint* IntegratedGate = Cast<AIntegratedGateTokenPoint>(Hit.GetActor()))
+        {
+            const bool bProposalWritten = IntegratedGate->TryDisableByCrew(TEXT("crew_01_to_04"));
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
+                    bProposalWritten ? TEXT("Integrated physical Q emitted. Canonical commit required.") : TEXT("No integrated proposal emitted."));
+            }
+            return;
+        }
         if (ABridgeAccessPoint* AccessPoint = Cast<ABridgeAccessPoint>(Hit.GetActor()))
         {
             const bool bProposalWritten = AccessPoint->TryDestroyByCrew(TEXT("crew_01_to_04"));
@@ -114,6 +125,20 @@ void ACityProofCharacter::AttemptBridgeAccessDestruction()
             {
                 GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
                     bProposalWritten ? TEXT("Physical proposal emitted. Canonical commit required.") : TEXT("No live-relay proposal emitted."));
+            }
+            return;
+        }
+    }
+
+    for (TActorIterator<AIntegratedGateTokenPoint> It(GetWorld()); It; ++It)
+    {
+        if (FVector::DistSquared(GetActorLocation(), It->GetActorLocation()) <= FMath::Square(5000.0f))
+        {
+            const bool bProposalWritten = It->TryDisableByCrew(TEXT("crew_01_to_04"));
+            if (GEngine != nullptr)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 6.0f, bProposalWritten ? FColor::Green : FColor::Red,
+                    bProposalWritten ? TEXT("Integrated physical Q emitted. Canonical commit required.") : TEXT("No integrated proposal emitted."));
             }
             return;
         }

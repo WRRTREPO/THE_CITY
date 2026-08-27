@@ -14,5 +14,6 @@ public class CityMaterializationProof : ModuleRules
             "Json",
             "JsonUtilities"
         });
+        AddEngineThirdPartyPrivateStaticDependencies(Target, "OpenSSL");
     }
 }
