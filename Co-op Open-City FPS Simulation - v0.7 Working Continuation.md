@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.55
-**Status:** Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0 is sealed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only. No successor implementation scope is authorized.
+**Version:** 0.7.0-draft.56
+**Status:** Concurrent External Evidence Arbitration Proof v0.1.0-draft.0 is selected for specification review only. Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0 remains the latest sealed capacity. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only. No implementation scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -62,6 +62,8 @@ The sealed [External Input Boundary Proof — v0.1.1](External%20Input%20Boundar
 The sealed [Same-Clock Successor Semantics Proof — v0.1.0](Same-Clock%20Successor%20Semantics%20Proof%20-%20Draft.md) and its [evidence](Same-Clock%20Successor%20Semantics%20Proof%20Evidence%20-%20v0.1.0.md) establish one bounded canonical same-clock successor chain. Canonical boundaries are `(decision_time, simulation_phase)` and their complete `work_id`-ordered due sets are members, not extra transactions. X at `(t1/00, 10)` consumes one finite canonical budget unit to create Y at `(t1/00, 20)`; R1 invalidates BX despite retaining the same canonical clock, so Y is rediscovered from R1 before it resolves. Four policy histories converge byte-identically at R0/R1/R2; twelve malformed or authority-leaking attempts fail without canonical mutation. No same-time external-input arbitration, general multi-member phase batching, Unreal, city content, randomness, or successor city scope is authorized.
 
 The sealed [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20-%20Draft.md) and its [evidence](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md) establish one neutral integration of sealed canonical boundary-jump/input semantics with fresh UE materialization, an exact UE-emitted evidence input, source-process destruction, later canonical resolution, and fresh return materialization. A real UE source process materialized R0, physically emitted Q, and was terminated after Rinput committed; canonical alpha then resolved from Rinput without the source world, and isolated fresh UE return processes materialized Rfinal and the no-Q Rcontrol from their final records alone. It fixes `IntegratedUnrealPromotionUnloadRepromotionPayload.v1` / `0.7.0-draft.51`, canonical/raw-byte identity rules, isolated input domains, detached UE receipts, and harness-supplied source opportunity semantics. Travel, World Partition, streaming, same-clock work, and city-content expansion remain excluded.
+
+The candidate [Concurrent External Evidence Arbitration Proof — v0.1.0-draft.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md) opens exactly one new semantic boundary for review: two isolated Unreal domains independently emit distinct evidence inputs bound to the same R0; side-effect-free admission creates one R0-bound external batch; one proposed canonical ordering key and sequential provisional-state revalidation produce one atomic successor independent of physical or presentation order. The candidate introduces no retry, re-admission, network, split-player, movement, streaming, autonomous, same-clock-successor, random, or city-scale behavior. Implementation remains unauthorized until the exact identity, payloads, Qs, receipts, BEXT, ordering key, working-state projection, provenance, and failure dispositions pass freeze review.
 
 ## Product framing
 
@@ -141,6 +143,23 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.56 — 2026-08-27
+
+- Selected [Concurrent External Evidence Arbitration Proof —
+  v0.1.0-draft.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md)
+  for specification review only.
+- Proposed one immutable R0, two independently evidenced Unreal-source inputs,
+  side-effect-free admission, one R0-bound external arbitration batch, one
+  candidate canonical member-ordering law, sequential provisional-state
+  revalidation, and one atomic successor with singular ancestry.
+- Required W1–W4 physical/presentation permutations, QA-only and QB-only
+  controls, domain-separated provisional-state identity, two-domain isolation,
+  batch-level failure atomicity, replay, and source audit.
+- Preserved Integrated Unreal Promotion-Unload-Repromotion v0.1.0 as the latest
+  sealed capacity. No code, capacity record, README authority, Unreal source,
+  2+2 topology, networking, movement, streaming, or successor implementation
+  is authorized.
 
 ### 0.7.0-draft.55 — 2026-08-27
 
@@ -555,9 +574,10 @@ The frozen three-area kernel, physical round trip, deployment opportunity,
 live-arrival, shared-state, selection, resolution, Causal-LOD, chronology,
 external-input, and same-clock proofs remain sealed predecessor evidence.
 
-No successor working unit is selected. The sealed Integrated Unreal proof
-establishes exactly one promotion → physical evidence → unload → canonical
-continuation → isolated fresh repromotion cycle. It does not authorize map
-scale, travel, World Partition, repeated promotion cycles, additional city
-systems, or scripted outcomes. Any next proof requires a separate scope
-decision.
+The sole current working unit is specification review of [Concurrent External
+Evidence Arbitration Proof — v0.1.0-draft.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md).
+Review only its proposed two-source/one-R0/one-external-batch law, exact
+authority boundaries, ordering key, provisional-state provenance, atomicity,
+physical-domain isolation, witness matrix, and rejection surface. Do not
+implement it or add 2+2 players, networking, retry, movement, travel, World
+Partition, streaming, autonomous work, randomness, or city-scale behavior.

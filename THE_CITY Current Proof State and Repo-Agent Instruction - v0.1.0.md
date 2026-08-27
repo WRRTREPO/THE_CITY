@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-27)\
 **Date:** 2026-08-27\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.55`\
+**Governing continuation:** `0.7.0-draft.56`\
 **Latest sealed proof:** `Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.8`
@@ -35,7 +35,7 @@ release manifest: 24 / 24 verified, self-excluding
 
 The [Integrated Unreal Promotion-Unload-Repromotion Proof —
 v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md)
-is now proven and sealed. Its 62-member self-excluding release package records
+is now proven and sealed. Its 63-member self-excluding release package records
 one real UE source interaction, source-process destruction before canonical
 continuation, and isolated fresh primary/control return materializations.
 It authorizes no successor scope.
@@ -61,6 +61,9 @@ Same-Clock Successor Semantics
         │       DEFERRED
         └── Integrated Unreal Promotion / Unload / Repromotion
                 PROVEN / SEALED
+                ↓
+        Concurrent External Evidence Arbitration
+                SPECIFICATION REVIEW ONLY
 ```
 
 Record-relative chronological resolution remains an essential
@@ -379,6 +382,10 @@ streaming identity
 5. Actual Unreal variable-resolution promotion / streaming
    ░░░░░░░░░░░░░░░░░░░░
    NOT SELECTED / NOT PROVEN
+
+6. Concurrent external evidence arbitration
+   ██░░░░░░░░░░░░░░░░░░
+   SPECIFICATION REVIEW ONLY / IMPLEMENTATION CLOSED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -417,7 +424,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.55
+  version: 0.7.0-draft.56
 
 latest_capacity_record:
   version: 0.1.8
@@ -477,12 +484,12 @@ Same-Clock Successor Semantics is sealed. Do not reopen it by adding
 multi-member batching, same-time input ordering, another creator, or a new
 phase policy. Those are separate successor decisions.
 
-The release verifier is:
+The latest sealed release verifier is:
 
 ``` sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_same_clock_successor_release.py verify
+  python3 proof_kernel/verify_integrated_unreal_promotion_unload_repromotion_release.py verify
 ```
 
 ## Sealed Fork 4 boundary
@@ -537,6 +544,19 @@ proof_contract:
 A passing fixture does not authorize generalization beyond its frozen
 claim.
 
+## Selected specification boundary
+
+The candidate [Concurrent External Evidence Arbitration Proof —
+v0.1.0-draft.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md)
+is selected for specification review only. It proposes exactly two isolated
+R0-bound physical evidence sources, one side-effect-free admitted set, one
+R0-bound external arbitration batch, one frozen canonical member order,
+sequential provisional-state revalidation, and one atomic successor.
+
+It does not authorize code, 2+2 player topology, networking, retry,
+re-admission, movement, streaming, same-clock successor work, autonomous work,
+randomness, or city expansion.
+
 ## Current working decision
 
 The prior scheduler-hardening work is complete.
@@ -544,8 +564,10 @@ The prior scheduler-hardening work is complete.
 There is no remaining implementation debt on External Input Boundary v0.1.1
 or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 
-No successor proof is selected. Stochastic identity remains deferred until a
+Concurrent External Evidence Arbitration v0.1.0-draft.0 is the sole current
+specification-review unit. Stochastic identity remains deferred until a
 concrete requirement makes authoritative uncertainty necessary.
 
-> **Do not expand the machine. Select and freeze one new proof boundary before
-> implementation.**
+> **Do not implement the candidate. Review and freeze its exact identity,
+> records, Qs, batch authority, ordering, provisional provenance, atomicity,
+> isolation, and failure laws first.**
