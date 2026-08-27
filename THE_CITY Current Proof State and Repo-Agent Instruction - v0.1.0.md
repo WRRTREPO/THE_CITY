@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-27)\
 **Date:** 2026-08-27\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.61`\
+**Governing continuation:** `0.7.0-draft.62`\
 **Latest sealed proof:** `Concurrent External Evidence Arbitration Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.9`
@@ -48,11 +48,11 @@ canonical ordering path, private provisional state, one atomic R1, singleton
 controls, and the declared failure surface. It authorizes no successor scope.
 
 [Canonical Spatial Topology Identity Proof —
-v0.1.0-draft.1](Canonical%20Spatial%20Topology%20Identity%20Proof%20-%20Draft.md)
-is now the sole selected successor candidate. It is open for freeze review
-only. It does not authorize simulator code, Unreal changes, capacity
-advancement, production Bridge endpoints, movement, streaming, networking, or
-adjacent architecture.
+v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20-%20Draft.md) is now
+frozen as the sole bounded implementation-and-evidence target under
+`CanonicalSpatialTopologyIdentityPayload.v1` / `0.7.0-draft.61`. Its evidence
+is not sealed, and it does not advance capacity or authorize production Bridge
+endpoints, movement, streaming, networking, or adjacent architecture.
 
 ## Current proof progression
 
@@ -80,8 +80,8 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Canonical Spatial Topology Identity
-                FREEZE REVIEW ONLY
-                IMPLEMENTATION CLOSED
+                FROZEN / IMPLEMENTATION AUTHORIZED
+                EVIDENCE UNSEALED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -407,7 +407,7 @@ streaming identity
 
 7. Canonical spatial topology identity
    ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-   FREEZE REVIEW ONLY / IMPLEMENTATION CLOSED
+   FROZEN / IMPLEMENTATION AUTHORIZED / EVIDENCE UNSEALED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -450,7 +450,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.61
+  version: 0.7.0-draft.62
 
 latest_capacity_record:
   version: 0.1.9
@@ -459,12 +459,13 @@ latest_sealed_proof:
   name: Concurrent External Evidence Arbitration Proof
   version: 0.1.0
 
-active_candidate:
+active_frozen_proof:
   name: Canonical Spatial Topology Identity Proof
-  version: 0.1.0-draft.1
-  payload_schema_candidate: CanonicalSpatialTopologyIdentityPayload.v1
-  simulation_identity_candidate: 0.7.0-draft.61
-  authority: freeze_review_only
+  version: 0.1.0
+  payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
+  simulation_identity: 0.7.0-draft.61
+  authority: bounded_implementation_and_evidence_only
+  evidence_status: not_sealed
 ```
 
 Older continuation snapshots, README files, draft states, and superseded
@@ -496,9 +497,9 @@ The sealed predecessors do not authorize Fork 3 or any generalization or
 adjacent scope under Fork 4. Fork 4 is sealed only for its bounded witnessed
 lifecycle; it does not authorize a successor implementation.
 
-Canonical Spatial Topology Identity v0.1.0-draft.1 is separately selected for
-freeze review only. That selection authorizes no implementation or
-adjacent spatial behavior.
+Canonical Spatial Topology Identity v0.1.0 is separately frozen as the sole
+bounded implementation-and-evidence target. That freeze authorizes only its
+exact DAG; it authorizes no capacity advancement or adjacent spatial behavior.
 
 Do not begin any of the following without a separately reviewed freeze and
 explicit implementation authority:
@@ -612,13 +613,13 @@ or Same-Clock Successor Semantics v0.1.0 inside their sealed scopes.
 Concurrent External Evidence Arbitration v0.1.0 is complete and sealed.
 Stochastic identity remains deferred.
 
-Canonical Spatial Topology Identity v0.1.0-draft.1 is the sole current working
-unit, for freeze review only. Review its exact fixture ID value spaces,
-type-disjoint validation, unordered-request normalization, explicit endpoint
-references, conceptual-assignment boundary, access-only
-mutation, read-only Unreal adapter, fresh-process reconstruction, rejection
-surface, replay, and source-audit contracts. Do not implement it before an
-explicit freeze.
+Canonical Spatial Topology Identity v0.1.0 is the sole current working unit.
+Implement only its exact fixture ID value spaces, type-disjoint validation,
+unordered-request normalization, explicit endpoint references, detached
+conceptual-assignment boundary, access-only R0-to-R1 mutation, read-only Unreal
+adapter, fresh-process reconstruction, rejection surface, replay, source audit,
+evidence, and self-excluding release verifier.
 
-> **Hold at freeze review. Do not implement or infer adjacent spatial
-> architecture before a reviewed freeze and explicit authority.**
+> **Stop at verified evidence and the release seal. Do not implement or infer
+> adjacent spatial architecture without a separate reviewed freeze and explicit
+> authority.**

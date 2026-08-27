@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.61
-**Status:** Concurrent External Evidence Arbitration Proof v0.1.0 remains implemented, proven, and sealed as the latest bounded capacity. Canonical Spatial Topology Identity Proof v0.1.0-draft.1 is selected for freeze review only; implementation and adjacent scope remain unauthorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.62
+**Status:** Canonical Spatial Topology Identity Proof v0.1.0 is frozen as the sole bounded implementation-and-evidence target under `CanonicalSpatialTopologyIdentityPayload.v1` / `0.7.0-draft.61`; evidence is not sealed. Concurrent External Evidence Arbitration Proof v0.1.0 remains the latest sealed proof and Development Capacity v0.1.9 remains the latest capacity. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only. No adjacent scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -65,19 +65,22 @@ The sealed [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0](Int
 
 The sealed [Concurrent External Evidence Arbitration Proof — v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20-%20Draft.md) and its [evidence](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md) establish exactly one two-source external arbitration batch. Eight distinct receipt-verified UE processes with disjoint proof roots across W1–W4 physically emit QA/QB against the same R0; side-effect-free admission and one exact sealed fixture set construct one R0-bound BEXT; one canonical ordering key and sequential private working-state revalidation produce one atomic R1 independent of physical or presentation order. QA commits the shared-slot mutation; admitted QB receives an ordinary `failed_gate` adjudication with no resource acquired. Provisional identities remain type-disjoint from canonical record identity and no live collection or transport-completeness law is claimed. Retry, re-admission, network, split-player, movement, streaming, autonomous, same-clock-successor, random, generalized resolver, additional-input-class, and city-scale behavior remain closed.
 
-The candidate [Canonical Spatial Topology Identity Proof —
-v0.1.0-draft.1](Canonical%20Spatial%20Topology%20Identity%20Proof%20-%20Draft.md)
-is selected for freeze review only. It proposes the first explicit,
-representation-independent topology-identity and endpoint-referential-integrity
-proof: one proof-local two-site/one-route definition, one consequential access
-fact, one access-only canonical mutation, and fresh read-only Unreal
-materialization before and after representation destruction. It does not claim
-the first route model in the repository or select production Bridge endpoints.
-The imported [conceptual topology v0.3.0
+The frozen [Canonical Spatial Topology Identity Proof —
+v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20-%20Draft.md) is the
+sole bounded implementation-and-evidence target. It fixes one proof-local
+two-site/one-route topology with exact type-disjoint canonical IDs, an unordered
+request pair normalized to one canonical stored order, one consequential access
+fact, one access-only canonical mutation, a detached conceptual assignment, a
+hash-bound read-only Unreal adapter, and two fresh isolated Unreal
+materializations. It does not claim the first route model in the repository or
+select production Bridge endpoints. The imported [conceptual topology v0.3.0
 framing](THE_CITY_Conceptual_City_Topology_Developer_Framing_v0.3.0.md) remains
-non-authoritative. No implementation, capacity advancement, movement,
-pathfinding, travel, World Partition, streaming, networking, or city expansion
-is authorized.
+non-authoritative. Only the frozen DAG, witness/rejection matrix, source audit,
+evidence, and self-excluding release verifier are authorized. Capacity may not
+advance under this freeze; any later capacity change requires a separate
+evidence-seal and governing-record transition. Movement, pathfinding, travel,
+production topology, World Partition, streaming, networking, city expansion,
+and adjacent scope remain unauthorized.
 
 ## Product framing
 
@@ -157,6 +160,23 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.62 — 2026-08-27
+
+- Froze [Canonical Spatial Topology Identity Proof —
+  v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20-%20Draft.md)
+  under `CanonicalSpatialTopologyIdentityPayload.v1` and simulation identity
+  `0.7.0-draft.61`.
+- Authorized only its exact two-site/one-route canonical validator,
+  request-normalizing access query, one access mutation, hash-bound read-only
+  Unreal adapter, two fresh isolated UE witnesses, declared rejection suite,
+  replay, source audit, evidence, and self-excluding release verifier.
+- Retained Concurrent External Evidence Arbitration v0.1.0 and Development
+  Capacity v0.1.9 as the latest sealed authority; this proof is not yet passed
+  or capacity-bearing.
+- Authorized no movement, travel, pathfinding, production topology, World
+  Partition, streaming, networking, city expansion, or adjacent successor
+  scope.
 
 ### 0.7.0-draft.61 — 2026-08-27
 
@@ -673,17 +693,17 @@ live-arrival, shared-state, selection, resolution, Causal-LOD, chronology,
 external-input, same-clock, integrated Unreal lifecycle, and concurrent
 external arbitration proofs remain sealed predecessor evidence.
 
-Review only Canonical Spatial Topology Identity Proof v0.1.0-draft.1 for
-freeze. The review must freeze or correct its exact canonical ID value spaces,
-type-disjoint validation, request normalization, exact endpoint
-referential-integrity schema, conceptual-assignment boundary, access-only
-mutation, subordinate Unreal adapter/receipt contract, fresh-process
-isolation, adversarial identity cases, replay oracle, and source audit before
-any implementation authority may exist.
+Implement and acquire evidence only for frozen Canonical Spatial Topology
+Identity Proof v0.1.0. Use its exact fixture ID value spaces, type-disjoint
+validation, unordered-request normalization, endpoint referential-integrity
+schema, detached conceptual assignment, access-only R0-to-R1 mutation,
+hash-bound read-only Unreal adapter, two fresh isolated UE witnesses, declared
+failures, replay, source audit, evidence, and self-excluding release verifier.
+Stop at the evidence seal; do not infer a successor.
 
-Do not begin simulator or Unreal implementation. Do not begin stochastic
-identity, 2+2 player topology, networking, live input collection, transport
-semantics, movement, travel, pathfinding, World Partition, streaming,
-autonomous batch members, retry/re-admission, randomness, generalized resolver
-behavior, additional input classes, production Bridge topology, or city-scale
-architecture without a separate reviewed freeze and explicit authority.
+Do not begin stochastic identity, 2+2 player topology, networking, live input
+collection, transport semantics, movement, travel, pathfinding, production
+topology, World Partition, streaming, autonomous batch members,
+retry/re-admission, randomness, generalized resolver behavior, additional input
+classes, production Bridge topology, or city-scale architecture without a
+separate reviewed freeze and explicit authority.

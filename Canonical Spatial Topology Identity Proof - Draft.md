@@ -1,12 +1,12 @@
 # Canonical Spatial Topology Identity Proof
 
-**Version:** 0.1.0-draft.1\
-**Status:** freeze review only; implementation is not authorized\
+**Version:** 0.1.0\
+**Status:** frozen; implementation is authorized only within this exact boundary\
 **Selected:** 2026-08-27\
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)\
 **Conceptual source:** [THE_CITY Conceptual City Topology and Developer Framing v0.3.0](THE_CITY_Conceptual_City_Topology_Developer_Framing_v0.3.0.md)\
 **Latest sealed predecessor:** [Concurrent External Evidence Arbitration Proof — v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md)\
-**Candidate simulation identity:** `0.7.0-draft.61` — not frozen
+**Simulation identity:** `0.7.0-draft.61` — frozen for this proof
 
 ## Question
 
@@ -35,7 +35,7 @@ separate and connected only by explicit mappings.
 
 ## Governing predecessor boundary
 
-This candidate composes, but does not reopen, the following sealed records:
+This frozen proof composes, but does not reopen, the following sealed records:
 
 - [Proof Kernel Implementation Evidence — v0.1.1](Proof%20Kernel%20Implementation%20Evidence%20-%20v0.1.1.md), for fixture-local canonical areas, routes, eligibility, and replay;
 - [Unreal Materialization Proof Evidence — v0.1.0](Unreal%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md), for read-only sealed-record materialization;
@@ -56,26 +56,32 @@ canonical authority.
 
 ## Authority state
 
-This revision is ready for freeze review only.
+This revision is frozen as the sole bounded implementation target.
 
 ```yaml
 proof:
   name: Canonical Spatial Topology Identity Proof
-  version: 0.1.0-draft.1
-  payload_schema_candidate: CanonicalSpatialTopologyIdentityPayload.v1
-  simulation_identity_candidate: 0.7.0-draft.61
+  version: 0.1.0
+  payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
+  simulation_identity: 0.7.0-draft.61
 
 authority:
-  freeze_review: authorized
-  implementation: prohibited
-  unreal_source_changes: prohibited
+  specification: frozen
+  implementation: authorized_only_for_the_exact_DAG_below
+  unreal_source_changes: authorized_only_for_the_read_only_fixture_adapter_below
+  evidence_and_release_packaging: authorized
   capacity_advancement: prohibited
   successor_scope: prohibited
 ```
 
-The conceptual framing is non-authoritative developer material. This draft is
-not a frozen canonical schema. Neither document can change city truth merely
-by naming a place or drawing a connection.
+Any later capacity change requires a separate evidence-seal and governing-record
+transition after this implementation passes. Passing evidence alone grants no
+automatic capacity or successor authority.
+
+The conceptual framing is non-authoritative developer material. This
+specification is a frozen proof contract, not canonical city state. Neither
+document can change city truth merely by naming a place or drawing a
+connection.
 
 ## Exact proof boundary
 
@@ -175,10 +181,9 @@ does not become runtime authority. The canonical record contains its own
 complete site identities, route identity, endpoint relation, and access fact.
 Unreal receives those facts; it does not infer or create them.
 
-## Candidate identity and schema boundary
+## Frozen identity and schema boundary
 
-Freeze review must decide the following exact candidate identity or supersede
-it explicitly:
+The proof uses exactly this identity:
 
 ```yaml
 record_schema: CanonicalResolutionEnvelope.v1
@@ -200,80 +205,189 @@ only in stored artifacts. Raw JSON ingestion must detect and reject duplicate
 object-member names before constructing an in-memory object; an ordinary parser
 whose last duplicate silently wins is non-conformant.
 
-The candidate payload admits exactly:
+`H0` and `H1` mean the canonical-envelope hashes of complete R0 and R1.
+`D0` and `D1` mean the lowercase SHA-256 hashes of their exact stored
+`canonical_payload.json` bytes, including the required one terminal LF. H1 is
+computed only after complete R1 construction and is never stored inside R1.
+
+The stored JSON root admits exactly the four keys shown below. There is no
+serialized `canonical_envelope` wrapper:
 
 ```yaml
-canonical_envelope:
-  identity:
-    record_schema: CanonicalResolutionEnvelope.v1
-    payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
-    scenario_id: canonical-spatial-topology-identity-v1
-    scenario_version: 0.1.0
-    simulation_version: 0.7.0-draft.61
-    seed: canonical-spatial-topology-identity-v1/0001
+identity:
+  record_schema: CanonicalResolutionEnvelope.v1
+  payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
+  scenario_id: canonical-spatial-topology-identity-v1
+  scenario_version: 0.1.0
+  simulation_version: 0.7.0-draft.61
+  seed: canonical-spatial-topology-identity-v1/0001
 
-  current_causal_state:
-    spatial_topology:
-      sites:
-        topology_site_0001: null
-        topology_site_0002: null
-      routes:
-        topology_route_0001:
-          endpoint_semantics: unordered_pair_fixture_only
-          endpoint_site_ids:
+current_causal_state:
+  spatial_topology:
+    sites:
+      topology_site_0001: null
+      topology_site_0002: null
+    routes:
+      topology_route_0001:
+        endpoint_semantics: unordered_pair_fixture_only
+        endpoint_site_ids:
+          - topology_site_0001
+          - topology_site_0002
+        access_state: available | blocked
+  fixture_processes:
+    topology_access_closure_01:
+      state: active | succeeded
+      resources_owned: []
+
+future_causal_state:
+  canonical_clock: t0/00 | t1/00
+  unresolved_work:
+    - work_id: t1/00/topology/block_topology_route_0001.resolve
+      decision_time: t1/00
+      simulation_phase: 10
+      process_id: topology_access_closure_01
+      target:
+        kind: canonical_route
+        route_id: topology_route_0001
+        endpoint_site_ids:
+          - topology_site_0001
+          - topology_site_0002
+      gates:
+        - path: /current_causal_state/spatial_topology/routes/topology_route_0001/endpoint_site_ids
+          required_value:
             - topology_site_0001
             - topology_site_0002
-          access_state: available | blocked
-    fixture_processes:
-      topology_access_closure_01:
-        state: active | succeeded
-        resources_owned: []
+        - path: /current_causal_state/spatial_topology/routes/topology_route_0001/access_state
+          required_value: available
+      permitted_topology_mutation:
+        op: replace
+        path: /current_causal_state/spatial_topology/routes/topology_route_0001/access_state
+        value: blocked
+      terminal_state: succeeded
+      terminal_resource_disposition: no_resources_owned
 
-  future_causal_state:
-    canonical_clock: t0/00 | t1/00
-    unresolved_work:
-      - work_id: t1/00/topology/block_topology_route_0001.resolve
-        decision_time: t1/00
-        simulation_phase: 10
-        process_id: topology_access_closure_01
-        target:
-          kind: canonical_route
-          route_id: topology_route_0001
-          endpoint_site_ids:
-            - topology_site_0001
-            - topology_site_0002
-        gates:
-          - path: /current_causal_state/spatial_topology/routes/topology_route_0001/endpoint_site_ids
-            required_value:
-              - topology_site_0001
-              - topology_site_0002
-          - path: /current_causal_state/spatial_topology/routes/topology_route_0001/access_state
-            required_value: available
-        permitted_topology_mutation:
-          op: replace
-          path: /current_causal_state/spatial_topology/routes/topology_route_0001/access_state
-          value: blocked
-        terminal_state: succeeded
-        terminal_resource_disposition: no_resources_owned
-
-  causal_provenance:
-    authoritative_causal_ledger: <exact frozen ledger>
-    canonical_ancestry: <null or exact predecessor relation>
-    fixture_genesis: <exact immutable genesis retained in R0 and R1>
+causal_provenance:
+  authoritative_causal_ledger: [] | [CanonicalSpatialTopologyAccessLedgerEntry.v1]
+  canonical_ancestry: null | CanonicalSpatialTopologyAncestry.v1
+  fixture_genesis:
+    genesis_schema: CanonicalSpatialTopologyFixtureGenesis.v1
+    source: frozen_initial_fixture
+    initial_topology:
+      canonical_site_ids:
+        - topology_site_0001
+        - topology_site_0002
+      canonical_route_id: topology_route_0001
+      endpoint_semantics: unordered_pair_fixture_only
+      endpoint_site_ids:
+        - topology_site_0001
+        - topology_site_0002
+      access_state: available
+    initial_process:
+      process_id: topology_access_closure_01
+      state: active
+      resources_owned: []
+    initial_work_projection:
+      work_id: t1/00/topology/block_topology_route_0001.resolve
+      decision_time: t1/00
+      simulation_phase: 10
 ```
+
+Vertical bars in schema displays denote exhaustive branch alternatives; they
+are never serialized tokens. Each stored record contains only the concrete R0
+or R1 value fixed below.
 
 R0 contains exactly the displayed work member, `canonical_clock = t0/00`,
 `access_state = available`, and process `state = active`. R1 contains
 `canonical_clock = t1/00`, `access_state = blocked`, process `state =
 succeeded`, and `unresolved_work = []`. The array-shaped work definition above
 is therefore an R0-only schema branch, not permission for additional work.
+`fixture_genesis.initial_work_projection` is immutable provenance describing
+the initial schedule; it is not a second or incomplete active-work definition.
+
+R1 equals R0 after exactly these six replacements:
+
+1. route `access_state`: `available → blocked`;
+2. fixture-process `state`: `active → succeeded`;
+3. `canonical_clock`: `t0/00 → t1/00`;
+4. `unresolved_work`: the exact sole work-member array → `[]`;
+5. `authoritative_causal_ledger`: `[]` → the exact sole ledger-entry array; and
+6. `canonical_ancestry`: `null` → the exact H0-bound ancestry object.
+
+Every other field is byte-identical, including `identity`, both canonical site
+entries, route identity/endpoints/semantics, `resources_owned`, and
+`fixture_genesis`.
+
+R0 has `authoritative_causal_ledger = []` and `canonical_ancestry = null`.
+R1 retains `fixture_genesis` byte-identically and has exactly this ancestry:
+
+```yaml
+ancestry_schema: CanonicalSpatialTopologyAncestry.v1
+parent_record_hash: H0
+boundary_derivation:
+  method: next_consequential_boundary
+  source_record_hash: H0
+  decision_time: t1/00
+  simulation_phase: 10
+  due_work_ids:
+    - t1/00/topology/block_topology_route_0001.resolve
+```
+
+R1 has exactly one authoritative ledger entry:
+
+```yaml
+ledger_schema: CanonicalSpatialTopologyAccessLedgerEntry.v1
+transaction_id: t1/00/phase_10/topology_access_closure_01
+decision_time: t1/00
+simulation_phase: 10
+canonical_execution_sequence: 0
+simulation_version: 0.7.0-draft.61
+canonical_pre_state_hash: H0
+source_boundary:
+  boundary_schema: CanonicalSpatialTopologyBoundary.v1
+  source_record_hash: H0
+  decision_time: t1/00
+  simulation_phase: 10
+  due_work_ids:
+    - t1/00/topology/block_topology_route_0001.resolve
+process_id: topology_access_closure_01
+work_id: t1/00/topology/block_topology_route_0001.resolve
+target:
+  kind: canonical_route
+  route_id: topology_route_0001
+  endpoint_site_ids:
+    - topology_site_0001
+    - topology_site_0002
+evaluated_gates:
+  - path: /current_causal_state/spatial_topology/routes/topology_route_0001/endpoint_site_ids
+    observed_value:
+      - topology_site_0001
+      - topology_site_0002
+    required_value:
+      - topology_site_0001
+      - topology_site_0002
+    result: true
+  - path: /current_causal_state/spatial_topology/routes/topology_route_0001/access_state
+    observed_value: available
+    required_value: available
+    result: true
+committed_topology_mutation:
+  op: replace
+  path: /current_causal_state/spatial_topology/routes/topology_route_0001/access_state
+  prior_value: available
+  value: blocked
+terminal_process_state: succeeded
+terminal_resource_disposition: no_resources_owned
+```
+
+No canonical field may store `H1`. `H1` is computed only after complete R1
+construction and is checked by detached evidence and release verification.
 
 No conceptual label, Unreal identity, navigation identity, coordinate,
 distance, capacity, travel, level, cell, or streaming field is admitted.
 
 ## Canonical topology invariants
 
-The candidate schema must fail closed unless all of these are true:
+The frozen schema must fail closed unless all of these are true:
 
 1. `sites` contains exactly the two canonical object keys shown above, with
    null values and canonical JSON key ordering.
@@ -296,6 +410,12 @@ The candidate schema must fail closed unless all of these are true:
 the fixture. No resolver, gate, serializer, or adapter may parse a route ID to
 infer either endpoint or parse any site/route token to recover conceptual
 meaning.
+
+The only declared fixture ordering relation is
+`topology_site_0001 < topology_site_0002`; therefore the exact stored and
+normalized endpoint array is `[topology_site_0001, topology_site_0002]`. This
+does not establish a generalized ID grammar, comparator, or production
+lexical-order law.
 
 Lexical endpoint ordering is serialization law, not travel direction and not a
 pathfinding rule. `unordered_pair_fixture_only` is a proof-local endpoint
@@ -353,10 +473,42 @@ same explicit canonical assignment target
 byte-identical canonical R0
 ```
 
-This is deliberately not a generalized topology importer. The candidate
-implementation, if later authorized, compares two detached display-label
-projections to the already frozen R0. The assignment has no canonical write
-path.
+The renamed assignment is exactly the baseline assignment after these three
+JSON-pointer replacements and no others:
+
+```text
+/conceptual_references/endpoints/0/display_label
+    → West Reference
+/conceptual_references/endpoints/1/display_label
+    → East Reference
+/conceptual_references/relationships/0/display_label
+    → Crossing Reference
+```
+
+Both assignment artifacts contain exactly the schema shown above and are
+serialized with the frozen canonical-JSON law plus one terminal LF. Let `A0`
+and `A1` be their exact raw-byte SHA-256 identities. Let the assignment-neutral
+projection remove only those three `display_label` members before canonical
+serialization. `PB0` and `PB1` are the resulting canonical-byte sequences;
+`AP0` and `AP1` are their lowercase SHA-256 identities. The witness requires:
+
+```text
+A0 != A1
+PB0 = PB1
+AP0 = AP1
+baseline canonical target IDs = renamed canonical target IDs
+baseline R0 bytes = renamed-witness R0 bytes
+sha256(baseline stored R0 bytes)
+    = sha256(renamed-witness stored R0 bytes)
+    = D0
+baseline canonical hash = renamed-witness canonical hash = H0
+```
+
+Neither artifact invokes an importer or a canonical write path.
+
+This is deliberately not a generalized topology importer. The authorized
+implementation compares two detached display-label projections to the frozen
+R0. The assignment has no canonical write path.
 
 ## Canonical route-access gate
 
@@ -370,13 +522,14 @@ evaluate_route_access(
 )
 ```
 
-Candidate result:
+Exact evaluated-result schema:
 
 ```yaml
+result_schema: CanonicalRouteAccessEvaluation.v1
 source_record_hash: canonical_hash(record)
 evaluation_status: evaluated
 requested_route_id: topology_route_0001
-received_endpoint_site_ids: [topology_site_0002, topology_site_0001]
+received_endpoint_site_ids: [topology_site_0001, topology_site_0002] | [topology_site_0002, topology_site_0001]
 normalized_endpoint_site_ids: [topology_site_0001, topology_site_0002]
 evaluated_gates:
   - gate: route_exists
@@ -391,17 +544,41 @@ evaluated_gates:
     required_value: available
     result: true | false
 eligible: true | false
+access_state_evaluated: true
 ```
+
+An evaluated result contains exactly those nine top-level keys and exactly the
+four ordered gate objects shown. `received_endpoint_site_ids` equals the
+validated request order; `normalized_endpoint_site_ids` is always the fixed
+canonical pair.
 
 Invalid request shape:
 
 ```yaml
+result_schema: CanonicalRouteAccessEvaluation.v1
 source_record_hash: canonical_hash(record)
 evaluation_status: invalid_request
-reason: <exact frozen validation reason>
+reason_code: invalid_route_id | endpoint_array_required | endpoint_count_not_two | invalid_endpoint_site_id | duplicate_endpoint_site_id
 eligible: null
 access_state_evaluated: false
 ```
+
+Invalid-request validation stops at the first failure in this exact order:
+
+1. `requested_route_id` must be the exact `CanonicalRouteId.v1` value;
+2. `requested_endpoint_site_ids` must be an array;
+3. the array must contain exactly two members;
+4. both members must belong to the exact `CanonicalSiteId.v1` value space; and
+5. the two members must be distinct.
+
+The corresponding reason codes are, respectively, `invalid_route_id`,
+`endpoint_array_required`, `endpoint_count_not_two`,
+`invalid_endpoint_site_id`, and `duplicate_endpoint_site_id`. An invalid
+request contains exactly the six fields shown above and never reaches route
+access evaluation.
+
+The canonical record validator runs before this query. An invalid canonical
+record produces canonical validation rejection, not a route-query result.
 
 The query must resolve `requested_route_id` only against the canonical route
 table. It may not accept a conceptual label, Actor identity, navigation link,
@@ -428,6 +605,16 @@ observation, access-state observation, gates, and eligibility. Received order
 may differ only in the detached `received_endpoint_site_ids` evidence field.
 Request ordering never implies route direction.
 
+For both R0 and R1, the mechanical reverse-order oracle is:
+
+```text
+remove(received_endpoint_site_ids, forward_result)
+    = remove(received_endpoint_site_ids, reverse_result)
+
+forward_result.access_state_evaluated = true
+reverse_result.access_state_evaluated = true
+```
+
 Wrong cardinality, a duplicate endpoint, or a value outside the exact fixture
 site-ID value space returns `invalid_request` with `eligible = null` and does
 not evaluate access state. With exactly two exhaustive site-ID values, this
@@ -444,6 +631,13 @@ R1.topology_route_0001.access_state = blocked
 → eligible = false
 ```
 
+The complete evaluated tuple oracle is:
+
+| Record | Access observed | Access gate result | Eligible |
+|---|---|---:|---:|
+| R0 / H0 | `available` | `true` | `true` |
+| R1 / H1 | `blocked` | `false` | `false` |
+
 The query result is a detached, non-authoritative deterministic evaluation
 witness. It cannot be replayed as a boundary, capability, or mutation proposal.
 The query does not authorize movement, reserve capacity, acquire a lease, or
@@ -451,7 +645,7 @@ create a traversal commitment.
 
 ## One canonical mutation
 
-The proposed canonical fixture contains the complete ordinary scheduled proof
+The frozen canonical fixture contains the complete ordinary scheduled proof
 process definition inside authoritative R0. Boundary discovery returns exactly:
 
 ```yaml
@@ -524,6 +718,18 @@ routes:
   topology_route_0001: representation_route_slot_01
 ```
 
+The map contains exactly those five top-level keys, exactly the two shown site
+keys, and exactly the one shown route key. It is serialized with the frozen
+canonical-JSON law plus one terminal LF. The only lawful branches are:
+
+| Branch | `mapping_id` | `source_canonical_hash` |
+|---|---|---|
+| R0 | `topology_materialization_R0_0001` | H0 |
+| R1 | `topology_materialization_R1_0001` | H1 |
+
+Cross-row combinations and unknown, missing, duplicate, redirected, or
+type-incompatible fields reject before materialization.
+
 The mapping must use canonical IDs as keys. It cannot add, delete, rename,
 redirect, or synthesize canonical topology. Representation roles, Actor names,
 object paths, instance GUIDs, transforms, meshes, materials, collision, and
@@ -557,20 +763,41 @@ The R0 and R1 proof roots must be physically disjoint. Before UE #2 launches,
 the harness must prove that UE #1's root, process state, output, caches, saves,
 session data, and command-line truth are inaccessible to it.
 
+For the detached receipt schemas below, `M0` and `M1` are the lowercase
+SHA-256 hashes of the exact stored `materialization_map.json` bytes, including
+one terminal LF. `L0` and `L1` are the corresponding exact stored
+`launch_receipt.json` raw-byte hashes. These are derived artifact identities,
+not open schema fields and not canonical authority.
+
 The detached launch receipt must bind both artifacts before either is parsed:
 
 ```yaml
 receipt_schema: CanonicalTopologyLaunchReceipt.v1
-canonical_payload_raw_sha256: <exact stored R0 or R1 byte hash>
-materialization_map_raw_sha256: <exact stored map byte hash>
+canonical_payload_raw_sha256: D0 | D1
+materialization_map_raw_sha256: M0 | M1
 expected_canonical_hash: H0 | H1
 expected_record_schema: CanonicalResolutionEnvelope.v1
 expected_payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
 expected_scenario_id: canonical-spatial-topology-identity-v1
 expected_simulation_version: 0.7.0-draft.61
 expected_mapping_schema: CanonicalTopologyMaterializationMap.v1
-expected_mapping_id: <exact R0 or R1 map identity>
+expected_mapping_id: topology_materialization_R0_0001 | topology_materialization_R1_0001
 ```
+
+The launch receipt contains exactly those ten keys. It is serialized with the
+frozen canonical-JSON law followed by exactly one LF. Unknown, missing,
+duplicate, empty, or type-incompatible receipt fields reject before either
+proof artifact is parsed.
+
+The map, launch receipt, and materialization receipt accept only these
+correlated branch tuples:
+
+| Branch | Payload raw | Canonical | Map raw | Mapping ID | Access |
+|---|---|---|---|---|---|
+| R0 | D0 | H0 | M0 | `topology_materialization_R0_0001` | `available` |
+| R1 | D1 | H1 | M1 | `topology_materialization_R1_0001` | `blocked` |
+
+Any cross-row combination rejects before materialization.
 
 UE independently verifies both raw hashes before parsing. It then parses both
 artifacts, validates every expected schema/scenario/mapping identity, computes
@@ -589,10 +816,10 @@ The detached materialization receipt must bind:
 
 ```yaml
 receipt_schema: CanonicalTopologyMaterializationReceipt.v1
-accepted_canonical_payload_raw_sha256: <verified input hash>
+accepted_canonical_payload_raw_sha256: D0 | D1
 accepted_canonical_hash: H0 | H1
-accepted_materialization_map_raw_sha256: <verified map hash>
-accepted_mapping_id: <verified map identity>
+accepted_materialization_map_raw_sha256: M0 | M1
+accepted_mapping_id: topology_materialization_R0_0001 | topology_materialization_R1_0001
 materialized_canonical_site_ids:
   - topology_site_0001
   - topology_site_0002
@@ -601,17 +828,118 @@ materialized_endpoint_site_ids:
   - topology_site_0001
   - topology_site_0002
 materialized_access_state: available | blocked
-operational_process_instance_id: <non-authoritative>
-operational_actor_instance_ids: <non-authoritative exact set>
+operational_process_instance_id: OperationalInstanceId.v1
+operational_actor_instance_ids:
+  representation_site_slot_01: OperationalInstanceId.v1
+  representation_site_slot_02: OperationalInstanceId.v1
+  representation_route_slot_01: OperationalInstanceId.v1
 ```
 
 The endpoint receipt field is an observation of the accepted canonical record,
 not a second endpoint source.
 
+The materialization receipt contains exactly eleven top-level keys and the
+nested operational actor-role keys shown above. It is serialized with the
+frozen canonical-JSON law followed by one LF.
+
+`OperationalInstanceId.v1` is 1–128 ASCII characters from
+`[A-Za-z0-9._:-]`. The source and return process IDs, `P0` and `P1`, must differ.
+Within each receipt the three Actor IDs are pairwise distinct. Across receipts,
+each representation identity is the pair `(operational_process_instance_id,
+operational_actor_instance_id)`; the R0 and R1 pair for every representation
+role must differ. Actor-local strings may repeat in different processes because
+the process identity remains part of the detached operational identity.
+
+Process and Actor IDs are detached observations only. They may not enter the
+canonical record, canonical hash, route query, or mutation path.
+
+### Exact detached lifecycle evidence
+
+The prelaunch input inventory is:
+
+```yaml
+inventory_schema: CanonicalTopologyProofInputInventory.v1
+input_role: R0_source | R1_return
+files:
+  - filename: canonical_payload.json
+    raw_sha256: D0 | D1
+  - filename: launch_receipt.json
+    raw_sha256: L0 | L1
+  - filename: materialization_map.json
+    raw_sha256: M0 | M1
+unexpected_files: []
+```
+
+`R0_source` requires exactly `D0`, `L0`, and `M0`; `R1_return` requires exactly
+`D1`, `L1`, and `M1`. File-member order is exactly the order shown. Any
+cross-row identity, missing file, additional file, duplicate filename, or
+different role rejects before launch.
+
+After source materialization, the harness opens this P0-bound witness at
+termination and completes it only after the later H0-to-H1 resolution:
+
+```yaml
+termination_schema: CanonicalTopologyProcessTerminationWitness.v1
+operational_process_instance_id: P0
+canonical_pre_state_hash: H0
+termination_observed: true
+source_terminated_before_canonical_resolution: true
+alive_before_canonical_resolution: false
+canonical_resolution_invoked_after_termination: true
+observed_successor_hash_after_resolution: H1
+alive_before_return_launch: false
+event_order:
+  - source_termination_observed
+  - canonical_resolution_invoked
+  - successor_hash_observed
+```
+
+The fresh-process isolation witness is:
+
+```yaml
+isolation_schema: CanonicalTopologyFreshProcessIsolationWitness.v1
+source_process_instance_id: P0
+return_process_instance_id: P1
+source_and_return_process_ids_distinct: true
+source_and_return_realpaths_distinct: true
+neither_root_contains_the_other: true
+source_process_terminated: true
+source_input_supplied_to_return: false
+source_output_supplied_to_return: false
+shared_cache_or_save_or_session_root: false
+truth_bearing_command_line_values: []
+```
+
+A refused materialization emits exactly one detached failure object:
+
+```yaml
+diagnostic_schema: CanonicalTopologyMaterializationFailure.v1
+stage: input_inventory | launch_receipt | raw_hash | parse | payload_validation | map_validation | cross_artifact_binding
+reason_code: unexpected_input_file | missing_input_file | duplicate_input_filename | invalid_launch_receipt | launch_receipt_hash_mismatch | artifact_raw_hash_mismatch | json_parse_failure | invalid_canonical_payload | invalid_materialization_map | cross_artifact_binding_mismatch
+materialization_started: false
+canonical_write_attempted: false
+```
+
+Allowed stage/reason pairs are exact:
+
+| Stage | Allowed reason code |
+|---|---|
+| `input_inventory` | `unexpected_input_file`, `missing_input_file`, `duplicate_input_filename` |
+| `launch_receipt` | `invalid_launch_receipt`, `launch_receipt_hash_mismatch` |
+| `raw_hash` | `artifact_raw_hash_mismatch` |
+| `parse` | `json_parse_failure` |
+| `payload_validation` | `invalid_canonical_payload` |
+| `map_validation` | `invalid_materialization_map` |
+| `cross_artifact_binding` | `cross_artifact_binding_mismatch` |
+
+These four detached schemas contain exactly the keys shown, use the frozen
+canonical-JSON law plus one LF, and reject unknown, missing, duplicate, or
+type-incompatible fields. They are evidence only and never enter H0 or H1.
+
 ## Fresh Unreal lifecycle witnesses
 
-If implementation is later authorized, the proof must use real fresh UE 5.8
-processes and detached raw-byte receipts.
+The authorized implementation must use real fresh UE 5.8 processes and
+detached raw-byte receipts.
 
 ### Open-state source witness
 
@@ -632,7 +960,7 @@ fresh UE process #1
   process is terminated
 ```
 
-The acceptance receipt must bind the accepted canonical hash, canonical site
+The materialization receipt must bind the accepted canonical hash, canonical site
 IDs, canonical route ID, endpoint relation, access fact, and operational
 process/Actor instance observations without converting those operational
 identities into authority.
@@ -691,6 +1019,8 @@ B_conceptual_label_neutrality:
   proves:
     - renamed conceptual display labels produce byte-identical canonical R0
     - conceptual labels are absent from runtime authority
+    - A0 != A1
+    - AP0 == AP1
 
 C_available_access:
   source: R0
@@ -727,16 +1057,26 @@ E_blocked_access:
 F_available_materialization:
   source: R0_only
   process: fresh_UE_1
+  required_evidence:
+    - exact R0_source input inventory
+    - exact R0 launch and materialization receipts
 
 G_representation_destruction:
+  required_evidence:
+    - exact P0 termination witness
+    - exact fresh-process isolation witness
   expected: no topology authority lost or transferred
 
 H_blocked_rematerialization:
   source: R1_only
   process: fresh_UE_2
+  required_evidence:
+    - exact R1_return input inventory
+    - exact R1 launch and materialization receipts
   expected:
     - same canonical site IDs, route ID, and endpoint pair as fresh_UE_1
-    - distinct process-local Actor instance identities
+    - P0 != P1
+    - each process/Actor identity pair differs by representation role
 ```
 
 Within each canonical execution, replay must be byte-identical. Detached
@@ -745,41 +1085,48 @@ operational identity may enter R0, R1, their hashes, or canonical provenance.
 
 ## Fail-closed adversarial surface
 
-Freeze review must retain at least these failures:
+The implementation and release evidence must exercise exactly these required
+failure families:
 
-1. duplicate canonical site identity;
-2. duplicate raw JSON object-member name before object construction;
-3. cross-type site/route identity substitution;
-4. route endpoint missing from the canonical site table;
-5. identical route endpoints;
-6. stored canonical `endpoint_site_ids` not in lexical order;
-7. reversed request endpoint order being rejected, treated as direction, or
+1. duplicate raw JSON object-member name before object construction;
+2. cross-type site/route identity substitution;
+3. route endpoint missing from the canonical site table;
+4. identical route endpoints;
+5. stored canonical `endpoint_site_ids` not in lexical order;
+6. reversed request endpoint order being rejected, treated as direction, or
    producing a semantic evaluation different from canonical-order input after
    normalization;
-8. invalid route ID, wrong request cardinality, duplicate requested endpoint,
-   or endpoint outside `CanonicalSiteId.v1` reaching access evaluation instead
-   of `invalid_request`;
-9. extra route, site, topology field, or access value;
-10. conceptual label supplied where a canonical site/route ID is required;
-11. Unreal Actor name, path, GUID, navigation ID, level identity, cell identity,
+7. invalid route ID reaching access evaluation instead of `invalid_request`;
+8. non-array endpoint input reaching access evaluation;
+9. wrong endpoint cardinality reaching access evaluation;
+10. endpoint outside `CanonicalSiteId.v1` reaching access evaluation;
+11. duplicate requested endpoint reaching access evaluation;
+12. extra route, site, topology field, or access value;
+13. conceptual label supplied where a canonical site/route ID is required;
+14. Unreal Actor name, path, GUID, navigation ID, level identity, cell identity,
    or streaming identity supplied as canonical identity;
-12. access query redirected through a representation mapping;
-13. access-only mutation attempting to change a site ID, route ID, endpoint, or
+15. access query redirected through a representation mapping;
+16. access-only mutation attempting to change a site ID, route ID, endpoint, or
     endpoint semantics;
-14. boundary bound to a record other than the current canonical source;
-15. materialization mapping with missing, additional, duplicate, or redirected
+17. boundary bound to a record other than the current canonical source;
+18. materialization mapping with missing, additional, duplicate, or redirected
     canonical keys;
-16. map bytes, schema, identity, or source hash disagreeing with the detached
+19. any cross-row R0/R1 payload, canonical, map, mapping-ID, access, receipt, or
+    inventory combination;
+20. map bytes, schema, identity, or source hash disagreeing with the detached
     launch receipt;
-17. materializer attempting to create canonical topology absent from the
+21. materializer attempting to create canonical topology absent from the
     record;
-18. Unreal or adapter attempting to write canonical access state, ledger,
+22. Unreal or adapter attempting to write canonical access state, ledger,
     ancestry, schedule, or successor identity;
-19. adapter exposing a physical-evidence/Q proposal path;
-20. fresh return process receiving R0, prior Actor/session/cache state, or a
+23. adapter exposing a physical-evidence/Q proposal path;
+24. missing, additional, duplicated, or role-incompatible proof-input file;
+25. fresh return process receiving R0, prior Actor/session/cache state, or a
     branch selector in addition to R1;
-21. representation destruction treated as deletion of canonical topology; and
-22. any in-record successor self-hash.
+26. missing, duplicate, contradictory, malformed, or non-distinct P0/P1 and
+    process/Actor-pair materialization identity evidence;
+27. representation destruction treated as deletion of canonical topology; and
+28. any in-record successor self-hash.
 
 Each malformed canonical candidate rejects before mutation. Each invalid
 materialization candidate refuses materialization and produces detached
@@ -795,9 +1142,20 @@ must establish:
 conceptual label / reference
     X cannot dataflow into canonical runtime identity lookup
 
+received request endpoint order
+    may dataflow only into detached received_endpoint_site_ids
+    must pass through exact fixture normalization before endpoint comparison
+    X cannot dataflow into directionality, access observation, eligibility,
+      canonical mutation, ledger, ancestry, or hash construction
+
 Unreal / navigation / level / streaming identity
     X cannot dataflow into canonical topology, gate, mutation, ledger,
       ancestry, schedule, or hash construction
+
+materialization map role / operational lifecycle evidence
+    X cannot supply or alter canonical endpoint relation
+    X cannot dataflow into route access, canonical mutation, ledger, ancestry,
+      schedule, or hash construction
 
 canonical access mutation
     X cannot change route identity, endpoints, or endpoint semantics
@@ -808,13 +1166,13 @@ materialization adapter
     may not manufacture or mutate canonical topology
 ```
 
-The canonical topology validator, route-access gate, canonical mutation path,
-serializer/hash, and representation adapter must remain separately
-inspectable.
+The canonical topology validator, request validator/normalizer, route-access
+gate, canonical mutation path, serializer/hash, and representation adapter must
+remain separately inspectable.
 
-## Freeze gates
+## Frozen implementation gates
 
-Before `v0.1.0` may freeze, review must fix:
+The bounded implementation must conform to:
 
 1. the exact canonical identity and payload schema;
 2. the exact fixture ID value spaces, type-disjoint validation, and canonical
@@ -828,15 +1186,14 @@ Before `v0.1.0` may freeze, review must fix:
 9. the complete witness and rejection matrix; and
 10. the source-audit patterns and deterministic replay oracle.
 
-Until those gates pass, no simulator or Unreal implementation may begin.
+Implementation may begin only inside the exact DAG below. The proof may not be
+reported as passed, sealed, or capacity-bearing until every gate is evidenced.
 
-## Candidate implementation DAG — closed
+## Frozen implementation DAG — authorized
 
-The following DAG is a review target, not implementation authority:
+This is the complete implementation authority:
 
 ```text
-freeze reviewed v0.1.0 specification
-        ↓
 exact canonical validator / serializer / hash
         ↓
 exact R0 + conceptual-label-neutrality witness
@@ -854,9 +1211,25 @@ replay / source audit / rejection suite
 evidence + self-excluding release manifest
 ```
 
-No node may execute before explicit freeze and implementation authorization.
+No node outside this DAG is authorized. Evidence and self-excluding release
+verification are the exit gate; no adjacent spatial work follows implicitly.
 
-## Draft changelog
+## Changelog
+
+### 0.1.0 — 2026-08-27
+
+- Froze `CanonicalSpatialTopologyIdentityPayload.v1` under simulation identity
+  `0.7.0-draft.61`.
+- Fixed the exact fixture identity spaces, canonical R0/R1 provenance branches,
+  invalid-request result codes, detached receipt schemas, unordered request
+  normalization, and fresh-process isolation contract.
+- Authorized only the exact two-site/one-route canonical validator, pure access
+  query, one scheduled access mutation, two fresh read-only UE materializations,
+  witness/rejection suite, replay, source audit, evidence, and self-excluding
+  release manifest.
+- Authorized no movement, travel, pathfinding, production topology, streaming,
+  World Partition, networking, city expansion, capacity advancement, or
+  successor scope.
 
 ### 0.1.0-draft.1 — 2026-08-27
 
