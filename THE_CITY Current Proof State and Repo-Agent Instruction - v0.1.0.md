@@ -450,7 +450,9 @@ preserve original
 
 ## No implicit successor work
 
-The seals do not authorize Forks 3--4 or an extension of Fork 2.
+The sealed predecessors do not authorize Fork 3 or any implementation,
+generalization, or adjacent scope under Fork 4. Fork 4 is separately selected
+for specification review only.
 
 Do not begin any of the following without explicit successor selection:
 
