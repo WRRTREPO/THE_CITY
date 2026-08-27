@@ -1,12 +1,12 @@
 # Integrated Unreal Promotion-Unload-Repromotion Proof
 
-**Version:** 0.1.0-draft.2\
-**Status:** Specification review only. Implementation is not authorized.\
+**Version:** 0.1.0\
+**Status:** Frozen. Implementation is authorized only within this exact boundary.\
 **Parent law:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)\
 **Sealed predecessors:** [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md); [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md); [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md); [Unreal Materialization Proof — v0.1.0](Unreal%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md); [Bridge Access Persistence Round-Trip Evidence — v0.1.1](Bridge%20Access%20Persistence%20Round-Trip%20Evidence%20-%20v0.1.1.md)\
 **Related sealed scheduler hardening:** [Same-Clock Successor Semantics Proof — v0.1.0](Same-Clock%20Successor%20Semantics%20Proof%20Evidence%20-%20v0.1.0.md), not exercised by this fixture.\
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)\
-**Candidate simulation identity:** `0.7.0-draft.51` — exact identity and serialization remain freeze gates.
+**Simulation identity:** `0.7.0-draft.51` — fixed for this proof.
 
 ## Question
 
@@ -40,7 +40,7 @@ The proposition is:
 
 ## Scope
 
-After a later freeze, this proof may implement only:
+This proof authorizes only:
 
 - one exact canonical payload;
 - one active autonomous commitment, `alpha`;
@@ -82,9 +82,7 @@ Unreal may materialize state and emit Q. It may not select an autonomous
 boundary, resolve `alpha`, commit a record, write a causal ledger, or choose a
 canonical policy.
 
-## Candidate identity and canonical payload
-
-The frozen version must make these exact:
+## Frozen identity and canonical payload
 
 ```yaml
 record_schema: CanonicalResolutionEnvelope.v1
@@ -95,20 +93,60 @@ simulation_version: 0.7.0-draft.51
 seed: integrated-unreal-promotion-unload-repromotion-v1/0001
 ```
 
-The canonical serializer and canonical-envelope hash law are inherited from
-the Resolution Semantics Law. A successor record contains no self-referential
-post-state hash.
+The canonical serializer and canonical-envelope hash law are fixed below. A
+successor record contains no self-referential post-state hash.
 
-For this draft, `H0`, `Hinput`, and `Hfinal` mean the canonical-envelope hashes
+For this proof, `H0`, `Hinput`, and `Hfinal` mean the canonical-envelope hashes
 of R0, Rinput, and Rfinal. `D0`, `Dinput`, and `Dfinal` mean the SHA-256 hashes
 of their exact raw UTF-8 payload artifacts. The two identities are related by
 the detached receipt but are not interchangeable.
+
+Every canonical envelope, execution capability, Q digest projection, receipt,
+and acceptance receipt uses this exact serialization law:
+
+```text
+canonical_json(value)
+  = UTF-8 encoding of JSON with:
+      object keys sorted lexicographically by Unicode code point;
+      compact separators `,` and `:` only;
+      `ensure_ascii = true`;
+      no duplicate object keys;
+      no NaN, Infinity, or -Infinity;
+      arrays preserved in declared order; and
+      no terminal LF in the hashed JSON value.
+
+canonical_hash(envelope)
+  = lowercase hexadecimal SHA-256(canonical_json(envelope))
+
+stored_canonical_payload(envelope)
+  = canonical_json(envelope) followed by exactly one LF byte `0x0A`
+
+raw_payload_sha256(envelope)
+  = lowercase hexadecimal SHA-256(stored_canonical_payload(envelope))
+```
+
+All fixture identifiers and enum values are ASCII. `H0`, `Hinput`, `Hfinal`,
+and `Hcontrol` are calculated only after their complete records exist;
+canonical records and canonical ledger entries never store their own successor
+hash. `D0`, `Dinput`, `Dfinal`, and `Dcontrol` hash the stated stored payload
+artifact, including its one terminal LF.
+
+`IntegratedUnrealPromotionUnloadRepromotionPayload.v1` admits exactly the four
+top-level envelope sections shown in the R0 shape: `identity`,
+`current_causal_state`, `future_causal_state`, and `causal_provenance`.
+Unknown, missing, redirected, or type-incompatible authoritative fields reject.
 
 R0 contains exactly the authority needed for the one interval:
 
 ```yaml
 canonical_envelope:
-  identity: <exact identity above>
+  identity:
+    record_schema: CanonicalResolutionEnvelope.v1
+    payload_schema: IntegratedUnrealPromotionUnloadRepromotionPayload.v1
+    scenario_id: integrated-unreal-promotion-unload-repromotion-v1
+    scenario_version: 0.1.0
+    simulation_version: 0.7.0-draft.51
+    seed: integrated-unreal-promotion-unload-repromotion-v1/0001
   current_causal_state:
     gate_token:
       state: enabled
@@ -127,15 +165,20 @@ canonical_envelope:
           path: current_causal_state.gate_token.state
           required_value: enabled
   causal_provenance:
-    fixture_genesis: <exact frozen witness>
+    fixture_genesis:
+      kind: fixture_genesis
+      established_facts:
+        - gate_token_enabled
+        - alpha_active
+      source: frozen_initial_fixture
     accepted_external_inputs: []
     authoritative_causal_ledger: []
     canonical_ancestry: null
 ```
 
-The later exact schema may add no authority beyond state, admission, ancestry,
-terminal disposition, provenance, and scheduling needed by this proof. Any
-additional authoritative field requires a new payload schema and identity.
+This is the exact authoritative field boundary for this proof. Any additional,
+redirected, or reinterpreted authoritative field requires a new payload schema,
+simulation identity, and successor proof.
 
 ## Detached materialization receipt
 
@@ -167,7 +210,7 @@ The detached receipt is operational integrity evidence, not city state:
 ```yaml
 receipt_schema: IntegratedUnrealLaunchReceipt.v1
 artifact_role: canonical_materialization_input
-raw_payload_sha256: <SHA-256 of exact UTF-8 payload bytes>
+raw_payload_sha256: D0 | Dfinal | Dcontrol
 expected_record_schema: CanonicalResolutionEnvelope.v1
 expected_payload_schema: IntegratedUnrealPromotionUnloadRepromotionPayload.v1
 expected_scenario_id: integrated-unreal-promotion-unload-repromotion-v1
@@ -176,8 +219,18 @@ expected_simulation_version: 0.7.0-draft.51
 
 UE computes SHA-256 over the raw UTF-8 payload bytes before parsing. It refuses
 materialization and exposes no proposal capability if receipt, bytes, schema,
-scenario, or identity disagree. The frozen version must define receipt JSON,
-UTF-8, field-presence, null, and hash-hex rules exactly.
+scenario, or identity disagree. A receipt has exactly the six keys shown above,
+all values are non-empty ASCII strings, and it is stored as
+`canonical_json(receipt)` followed by one LF. Receipt identity is detached
+operational evidence; it does not enter `canonical_hash` or canonical
+resolution.
+
+Before either UE process launches, the harness independently computes the
+expected canonical and raw-byte identities for the named canonical artifact
+and verifies that both the artifact and its receipt match those expected
+values. UE then independently verifies the artifact/receipt pair. The release
+manifest binds the exact checked artifacts; neither receipt nor UE process is
+treated as a signing authority.
 
 ### Process-domain isolation
 
@@ -215,10 +268,26 @@ emits one detached `IntegratedMaterializationAcceptanceReceipt.v1` on a
 structured process-output channel captured by the harness. It is operational
 evidence, not canonical state and not a file in any proof-input domain.
 
+Every acceptance receipt has exactly these keys:
+
+```yaml
+receipt_schema: IntegratedMaterializationAcceptanceReceipt.v1
+process_instance_id: opaque_nonempty_ascii_operational_identifier
+accepted_raw_payload_sha256: D0 | Dfinal | Dcontrol
+accepted_canonical_hash: H0 | Hfinal | Hcontrol
+materialized_actor_id: integrated_gate_token_01
+materialized_gate_state: enabled | disabled
+materialized_alpha_state: active | failed_gate | succeeded
+proposal_capability_enabled: true | false
+```
+
+It is serialized as `canonical_json(receipt)` followed by one LF. The harness
+accepts no unknown, missing, duplicate, or type-incompatible receipt field.
+
 The source receipt records:
 
 ```yaml
-process_instance_id: <operational only>
+process_instance_id: source_process_operational_identifier
 accepted_raw_payload_sha256: D0
 accepted_canonical_hash: H0
 materialized_actor_id: integrated_gate_token_01
@@ -230,7 +299,7 @@ proposal_capability_enabled: true
 The return receipt records:
 
 ```yaml
-process_instance_id: <operational only>
+process_instance_id: return_process_operational_identifier
 accepted_raw_payload_sha256: Dfinal
 accepted_canonical_hash: Hfinal
 materialized_actor_id: integrated_gate_token_01
@@ -286,13 +355,16 @@ observed_outcome:
 evidence:
   physical_actor_id: integrated_gate_token_01
   outcome_state: disabled
-  evidence_digest: <exact digest projection hash>
+  evidence_digest: GQ
 proposed_mutations:
   - current_causal_state.gate_token.state = disabled
 ```
 
-The digest projection explicitly omits `evidence_digest`; exact canonical JSON
-is a freeze gate. Q is evidence, never a transaction or city mutation.
+`Q_digest_projection` is the exact Q object above with `evidence_digest`
+omitted, with no additional keys. `GQ` is lowercase hexadecimal
+`SHA-256(canonical_json(Q_digest_projection))`. The full Q is that same object
+with the one `evidence_digest: GQ` field added. Q is evidence, never a
+transaction or city mutation.
 
 ## Canonical continuation after unload
 
@@ -305,6 +377,20 @@ BQ bound to H0 @ t0/30
   ↓ canonical transaction
 Rinput
 ```
+
+BQ is exactly:
+
+```yaml
+kind: external_input
+source_record_hash: H0
+decision_time: t0/30
+simulation_phase: 0
+external_input_id: physical_disable_integrated_gate_token_0001
+due_work_ids: []
+```
+
+No field may be added, omitted, or changed. BQ is invalid against any record
+whose canonical hash is not H0.
 
 Admission checks Q identity, source canonical hash, source raw-payload hash,
 occurrence time, digest, actor, target, observed outcome, declared mutation,
@@ -446,28 +532,30 @@ The audit must show one canonical resolver serves dense and boundary-jump
 witnesses. It receives only canonical record-bound capabilities and admitted
 Q, never representation or lifecycle state.
 
-## Freeze gate
+## Frozen implementation boundary
 
-Do not freeze until the proof fixes exact payload, Q, BQ, receipt, ledger, and
-artifact serializations; canonical and raw-byte hash projections; exact
-R0/Rinput/Rfinal/Rcontrol records; the process-termination and isolated-return
-witnesses; source audit; release-manifest membership; and the exact simulation
-identity.
+The exact payload identity, canonical and raw-byte hash projections, receipt
+shapes, Q digest projection, BQ, R0/Rinput/Rfinal/Rcontrol state matrix,
+termination/isolation witnesses, source audit, and release-manifest requirement
+are now frozen.
 
-After freeze, implementation may add only this neutral canonical fixture, a
-receipt-verifying UE adapter, an exact proposal emitter, listed tests, evidence,
-and a self-excluding release manifest. It may not add travel, streaming, World
+Implementation may add only this neutral canonical fixture, a receipt-verifying
+UE adapter, an exact proposal emitter, listed tests, evidence, and a
+self-excluding release manifest. It may not add travel, streaming, World
 Partition, same-clock behavior, or adjacent city systems.
 
 ## Decision record
 
-- Draft.2 separates proof-input filesystem files from non-authoritative
-  execution context and requires the control source process to emit the same
+- v0.1.0 freezes the exact bounded implementation authority under
+  `IntegratedUnrealPromotionUnloadRepromotionPayload.v1` /
+  `0.7.0-draft.51`.
+- Draft.2 separated proof-input filesystem files from non-authoritative
+  execution context and required the control source process to emit the same
   source materialization-acceptance receipt as the primary source process.
 - Draft.1 added mechanical process-domain isolation, detached UE acceptance
   receipts, harness-supplied interaction opportunity semantics, and the full
   source/destroy/return lifecycle for the Q-absent control.
-- This draft selects no World Partition or production streaming architecture.
+- This proof selects no World Partition or production streaming architecture.
 - Same-clock successor semantics is a sealed predecessor, not an exercised
   fixture behavior.
 - Promotion is a non-authoritative representation request, not a proximity or
