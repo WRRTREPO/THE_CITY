@@ -6,12 +6,13 @@ strategic authority.
 
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
-**Current sealed proof record:** [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md).
-The governing continuation is [v0.7.0-draft.41](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+**Current sealed proof record:** [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md).
+The governing continuation is [v0.7.0-draft.46](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
-are sealed. Causal-LOD Equivalence and record-relative chronological resolution
-are proven only in their stated neutral canonical fixtures.
+are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
+and external-input interception are proven only in their stated neutral
+canonical fixtures.
 
 ## The machine
 
@@ -58,8 +59,9 @@ proposals. Unreal cannot write city truth or causal-ledger entries.
 | [Resolution Semantics Substrate](Resolution%20Semantics%20Substrate%20Proof%20Evidence%20-%20v0.1.0.md) | Exact canonical-envelope authority, next-boundary discovery, and promotion/demotion preserve causal truth before Causal-LOD Equivalence is attempted. |
 | [Causal-LOD Equivalence](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md) | Dense inspection, boundary jump, and mixed local-policy execution reach byte-identical canonical history through one resolver. |
 | [Record-Relative Chronological Resolution](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md) | After every committed boundary, the next due work is rediscovered from that successor record; dense and boundary-jump policies match at R0/R1/R2/R3. |
+| [External Input Boundary](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md) | Valid external evidence can become an earlier canonical boundary inside a skipped interval; the later autonomous commitment revalidates its ordinary gate from the input successor record. |
 
-The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.4](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.4.md).
+The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.6](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.6.md).
 
 ## Verification
 
@@ -73,7 +75,8 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   test_unreal_authority_boundary.py test_deployment_opportunity.py \
   test_live_commitment.py test_shared_state_interference.py \
   test_bounded_agent_selection.py test_resolution_semantics_substrate.py \
-  test_causal_lod_equivalence.py test_record_relative_chronological_resolution.py
+  test_causal_lod_equivalence.py test_record_relative_chronological_resolution.py \
+  test_external_input_boundary.py
 ```
 
 Verify the latest sealed release package:
@@ -81,7 +84,7 @@ Verify the latest sealed release package:
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_record_relative_chronological_resolution_release.py verify
+  python3 proof_kernel/verify_external_input_boundary_release.py verify
 ```
 
 The `CityMaterializationProof/README.md` remains the focused UE 5.8

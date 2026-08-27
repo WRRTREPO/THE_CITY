@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.45
-**Status:** External Input Boundary Proof v0.1.1 is frozen. Canonical-only implementation is authorized within its exact boundary.
+**Version:** 0.7.0-draft.46
+**Status:** External Input Boundary Proof v0.1.1 is sealed. No successor city scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -57,7 +57,7 @@ The sealed [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20
 
 The sealed [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20-%20Draft.md) and its [evidence](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md) establish record-relative chronological resolution. Its neutral X/Y/Z fixture resolves X at t1/00, rediscoveries and revalidates Y from R1 at t1/30, then proves that Z remains discoverable at t2/00 after Y's ordinary failure. Every discovered boundary is bound to the queried record hash, so it loses authority after that record commits. The result proves four policy histories converge byte-identically at R0/R1/R2/R3. No Unreal, city content, input, randomness, scale, or successor scope is authorized.
 
-The corrected frozen [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20-%20v0.1.1.md) supersedes the immutable [v0.1.0](External%20Input%20Boundary%20Proof%20-%20Draft.md) only for the canonical self-hash repair. It authorizes one bounded canonical implementation of external input admission. It fixes untrusted Q, side-effect-free admission validation, R0-bound BQ construction, one canonical resolver, an exact digest projection, tagged execution boundaries, canonical accepted-input identity, input-aware checkpoint comparisons, and malformed-Q terminal diagnostics. It retains canonical pre-state hashes and singular successor ancestry, while successor hashes are verified externally rather than stored inside their own canonical records. Its neutral fixture must prove that accepted Q at t0/30 changes only a later ordinary t1/00 gate, while Q-absent control retains the same autonomous definition and succeeds. No Unreal, transport, wall-clock synchronization, city content, randomness, same-time input ordering, late evidence, or successor scope is authorized.
+The sealed [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20-%20v0.1.1.md) and its [evidence](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md) supersede the immutable [v0.1.0](External%20Input%20Boundary%20Proof%20-%20Draft.md) only for the canonical self-hash repair. Its neutral fixture proves that valid Q at t0/30 becomes an R0-bound BQ, commits Rinput, and changes only alpha's later ordinary t1/00 gate. Q-absent control retains the same alpha definition and succeeds. Four local-policy witnesses converge byte-identically at R0/Rinput/Rfinal; rejected envelopes and local authority attempts remain outside canonical truth. Pre-state hashes and singular successor ancestry remain canonical; successor hashes are verified only after complete record construction. No Unreal, transport, wall-clock synchronization, city content, randomness, same-time input ordering, late evidence, or successor scope is authorized.
 
 ## Product framing
 
@@ -131,12 +131,18 @@ Every attempted or committed consequential mutation must append an inspectable c
 - eligible action set, selected action, deterministic tie-break value, and any random-draw reference;
 - resources reserved, consumed, transferred, or found unavailable;
 - gates and thresholds evaluated, including their values and pass/fail result;
-- the committed mutation or failed action result, with canonical pre-state and post-state references; and
+- the committed mutation or failed action result, with canonical pre-state reference; successor/post-state identity is established only by hashing the complete resulting record externally; and
 - threshold crossings, derived effects, and downstream commitments or eligibility changes.
 
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.46 — 2026-08-26
+
+- Sealed External Input Boundary Proof v0.1.1: valid Q at t0/30 interrupts a boundary-jump interval through R0-bound BQ admission, then alpha revalidates the resulting canonical gate at t1/00.
+- Recorded 130/130 full Python regressions, 13/13 focused checks, four byte-identical R0/Rinput/Rfinal policy witnesses, Q-absent control, cursor-reset protection, runtime rejection, source audit, external successor-hash witnesses, and a 25-member self-excluding release manifest.
+- No successor scope, Unreal, transport, same-time arbitration, late input, randomness, multiple streams, or city expansion is authorized.
 
 ### 0.7.0-draft.45 — 2026-08-26
 
