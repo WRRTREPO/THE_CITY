@@ -1,14 +1,14 @@
 # Same-Clock Successor Semantics Proof
 
-**Version:** 0.1.0-draft.1
-**Status:** Specification review only. No implementation is authorized.
+**Version:** 0.1.0
+**Status:** Frozen. Canonical-only implementation is authorized within this exact boundary.
 **Parent laws:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md); [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20-%20Draft.md); [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20-%20v0.1.1.md)
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
-**Candidate identity on freeze:** `SameClockSuccessorSemanticsPayload.v1` / `0.7.0-draft.47`
+**Simulation version:** `SameClockSuccessorSemanticsPayload.v1` / `0.7.0-draft.47`
 
-**Authority posture:** User-selected drafting scope only. The sealed draft.46
-continuation and External Input release remain immutable until this candidate
-has passed review and a successor record is deliberately frozen.
+**Authority posture:** This freeze authorizes only the bounded canonical
+implementation stated below. The sealed External Input release remains its own
+historical package; no adjacent city scope is implied.
 
 ## Question
 
@@ -69,7 +69,7 @@ progression, not an invented clock tick, establishes lawful order.
 ## Exact proof boundary
 
 ```yaml
-authorized_for_specification:
+authorized_for_implementation:
   - one exact new payload schema
   - one canonical scheduler query with phase-aware boundaries and ordered work
     members
@@ -81,7 +81,6 @@ authorized_for_specification:
   - replay, source audit, evidence, and self-excluding release manifest
 
 not_authorized:
-  - implementation before freeze
   - same-time external-input arbitration
   - external input transport or cursor changes
   - Unreal, streaming, or helicopter observation
@@ -98,7 +97,7 @@ a production action vocabulary.
 
 ## Exact identity boundary
 
-If frozen, this proof must create—not reuse—one exact authoritative payload:
+This frozen proof creates—not reuses—one exact authoritative payload:
 
 ```yaml
 record_schema: CanonicalResolutionEnvelope.v1
@@ -111,8 +110,8 @@ seed: same-clock-successor-semantics-v1/0001
 
 Identity lives only in `canonical_envelope.identity` and is included in
 `canonical_hash`. Unknown, missing, redirected, or incompatible authoritative
-fields must reject. This draft does not yet freeze an implementation or claim
-that `0.7.0-draft.47` is a sealed simulation identity.
+fields must reject. The implementation, artifacts, replay inputs, evidence,
+and release manifest must use this exact simulation identity.
 
 ## Canonical boundary and member ordering law
 
@@ -404,7 +403,7 @@ The source audit must mechanically establish:
 
 ## Acceptance question
 
-This proof may freeze only when it can answer yes to:
+This proof may seal only when its implementation evidence can answer yes to:
 
 ```text
 same R0
@@ -424,8 +423,35 @@ R1 at the same canonical clock
 
 ## Explicit exclusions
 
-No implementation is authorized by this draft. It does not choose same-time
-external-input arbitration, general multi-work phase batching, production phase
-limits, production budgeting, stochastic draws, city content, Unreal,
-streaming, networking, rollback, save/load, map scale, or production-scale
-execution.
+This frozen authorization does not choose same-time external-input arbitration,
+general multi-work phase batching, production phase limits, production
+budgeting, stochastic draws, city content, Unreal, streaming, networking,
+rollback, save/load, map scale, or production-scale execution.
+
+## Freeze record
+
+This v0.1.0 freeze authorizes exactly: one
+`SameClockSuccessorSemanticsPayload.v1` validator and serializer; one canonical
+boundary-discovery query; one resolver for the neutral X-to-Y chain; the four
+declared resolution-policy witnesses; the listed malformed-boundary and local
+authority rejections; deterministic replay; source audit; evidence artifacts;
+and a self-excluding release manifest. It authorizes no additional fixture,
+same-time arbitration policy, or city behavior.
+
+## Changelog
+
+### v0.1.0 — 2026-08-26
+
+- Froze the neutral same-clock successor proof under
+  `SameClockSuccessorSemanticsPayload.v1` and simulation version
+  `0.7.0-draft.47`.
+- Authorized only the bounded canonical implementation and evidence scope.
+
+### v0.1.0-draft.1 — 2026-08-26
+
+- Distinguished canonical boundaries `(decision_time, simulation_phase)` from
+  complete `work_id`-ordered boundary-member sets.
+
+### v0.1.0-draft.0 — 2026-08-26
+
+- Opened the same-clock successor specification for review.
