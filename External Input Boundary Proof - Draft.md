@@ -1,6 +1,6 @@
 # External Input Boundary Proof
 
-**Version:** 0.1.0-draft.0
+**Version:** 0.1.0-draft.1
 **Status:** Specification review only. Implementation is not authorized.
 **Parent law:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 **Predecessors:** [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md); [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md); [Crew Arrival Into Live Commitment Proof — v0.1.0](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20Evidence%20-%20v0.1.0.md)
@@ -44,30 +44,46 @@ depends on its resulting fact.
 
 ## Governing laws
 
-### External input is a canonical boundary only upon admission
+### External evidence, admission, and execution boundary are distinct
 
 An external evidence envelope is not authoritative merely because a runtime
 observed it. Before canonical acceptance it remains an immutable input outside
 the city record. Its occurrence time is an execution constraint, not a city
-fact.
+fact. This proof freezes three separate authority objects:
 
 ```text
-physical outcome
-  → immutable evidenced input envelope
-  → canonical admission/revalidation
-  → external-input boundary
-  → authoritative mutation + ledger entry
+Q
+  external evidence envelope
+  non-authoritative
+        ↓
+admit_external_input_candidate(R0, Q)
+  side-effect-free admission validation
+        ↓
+BQ
+  R0-bound external execution capability
+        ↓
+resolve_execution_boundary(R0, BQ, Q)
+  canonical transaction
+        ↓
+Rinput
 ```
 
-Admission at `t0/30` atomically advances canonical time to `t0/30`, validates
-the evidence contract against the exact pre-state, applies the permitted
-mutation, and appends causal provenance. There is no clock-only scheduler
-advance before it. The input transaction itself is the first authoritative
-event after `R0`.
+`admit_external_input_candidate` either returns a record-bound `BQ` or a
+diagnostic rejection. It cannot mutate the canonical envelope, its ledger,
+the schedule, or the replay-local cursor.
 
-An input that is rejected creates no city mutation. Its rejection disposition
-is diagnostic evidence outside canonical authority unless a later proof
-explicitly grants failed-input attempts ledger status.
+A malformed Q that fails this validation **has not crossed the canonical
+admission boundary**. It is not a canonical mutation attempt under the
+governing provenance law. Its rejection is diagnostic only, leaves `R0`
+byte-identical, and is an isolated terminal API witness: the test ends without
+advancing a cursor or continuing normal execution. This proof deliberately
+does not define malformed-input consumption, retry, or continuation semantics.
+
+Only a valid `BQ` may reach `resolve_execution_boundary`. Its transaction at
+`t0/30` atomically advances canonical time to `t0/30`, applies the permitted
+mutation, and appends causal provenance. There is no clock-only scheduler
+advance before it. The BQ transaction itself is the first authoritative event
+after `R0`.
 
 ### Boundary jump may skip only intervals with no admitted input
 
@@ -81,14 +97,14 @@ source:
 next_execution_boundary(record, ordered_external_inputs, input_cursor)
   = earliest lawful boundary among:
       1. the next autonomous canonical boundary from record, and
-      2. the next externally supplied evidence input available for canonical
-         admission after record.clock
+      2. BQ, constructed only by successfully admitting the next externally
+         supplied evidence input available after record.clock
 ```
 
 The input cursor belongs to the ordered external input sequence, not the
-canonical envelope. It supplies only externally available opportunities for
-canonical admission; it does not precompute autonomous outcomes, cache a due
-set, or alter the city before canonical admission.
+canonical envelope. It supplies only externally available Q candidates for
+admission; it does not precompute autonomous outcomes, cache a due set, or
+alter the city before canonical admission.
 
 For this exact fixture, the one valid input has occurrence time `t0/30`, which
 is strictly between `R0.clock = t0/00` and the next autonomous boundary at
@@ -98,8 +114,8 @@ must reject an attempt to resolve the `t1/00` autonomous boundary first.
 The production question of how wall-clock/active-world progress exposes an
 input opportunity is deliberately outside this proof. Here the ordered input
 sequence is a sealed replay input, just as earlier proofs use sealed evidence
-proposals. The law demonstrated is narrower: once an input is available to the
-canonical coordinator, no resolution policy may jump beyond it.
+proposals. The law demonstrated is narrower: once a valid Q is available to
+the canonical coordinator, no resolution policy may jump beyond its BQ.
 
 ### Player input changes future eligibility, never settled history
 
@@ -127,30 +143,36 @@ reopening are excluded.
 There is exactly one canonical resolver:
 
 ```text
-resolve_execution_boundary(canonical_envelope, execution_boundary)
+resolve_execution_boundary(canonical_envelope, execution_boundary, Q | null)
 ```
 
-It accepts either a record-bound autonomous boundary or a record-bound external
-input boundary. It validates the selected boundary against the exact record,
-then atomically advances time, applies the boundary's permitted canonical work,
-updates schedule state, appends the authoritative ledger entry, and returns one
-successor envelope.
+It accepts either a record-bound autonomous boundary with null external input,
+or a `BQ` paired with its exact Q. It validates the selected boundary against
+the exact record, then atomically advances time, applies the boundary's
+permitted canonical work, updates schedule state, appends the authoritative
+ledger entry, and returns one successor envelope. It never receives a malformed
+external envelope; malformed-Q validation ends before resolver admission.
 
-Every execution boundary is a record-bound capability:
+The two exact boundary schemas are a tagged union, not one ambiguous shape:
 
 ```yaml
-execution_boundary:
+external_input_boundary:
   source_record_hash: hash(the exact canonical envelope queried)
-  kind: external_input | autonomous_consequence
-  decision_time: <one canonical time token>
-  external_input_id: crew_evidence_disable_gate_token_0001 | null
+  kind: external_input
+  decision_time: t0/30
+  external_input_id: crew_evidence_disable_gate_token_0001
+  due_work_ids: []
+
+autonomous_boundary:
+  source_record_hash: hash(the exact canonical envelope queried)
+  kind: autonomous_consequence
+  decision_time: t1/00
+  external_input_id: null
   due_work_ids:
     - t1/00/input-boundary/commitment_alpha.resolve
 ```
 
-An external-input boundary carries the Q identity and an empty `due_work_ids`
-list. An autonomous boundary carries its complete due set and a null external
-input ID. `resolve_execution_boundary(record, boundary)` requires exact source
+`resolve_execution_boundary(record, boundary, Q | null)` requires exact source
 record hash, exact kind-specific shape, and exact equality with the current
 lawful next execution boundary before any gate evaluation or mutation.
 
@@ -272,11 +294,35 @@ observed_outcome:
 evidence:
   physical_actor_id: gate_token_01
   outcome_state: disabled
-  evidence_digest: <digest of this exact envelope>
+  evidence_digest: <digest of Q digest projection>
 proposed_mutations:
   - current_causal_state.durable_facts.gate_token_state = disabled
   - current_causal_state.gate_relevant_state.gate_token_state = disabled
 ```
+
+Q's evidence digest is non-self-referential:
+
+```text
+evidence_digest = SHA256(canonical_json({
+  input_id,
+  kind,
+  source,
+  source_record_hash,
+  occurrence_time,
+  target,
+  observed_outcome,
+  evidence.physical_actor_id,
+  evidence.outcome_state,
+  proposed_mutations
+}))
+```
+
+The projection omits `evidence.evidence_digest` itself. The frozen proof must
+define the exact JSON object, key ordering, UTF-8 encoding, and SHA-256 hex
+form before implementation. Any changed digest-covered field without a
+recomputed digest rejects for integrity failure. A changed field with a
+recomputed valid digest still rejects if it violates Q's exact target, actor,
+outcome, or mutation contract.
 
 Q's persistence gates are exact and side-effect-free:
 
@@ -290,21 +336,23 @@ proposed_mutation_set_matches: true
 target_currently_enabled: true
 ```
 
-All gates are evaluated and recorded in the accepted ledger entry before a
-commit decision. The primary path accepts Q. Invalid, stale, redirected,
-late/equal-time, or mutation-expanded Q variants reject before any canonical
+All admission gates are side-effect-free. On success their exact results are
+copied into the BQ transaction's authoritative ledger entry before commit. The
+primary path accepts Q. Invalid, stale, redirected, late/equal-time, or
+mutation-expanded Q variants reject before BQ construction or any canonical
 mutation.
 
 ### Required autonomous revalidation
 
-After Q succeeds, the input cursor advances outside the envelope and its input
-identity is appended to `accepted_external_inputs` inside the envelope. The
-canonical successor is `Rinput`:
+After `resolve_execution_boundary(R0, BQ, Q)` succeeds, the replay-local input
+cursor advances and Q's identity is appended to `accepted_external_inputs`
+inside the envelope. The canonical successor is `Rinput`:
 
 ```text
 R0 at t0/00
-  → Q is selected at t0/30
-  → resolve_execution_boundary(R0, Q-boundary)
+  → admit_external_input_candidate(R0, Q)
+  → BQ selected at t0/30
+  → resolve_execution_boundary(R0, BQ, Q)
   → Rinput at t0/30
 ```
 
@@ -330,7 +378,14 @@ the exact `source_record_hash`, kind, decision time, Q identity or alpha due
 work ID, evaluated gates, mutation/terminal result, and resource disposition.
 There is no second canonical transaction-header representation.
 
-The old R0 autonomous-boundary object and old Q-boundary object are stale
+If a replay-local cursor is reset after `Rinput`, Q cannot reacquire authority:
+the coordinator derives `accepted_external_inputs` from canonical state and
+will not admit a Q whose input ID is already accepted. It skips Q operationally
+and returns alpha's Rinput-bound autonomous boundary. The cursor therefore
+chooses only where to resume reading the immutable replay sequence; canonical
+accepted-input identity decides whether an input can still acquire authority.
+
+The old R0 autonomous-boundary object and old BQ object are stale
 against `Rinput` because both carry `source_record_hash = hash(R0)`.
 
 ```text
@@ -405,7 +460,8 @@ Across A–D, the following must be byte-identical at every checkpoint:
 R0:
   canonical_envelope
   canonical_hash
-  next_execution_boundary: Q at t0/30
+  next_consequential_boundary: alpha at t1/00
+  next_execution_boundary: BQ at t0/30
 
 Rinput:
   canonical_envelope
@@ -413,6 +469,7 @@ Rinput:
   Q ledger provenance
   source/parent ancestry
   next_consequential_boundary: alpha at t1/00
+  next_execution_boundary: alpha at t1/00
 
 Rfinal:
   canonical_envelope
@@ -422,6 +479,7 @@ Rfinal:
   authoritative ledger
   future schedule
   next_consequential_boundary: none
+  next_execution_boundary: none
 ```
 
 Only resolution-local state and diagnostic execution traces may differ.
@@ -434,16 +492,28 @@ gate result, terminal disposition, ledger, and resulting records.
 
 ### Runtime rejection, no canonical mutation
 
-The implementation must reject and retain diagnostic evidence outside
-canonical truth when any of these attempts occurs:
+Each malformed-Q witness is an isolated terminal API test:
+
+```text
+R0 + malformed Q
+  → admit_external_input_candidate(R0, malformed Q)
+  → diagnostic rejection
+  → assert R0 byte-identical
+  → test ends
+```
+
+No malformed-Q witness advances, consumes, retries, or otherwise mutates the
+replay-local cursor. The implementation must reject and retain diagnostic
+evidence outside canonical truth when any of these attempts occurs:
 
 1. boundary jump resolves autonomous t1/00 work while earlier valid Q at t0/30 is available;
 2. Q source record hash differs from the exact current record;
-3. Q is redirected to another target, actor, outcome, or mutation set despite a recomputed valid digest;
-4. Q's occurrence time is at or after the t1/00 autonomous boundary under this exact payload;
-5. a local sample, trace, promotion, demotion, or input cursor creates or loses canonical authority;
-6. a policy supplies a cached autonomous gate result, an alternate resolver, or an input outcome shortcut; or
-7. a retained R0 boundary attempts to resolve Rinput.
+3. a digest-covered Q field changes without recomputing the evidence digest;
+4. Q is redirected to another target, actor, outcome, or mutation set despite a recomputed valid digest;
+5. Q's occurrence time is at or after the t1/00 autonomous boundary under this exact payload;
+6. a local sample, trace, promotion, demotion, or input cursor creates or loses canonical authority;
+7. a policy supplies a cached autonomous gate result, an alternate resolver, or an input outcome shortcut; or
+8. a retained R0 boundary attempts to resolve Rinput.
 
 ### Equivalence-oracle failure, preserve candidates
 
@@ -456,14 +526,16 @@ ledger, gate observation, terminal disposition, schedule, or next boundary.
 
 The source audit must mechanically establish:
 
-1. exactly one `resolve_execution_boundary` path resolves both Q and alpha;
-2. exactly one `next_consequential_boundary` path discovers autonomous work;
-3. every selected execution boundary carries the exact source record hash;
-4. the input-aware coordinator chooses Q before later autonomous work but cannot mutate canonical state;
-5. no policy/local cache/trace/input cursor dataflows into canonical gate evaluation, mutation, ledger, schedule, disposition, or resolver selection;
-6. there is no precomputed boundary itinerary, input-result shortcut, `if Q then fail alpha`, or branch selector in canonical state;
-7. the autonomous alpha definition is byte-identical with and without Q;
-8. no randomness, Unreal path, city-content primitive, planner, or additional commitment exists.
+1. exactly one side-effect-free `admit_external_input_candidate` path constructs BQ from valid Q;
+2. exactly one `resolve_execution_boundary` path resolves both BQ and alpha;
+3. exactly one `next_consequential_boundary` path discovers autonomous work;
+4. every selected execution boundary carries the exact source record hash and tagged-union shape;
+5. the input-aware coordinator chooses BQ before later autonomous work but cannot mutate canonical state;
+6. no policy/local cache/trace/input cursor dataflows into canonical gate evaluation, mutation, ledger, schedule, disposition, BQ construction, or resolver selection;
+7. there is no precomputed boundary itinerary, input-result shortcut, `if Q then fail alpha`, or branch selector in canonical state;
+8. cursor reset cannot reacquire Q authority once canonical accepted-input identity contains Q;
+9. the autonomous alpha definition is byte-identical with and without Q; and
+10. no randomness, Unreal path, city-content primitive, planner, or additional commitment exists.
 
 ## Acceptance
 
@@ -505,10 +577,10 @@ save/load, map scale, or production streaming.
 Before implementation, freeze:
 
 1. the exact simulation identity, JSON payload schema, null/absence rules, and canonical serialization;
-2. the exact Q envelope, evidence-digest algorithm, acceptance/rejection ledger rules, and input cursor semantics;
-3. the exact canonical execution-boundary selection law and Q-versus-autonomous tie prohibition;
+2. the exact Q digest projection, envelope contract, side-effect-free admission API, BQ tagged-union schema, and input cursor semantics;
+3. the exact canonical execution-boundary selection law, Q-versus-autonomous tie prohibition, and malformed-Q terminal-test disposition;
 4. exact Rinput/Rfinal/control record shapes, terminal dispositions, and allowed counterfactual differences;
-5. the four policy sequences, runtime rejections, equivalence oracle, replay condition, and source audit; and
+5. the four policy sequences, cursor-reset witness, runtime rejections, equivalence oracle, replay condition, and source audit; and
 6. an explicit continuation revision authorizing only the bounded canonical implementation.
 
 No broader city or FPS scope follows from this specification.
