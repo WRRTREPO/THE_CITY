@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.41
-**Status:** Record-Relative Chronological Resolution Proof v0.1.0 is sealed. No successor city scope is authorized.
+**Version:** 0.7.0-draft.42
+**Status:** External Input Boundary Proof v0.1.0-draft.0 is open for specification review only. Implementation is not authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -56,6 +56,8 @@ The frozen [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semant
 The sealed [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20-%20Draft.md) and its [evidence](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md) establish one neutral canonical execution fixture under dense-inspection, boundary-jump, and mixed promotion/demotion policy sequences. Every witness uses byte-identical R0 as parent and transaction pre-state for the one t1/00 resolver and produces byte-identical R1 authority, ledger, disposition, future schedule, and no-next-boundary result. Local traces differ; policy has no causal authority. Unreal, city content, external inputs, randomness, planning, and successor scope remain excluded.
 
 The sealed [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20-%20Draft.md) and its [evidence](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md) establish record-relative chronological resolution. Its neutral X/Y/Z fixture resolves X at t1/00, rediscoveries and revalidates Y from R1 at t1/30, then proves that Z remains discoverable at t2/00 after Y's ordinary failure. Every discovered boundary is bound to the queried record hash, so it loses authority after that record commits. The result proves four policy histories converge byte-identically at R0/R1/R2/R3. No Unreal, city content, input, randomness, scale, or successor scope is authorized.
+
+The [External Input Boundary Proof — v0.1.0-draft.0](External%20Input%20Boundary%20Proof%20-%20Draft.md) opens the next specification-only question: whether one exact player-originated evidence envelope, supplied before a later autonomous boundary, becomes an input-aware canonical boundary rather than being jumped over by a coarse policy. Its neutral fixture must prove that accepted Q at t0/30 changes only a later ordinary t1/00 gate, while Q-absent control retains the same autonomous definition and succeeds. It introduces no implementation, Unreal, transport, wall-clock synchronization, city content, randomness, or successor scope.
 
 ## Product framing
 
@@ -135,6 +137,13 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.42 — 2026-08-26
+
+- Opened External Input Boundary Proof v0.1.0-draft.0 for specification review only.
+- Proposed one neutral `ExternalInputBoundaryPayload.v1`, one externally supplied evidenced input Q at t0/30, one later autonomous commitment at t1/00, four input-aware local-policy witnesses, a Q-absent control, runtime rejection, equivalence-oracle, replay, and source-audit gates.
+- The claimed law is limited to input admission: an available valid external input stops boundary jump, commits through the canonical resolver, and may alter only later ordinary eligibility.
+- No implementation, Unreal, network transport, wall-clock synchronization, city content, randomness, same-time input ordering, late evidence, scale, multiplayer, or successor scope is authorized.
 
 ### 0.7.0-draft.41 — 2026-08-26
 
