@@ -1,6 +1,6 @@
 # Same-Clock Successor Semantics Proof
 
-**Version:** 0.1.0-draft.0
+**Version:** 0.1.0-draft.1
 **Status:** Specification review only. No implementation is authorized.
 **Parent laws:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md); [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20-%20Draft.md); [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20-%20v0.1.1.md)
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
@@ -42,10 +42,10 @@ or production scheduling.
 
 ## Proposed law
 
-> **Same-clock successor work is lawful only when its complete canonical
-> execution key is strictly later than the key of the boundary that created it,
-> its authoritative same-clock budget remains positive, and it is rediscovered
-> from the committed successor record.**
+> **Same-clock successor work is lawful only when its canonical boundary key
+> is strictly later than the boundary that created it, its authoritative
+> same-clock budget remains positive, and it is rediscovered from the committed
+> successor record.**
 
 The scheduler never continues an in-memory batch merely because it remembers
 that X created Y. It must follow the ordinary record-relative cycle:
@@ -63,15 +63,16 @@ rediscover from R2
   ↓ none
 ```
 
-The clock remains at `t1/00` during both transactions. Phase/key progression,
-not an invented clock tick, establishes lawful order.
+The clock remains at `t1/00` during both transactions. Phase-boundary
+progression, not an invented clock tick, establishes lawful order.
 
 ## Exact proof boundary
 
 ```yaml
 authorized_for_specification:
   - one exact new payload schema
-  - one canonical scheduler query with phase-aware execution keys
+  - one canonical scheduler query with phase-aware boundaries and ordered work
+    members
   - one X boundary that creates one same-clock Y successor
   - one finite authoritative same-clock budget
   - one R0/R1/R2 checkpoint chain
@@ -113,27 +114,39 @@ Identity lives only in `canonical_envelope.identity` and is included in
 fields must reject. This draft does not yet freeze an implementation or claim
 that `0.7.0-draft.47` is a sealed simulation identity.
 
-## Canonical ordering law
+## Canonical boundary and member ordering law
 
-Every scheduled work item has an exhaustive, canonical execution key:
+Every scheduled work item belongs to one canonical boundary and has one
+canonical member identity:
 
 ```yaml
-canonical_execution_key:
+canonical_boundary_key:
+  decision_time: exact canonical time token
+  simulation_phase: bounded non-negative integer
+
+canonical_work_member_key:
   decision_time: exact canonical time token
   simulation_phase: bounded non-negative integer
   work_id: exact stable identifier
 ```
 
-Ordering is lexicographic by this complete tuple. `work_id` is a stable final
-tie-break only; it cannot repair a non-monotonic phase relation.
+The scheduler orders **boundaries** lexicographically by
+`(decision_time, simulation_phase)`. It selects the minimum unresolved
+boundary, then returns that boundary's complete due-work set ordered by
+`work_id`. The matching complete ordered `canonical_work_member_key` set is
+provenance for those members; it does not create extra transaction boundaries.
+
+`work_id` is therefore a stable within-boundary ordering key only. It cannot
+repair a non-monotonic phase relation or silently turn each member into a
+separate canonical transaction.
 
 For a same-clock successor:
 
 ```text
 successor.decision_time == creator.decision_time == canonical_clock
 successor.simulation_phase > creator.simulation_phase
-successor.key > creator.key
-successor.parent_execution_key == creator.key
+successor.boundary_key > creator.boundary_key
+successor.parent_work_member_key == creator.work_member_key
 ```
 
 For this fixture only:
@@ -144,11 +157,13 @@ same_clock_generation_budget:
   t1/00: 1
 
 X:
-  key: [t1/00, 10, work_x]
+  boundary_key: [t1/00, 10]
+  work_member_key: [t1/00, 10, work_x]
   may_create: Y
 
 Y:
-  key: [t1/00, 20, work_y]
+  boundary_key: [t1/00, 20]
+  work_member_key: [t1/00, 20, work_y]
   may_create_same_clock_successor: false
 ```
 
@@ -180,11 +195,13 @@ current_causal_state:
   active_and_terminal_commitments:
     commitment_x:
       state: active
-      execution_key: [t1/00, 10, work_x]
+      boundary_key: [t1/00, 10]
+      work_member_key: [t1/00, 10, work_x]
       terminal_disposition: null
     commitment_y:
       state: absent
-      execution_key: null
+      boundary_key: null
+      work_member_key: null
       terminal_disposition: null
   reservations_leases_and_resource_ownership:
     successor_budget_t1_00:
@@ -196,12 +213,13 @@ future_causal_state:
   canonical_clock: t0/00
   scheduled_consequential_decisions:
     - decision_time: t1/00
+      simulation_phase: 10
       due_work_ids: [work_x]
   work_execution_metadata:
     work_x:
       simulation_phase: 10
-      parent_execution_key: null
-  canonical_execution_keys:
+      parent_work_member_key: null
+  canonical_work_member_keys:
     - [t1/00, 10, work_x]
   same_clock_phase_limit: 20
 ```
@@ -210,6 +228,12 @@ future_causal_state:
 member of an R0 due set, a precomputed itinerary entry, or a local cache
 prediction.
 
+`scheduled_consequential_decisions` represents boundaries, not individual
+members. Its `due_work_ids` is the complete, canonically `work_id`-ordered set
+for its exact `(decision_time, simulation_phase)` pair. The execution metadata
+and `canonical_work_member_keys` must agree with that complete set; they may
+not split members into extra boundaries.
+
 ### R0 → R1: X creates Y
 
 `next_consequential_boundary(R0)` returns exactly `BX`:
@@ -217,8 +241,9 @@ prediction.
 ```yaml
 source_record_hash: hash(R0)
 decision_time: t1/00
+simulation_phase: 10
 due_work_ids: [work_x]
-execution_keys:
+work_member_keys:
   - [t1/00, 10, work_x]
 ```
 
@@ -230,7 +255,9 @@ terminalizes X as succeeded
 consumes the one same-clock successor budget
 creates active commitment Y
 creates work_y at [t1/00, 20, work_y]
-records work_y.parent_execution_key = [t1/00, 10, work_x]
+records work_y.parent_work_member_key = [t1/00, 10, work_x]
+replaces the resolved X schedule with the complete Y boundary
+  {decision_time: t1/00, simulation_phase: 20, due_work_ids: [work_y]}
 appends one canonical X ledger entry
 commits R1
 ```
@@ -247,8 +274,9 @@ itinerary. It returns exactly `BY`:
 ```yaml
 source_record_hash: hash(R1)
 decision_time: t1/00
+simulation_phase: 20
 due_work_ids: [work_y]
-execution_keys:
+work_member_keys:
   - [t1/00, 20, work_y]
 ```
 
@@ -273,19 +301,23 @@ The scheduler must derive each boundary from current canonical authority only:
 ```text
 next_consequential_boundary(record)
   → validate complete schedule, execution metadata, and budget representation
-  → select earliest unresolved canonical execution key where
+  → select earliest unresolved canonical boundary key where
         decision_time >= record.canonical_clock
-  → return the complete due set only for that exact key phase
+  → return every unresolved due-work member at that exact
+        (decision_time, simulation_phase) boundary, ordered by work_id
+  → include the matching complete ordered work_member_keys list
   → bind result.source_record_hash = hash(record)
 ```
 
-For this fixture there is exactly one due work item at each returned phase. A
-future proof may address multiple work items at one phase; this proof may not
-silently assume that policy.
+For this fixture there is exactly one due work item at each returned boundary.
+The return shape is nevertheless a complete ordered set. A future proof may
+exercise multiple members within one boundary; this proof does not grant that
+behavior or permit implementations to change the boundary law for it.
 
-The resolver accepts only a boundary whose source hash and full key set exactly
-match the current query result. A boundary becomes stale as soon as its source
-record has a successor, even when successor and parent share one clock token.
+The resolver accepts only a boundary whose source hash, boundary key, complete
+ordered due-work set, and matching member-key list exactly match the current
+query result. A boundary becomes stale as soon as its source record has a
+successor, even when successor and parent share one clock token.
 
 ```text
 BX.source_record_hash = hash(R0)
@@ -336,7 +368,8 @@ mutation, ledger append, clock advance, budget consumption, or schedule change:
 
 1. same-clock successor phase equals or precedes X phase;
 2. same-clock successor phase exceeds the frozen phase limit;
-3. duplicate `work_y` or duplicate canonical execution key;
+3. duplicate `work_y`, duplicate canonical work-member key, or noncanonical
+   due-work ordering;
 4. cyclic generation that attempts `Y → X` or any already-settled work ID;
 5. creation when the authoritative same-clock budget is exhausted;
 6. retained BX attempts resolution against R1;
@@ -357,7 +390,8 @@ The source audit must mechanically establish:
 
 1. exactly one canonical `next_consequential_boundary` implementation;
 2. exactly one canonical resolver for X and Y;
-3. boundaries carry source record hash and phase-aware execution keys;
+3. boundaries carry source record hash, phase-aware boundary keys, and
+   complete ordered work-member sets;
 4. phase/key/budget validation precedes any canonical mutation;
 5. no precomputed multi-boundary itinerary or retained prior boundary has
    authority after a successor commits;
