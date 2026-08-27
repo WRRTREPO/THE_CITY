@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.47
-**Status:** Same-Clock Successor Semantics Proof v0.1.0 is frozen. Canonical-only implementation is authorized within its exact boundary.
+**Version:** 0.7.0-draft.48
+**Status:** Same-Clock Successor Semantics Proof v0.1.0 is sealed. No successor city scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -59,7 +59,7 @@ The sealed [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Re
 
 The sealed [External Input Boundary Proof — v0.1.1](External%20Input%20Boundary%20Proof%20-%20v0.1.1.md) and its [evidence](External%20Input%20Boundary%20Proof%20Evidence%20-%20v0.1.1.md) supersede the immutable [v0.1.0](External%20Input%20Boundary%20Proof%20-%20Draft.md) only for the canonical self-hash repair. Its neutral fixture proves that valid Q at t0/30 becomes an R0-bound BQ, commits Rinput, and changes only alpha's later ordinary t1/00 gate. Q-absent control retains the same alpha definition and succeeds. Four local-policy witnesses converge byte-identically at R0/Rinput/Rfinal; rejected envelopes and local authority attempts remain outside canonical truth. Pre-state hashes and singular successor ancestry remain canonical; successor hashes are verified only after complete record construction. No Unreal, transport, wall-clock synchronization, city content, randomness, same-time input ordering, late evidence, or successor scope is authorized.
 
-The frozen [Same-Clock Successor Semantics Proof — v0.1.0](Same-Clock%20Successor%20Semantics%20Proof%20-%20Draft.md) authorizes one bounded canonical implementation of same-clock successor work. Its neutral X-to-Y fixture freezes canonical boundaries as `(decision_time, simulation_phase)` and boundary members as complete `work_id`-ordered due sets. X at `(t1/00, 10)` may consume one finite canonical budget unit to create Y at `(t1/00, 20)`; R1 then invalidates BX despite retaining the same canonical clock, so Y must be rediscovered from R1 before it resolves. The authorized proof is limited to the exact payload, four policy witnesses, rejection suite, replay, source audit, evidence, and a self-excluding manifest. No same-time external-input arbitration, general multi-member phase batching, Unreal, city content, randomness, or successor city scope is authorized.
+The sealed [Same-Clock Successor Semantics Proof — v0.1.0](Same-Clock%20Successor%20Semantics%20Proof%20-%20Draft.md) and its [evidence](Same-Clock%20Successor%20Semantics%20Proof%20Evidence%20-%20v0.1.0.md) establish one bounded canonical same-clock successor chain. Canonical boundaries are `(decision_time, simulation_phase)` and their complete `work_id`-ordered due sets are members, not extra transactions. X at `(t1/00, 10)` consumes one finite canonical budget unit to create Y at `(t1/00, 20)`; R1 invalidates BX despite retaining the same canonical clock, so Y is rediscovered from R1 before it resolves. Four policy histories converge byte-identically at R0/R1/R2; twelve malformed or authority-leaking attempts fail without canonical mutation. No same-time external-input arbitration, general multi-member phase batching, Unreal, city content, randomness, or successor city scope is authorized.
 
 ## Product framing
 
@@ -139,6 +139,18 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.48 — 2026-08-26
+
+- Sealed Same-Clock Successor Semantics Proof v0.1.0 under
+  `SameClockSuccessorSemanticsPayload.v1` / `0.7.0-draft.47`.
+- Recorded 143/143 full Python regressions, 13/13 focused checks, four
+  checkpoint-equivalent policy witnesses, twelve non-causal rejection
+  witnesses, deterministic replay, source audit, and a self-excluding release
+  manifest.
+- No successor scope, same-time external-input arbitration, general
+  multi-member phase batching, Unreal, city content, randomness, or production
+  scheduling is authorized.
 
 ### 0.7.0-draft.47 — 2026-08-26
 
