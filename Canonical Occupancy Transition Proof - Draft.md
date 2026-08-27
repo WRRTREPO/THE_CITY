@@ -1,13 +1,13 @@
 # Canonical Occupancy Transition Proof
 
-**Version:** 0.1.0-draft.0
+**Version:** 0.1.0-draft.1
 **Status:** Specification review only; implementation prohibited
 **Selected:** 2026-08-27
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 **Latest sealed predecessor:** [Canonical Spatial Topology Identity Proof — v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md)
 **External program framing:** `The PROBLEM to solve v1.1 — Causal Continuity Under Distribution`, SHA-256 `de080c065006ccaf5899cca12c98a3f10a72a62176a265204b04521f9031aa07`; non-authoritative and not a repository release member
 **Candidate payload schema:** `CanonicalOccupancyTransitionPayload.v1`
-**Candidate simulation identity:** `0.7.0-draft.64` — not frozen
+**Candidate simulation identity:** `0.7.0-draft.65` — not frozen
 
 ## Question
 
@@ -187,8 +187,48 @@ ownership or control
 site capacity
 ```
 
-The in-transition state is not “nowhere.” It is a canonical relation to the
-active transition commitment. It is not occupancy at either endpoint.
+`in_transition` is not missing authority or an unknown-location error. It
+asserts only that settled-site occupancy is suspended under the exact
+referenced active transition commitment. It asserts no canonical place, route
+occupancy, route-capacity use, geometric position, segment, progress, or
+physical containment. The subject is canonically at neither endpoint while
+this tag is active.
+
+```text
+commitment.route_id
+    = transition eligibility and provenance reference
+
+commitment.route_id
+    ≠ current occupancy container
+```
+
+If a detached inspection projection is produced, its result is exact:
+
+```yaml
+at_site_topology_site_0002:
+  site_projection:
+    topology_site_0001: []
+    topology_site_0002:
+      - topology_occupant_0001
+  detached_transition_relation: null
+
+at_site_topology_site_0001:
+  site_projection:
+    topology_site_0001:
+      - topology_occupant_0001
+    topology_site_0002: []
+  detached_transition_relation: null
+
+in_transition_occupancy_transition_0001:
+  site_projection:
+    topology_site_0001: []
+    topology_site_0002: []
+  detached_transition_relation:
+    topology_occupant_0001: occupancy_transition_0001
+```
+
+This projection is never serialized into canonical authority and cannot place
+the subject at the origin, destination, both endpoints, or the route.
 
 ### Route relation and transition intent are different laws
 
@@ -269,6 +309,51 @@ resolution must read that exact value when it writes completion work into
 `Rtransit.future_causal_state.unresolved_work`; only the committed work then
 becomes discoverable scheduling authority.
 
+The scheduler has exactly one authoritative read surface:
+
+```text
+next_consequential_boundary(record)
+    reads record.future_causal_state.unresolved_work only
+```
+
+“Only” governs discovery of candidate work. The scheduler still validates the
+canonical clock lower bound and hashes the complete queried record to bind the
+boundary capability; neither operation may create or resurrect work.
+
+It must never discover work from:
+
+```text
+commitment canonical_start_time or canonical_completion_time
+fixture_genesis or initial_work_projection
+historical ledger schedule_effect or created_work
+resolution-local trace or cache
+resolver-local candidate state
+retained start context or itinerary
+```
+
+Those canonical duplicates are definition or provenance consistency witnesses.
+They must agree where the schema requires, but none may repair, repopulate, or
+substitute for `unresolved_work`.
+
+The start publication barrier is exact:
+
+```text
+resolve_next_due(R0, Bstart)
+    → construct candidate Rtransit privately
+    → validate the complete candidate
+    → hash the complete candidate and atomically publish Rtransit only
+    → Bstart loses authority because the canonical record identity changed
+    → terminate the start-resolution context
+
+next_consequential_boundary(Rtransit)
+    → independently discover Bcomplete bound to Htransit
+```
+
+The start resolver may not return `(Rtransit, Bcomplete)`, return an itinerary,
+call scheduler discovery on an unpublished candidate, or retain a reusable
+completion object. A private candidate has no published canonical authority
+and cannot be a scheduler source.
+
 ### Time-field equality and non-repair
 
 Every duplicated time representation is a consistency witness, not an
@@ -314,6 +399,12 @@ failed start → no_resource_acquired
 
 This is not a route lease, site capacity, deployment reservation, movement
 system, or generalized exclusivity model.
+
+`fixture_genesis.initial_transition_reservation` is immutable provenance only;
+it is never read as current allocation or gate authority. The current
+`occupancy_transition_reservations` registry alone owns present reservation
+state. `commitment.resources_owned` is the commitment-side consistency index
+that must agree with that registry; it is not an alternate resource registry.
 
 ### Commitment owner and lifecycle refinement
 
@@ -423,7 +514,7 @@ identity:
   payload_schema: CanonicalOccupancyTransitionPayload.v1
   scenario_id: canonical-occupancy-transition-v1
   scenario_version: 0.1.0
-  simulation_version: 0.7.0-draft.64
+  simulation_version: 0.7.0-draft.65
   seed: canonical-occupancy-transition-v1/0001
 ```
 
@@ -445,7 +536,7 @@ identity:
   payload_schema: CanonicalOccupancyTransitionPayload.v1
   scenario_id: canonical-occupancy-transition-v1
   scenario_version: 0.1.0
-  simulation_version: 0.7.0-draft.64
+  simulation_version: 0.7.0-draft.65
   seed: canonical-occupancy-transition-v1/0001
 
 current_causal_state:
@@ -607,6 +698,19 @@ The exact scheduler oracle is:
 | `Rfinal` | `none` |
 | `R0_blocked` | start at `t0/30`, phase 10, due set `[...start]`, source `H0_blocked` |
 | `Rblocked` | `none` |
+
+These rows are also negative authority witnesses:
+
+```text
+R0 contains canonical_completion_time
+    → completion is not discoverable
+
+Rfinal retains commitment definition and historical start-ledger created_work
+    → consumed completion does not reappear
+
+Rblocked retains commitment definition
+    → rejected start creates no completion eligibility
+```
 
 Dense-inspection and boundary-jump witnesses must return byte-identical
 boundary objects at every matching canonical checkpoint, not merely identical
@@ -918,11 +1022,13 @@ checkpoints:
 
 ```text
 BOUNDARY JUMP
-R0 → start → Rtransit → completion → Rfinal
+R0 → query Bstart → start → publish Rtransit
+   → query Bcomplete from Rtransit → completion → Rfinal
 
 DENSE INSPECTION
-R0 → inspection_before_start_0001 → start → Rtransit
-   → inspection_between_boundaries_0001 → completion → Rfinal
+R0 → inspection_before_start_0001 → query Bstart → start
+   → publish Rtransit → inspection_between_boundaries_0001
+   → query Bcomplete from Rtransit → completion → Rfinal
 ```
 
 The dense witness contains exactly two non-authoritative records, each with
@@ -939,6 +1045,10 @@ inspection records may contain only the exact diagnostic identity and
 canonical source hash above. They may not contain or calculate
 authoritative progress, position, arrival, gate results, resource disposition,
 future schedule, or a reusable boundary capability.
+
+In both histories, the completion query occurs only after Rtransit publication.
+Dense inspection may delay that query but may not precompute or cache its
+result.
 
 The canonical oracle requires byte identity at R0, Rtransit, and Rfinal,
 including hashes, complete ledgers, ancestry, resources, and future schedule.
@@ -989,7 +1099,7 @@ transaction_id: t0/30/phase_10/occupancy_transition_0001.start |
 ledger_sequence: 1 | 2
 resolver_path_id: canonical_occupancy_transition.resolve_next_due.v1
 canonical_execution_sequence: 0
-simulation_version: 0.7.0-draft.64
+simulation_version: 0.7.0-draft.65
 owner_occupant_id: topology_occupant_0001
 transition_id: occupancy_transition_0001
 work_id: t0/30/occupancy/occupancy_transition_0001.start |
@@ -1206,7 +1316,9 @@ C_in_transition_record:
 D_record_relative_completion:
   proves:
     - completion is rediscovered from Rtransit
+    - start publishes Rtransit only and terminates before rediscovery
     - completion uses no retained R0 boundary or itinerary
+    - unresolved_work is the sole candidate-work discovery source
     - canonical completion does not read local interpolation or navigation
     - Rfinal settles the subject at the destination and releases resources
 
@@ -1234,6 +1346,13 @@ H_replay_and_source_audit:
     - every canonical branch replays byte-identically
     - one declared canonical resolver path owns start, failure, and completion
     - representation and policy data cannot reach canonical gates or mutation
+
+I_non_authoritative_schedule_copies:
+  proves:
+    - R0 completion-time definition cannot create a completion boundary
+    - historical ledger created_work cannot resurrect consumed work
+    - unpublished candidate state cannot be queried
+    - retained start context and local cache cannot authorize completion
 ```
 
 ## Adversarial requirements
@@ -1301,6 +1420,17 @@ Reject or fail closed as specified:
     and
 35. any additional, missing, or differently shaped dense-inspection trace
     record acquiring canonical influence.
+36. any resolver, query, cache, or detached projection converting
+    `in_transition` or `commitment.route_id` into site occupancy, route
+    occupancy, geometry, progress, or arrival authority;
+37. completion authority derived from R0's commitment time declaration;
+38. completion authority derived or resurrected from historical ledger
+    `created_work`;
+39. scheduler discovery against private, unpublished candidate Rtransit;
+40. a start resolver returning or retaining a completion boundary, itinerary,
+    or reusable completion object; and
+41. resolution policy or local cache authorizing completion without a fresh
+    query of published Rtransit `unresolved_work`.
 
 Cases 18 and 19 are structural record rejections under the exhaustive
 lifecycle matrix; they are not additional ordinary failure branches. Case 22
@@ -1331,7 +1461,15 @@ establish:
 10. resource acquisition and release are canonical and terminally closed;
 11. successor identity is self-hash-safe; and
 12. no production topology, movement, travel, or pathfinding abstraction is
-    introduced under the fixture.
+    introduced under the fixture;
+13. scheduler candidate discovery dataflows only from the queried record's
+    `future_causal_state.unresolved_work`;
+14. start resolution publishes only complete Rtransit and cannot call or
+    return scheduler discovery before that publication context ends;
+15. detached projections and `route_id` cannot manufacture site, route,
+    geometric, progress, or arrival authority; and
+16. fixture-genesis reservation data cannot reach current resource gates or
+    allocation state.
 
 Output coincidence is insufficient if this structural isolation fails.
 
@@ -1406,6 +1544,13 @@ And, separately:
 > ordinary canonical failed gate without changing occupancy or acquiring
 > transition reservation.**
 
+And, as the chronology boundary:
+
+> **A transition may create future completion eligibility, but completion
+> authority exists only after the in-transition successor is published as
+> canonical truth and a new record-bound boundary is independently discovered
+> from that successor's unresolved work.**
+
 This is not evidence that a physical Actor traversed a road.
 
 ## Freeze gate
@@ -1420,9 +1565,12 @@ freeze_requirements:
   exact_ID_value_spaces: exhaustive_and_type_disjoint
   phase_1_topology_projection_oracle: exact_and_detached
   singular_occupancy_tagged_union: exact
+  in_transition_ontology_and_detached_projection: exact
   route_vs_transition_ordering: exact
   R0_and_blocked_R0: exact
   start_and_completion_boundaries: exact
+  unresolved_work_as_sole_scheduler_discovery_source: exact
+  start_publication_before_completion_rediscovery: exact
   Rtransit_Rfinal_Rblocked: exact
   reservation_and_terminal_dispositions: exact
   ordinary_failure_vs_structural_rejection: exact

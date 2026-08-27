@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-27)\
 **Date:** 2026-08-27\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.64`\
+**Governing continuation:** `0.7.0-draft.65`\
 **Latest sealed proof:** `Canonical Spatial Topology Identity Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.10`
@@ -60,9 +60,9 @@ no production Bridge endpoints, movement, streaming, networking, or adjacent
 architecture.
 
 [Canonical Occupancy Transition Proof —
-v0.1.0-draft.0](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md) is
+v0.1.0-draft.1](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md) is
 now the sole active candidate. It is specification review only under candidate
-`CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.64`; no resolver,
+`CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; no resolver,
 tests, artifacts, Unreal source, capacity advancement, or Phase 3 work is
 authorized.
 
@@ -472,7 +472,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.64
+  version: 0.7.0-draft.65
 
 latest_capacity_record:
   version: 0.1.10
@@ -486,9 +486,9 @@ latest_sealed_proof:
 
 active_proof:
   name: Canonical Occupancy Transition Proof
-  version: 0.1.0-draft.0
+  version: 0.1.0-draft.1
   payload_schema: CanonicalOccupancyTransitionPayload.v1
-  candidate_simulation_identity: 0.7.0-draft.64
+  candidate_simulation_identity: 0.7.0-draft.65
   status: specification_review_only
   implementation: prohibited
 ```
@@ -526,13 +526,15 @@ Canonical Spatial Topology Identity v0.1.0 is separately sealed only in its
 exact two-site/one-route scope. Its seal authorizes no adjacent spatial
 behavior or successor implementation.
 
-Canonical Occupancy Transition v0.1.0-draft.0 is separately selected for
+Canonical Occupancy Transition v0.1.0-draft.1 is separately selected for
 specification review only. The candidate asks whether one proof-local subject
-can change its singular tagged canonical occupancy from `at_site`, through one
-resource-owning `in_transition` commitment over canonical time, back to
-`at_site` at the other endpoint. Its start and completion must be discovered
-from their exact source records; navigation, physical interpolation, and
-representation state have no completion authority.
+can change its singular tagged canonical occupancy from `at_site` into one
+exact resource-owning `in_transition` commitment relation over canonical time,
+back to `at_site` at the other endpoint. `in_transition` is not route occupancy
+or another place. Start must publish Rtransit before completion is independently
+rediscovered from Rtransit's `unresolved_work`; navigation, physical
+interpolation, historical ledger, local cache, and representation state have no
+completion authority.
 
 This selection authorizes review, not implementation. It is not physical
 movement, traversal, derived travel time, Unreal occupancy materialization,
@@ -655,24 +657,26 @@ fixture ID spaces, unordered-request normalization, endpoint relation,
 access-only R0-to-R1 mutation, read-only Unreal reconstruction, rejection
 surface, replay, source audit, and release package are predecessor evidence.
 
-Canonical Occupancy Transition v0.1.0-draft.0 is the sole selected successor
+Canonical Occupancy Transition v0.1.0-draft.1 is the sole selected successor
 and remains specification review only. Review the exact two-boundary canonical
 chain:
 
 ``` text
 R0 / subject at site_0002
 → start @ t0/30
-→ Rtransit / subject in occupancy_transition_0001
-→ rediscover completion from Rtransit
+→ publish Rtransit / subject in occupancy_transition_0001
+→ terminate start context
+→ rediscover completion from Rtransit unresolved_work only
 → complete @ t1/00
 → Rfinal / subject at site_0001
 ```
 
 The blocked-access control must terminate by ordinary failed gate without
-changing occupancy or acquiring a subject-transition reservation. Dense local inspection
-and boundary jump must converge at every canonical checkpoint. The proof must
-not read navigation, interpolation, Unreal, conceptual-map, or representation
-state.
+changing occupancy or acquiring a subject-transition reservation. Dense local
+inspection and boundary jump must converge at every canonical checkpoint. The
+proof must not derive occupancy or schedule authority from navigation,
+interpolation, Unreal, conceptual-map, representation, commitment-time,
+historical-ledger, provisional-record, or local-cache state.
 
 > **Do not implement this candidate until a reviewed specification freezes and
 > explicitly grants only its bounded canonical implementation. Do not infer

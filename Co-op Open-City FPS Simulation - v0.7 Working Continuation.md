@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.64
-**Status:** Canonical Spatial Topology Identity Proof v0.1.0 remains the latest sealed proof and Development Capacity v0.1.10 remains governing. Canonical Occupancy Transition Proof v0.1.0-draft.0 is selected for specification review only under candidate `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.64`; implementation, Unreal changes, capacity advancement, Phase 3, and adjacent scope remain unauthorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.65
+**Status:** Canonical Spatial Topology Identity Proof v0.1.0 remains the latest sealed proof and Development Capacity v0.1.10 remains governing. Canonical Occupancy Transition Proof v0.1.0-draft.1 is selected for specification review only under candidate `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; implementation, Unreal changes, capacity advancement, Phase 3, and adjacent scope remain unauthorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -162,6 +162,28 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.65 — 2026-08-27
+
+- Advanced [Canonical Occupancy Transition Proof —
+  v0.1.0-draft.1](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md)
+  through focused freeze review while retaining specification-only authority.
+- Defined `in_transition` as suspension of settled-site occupancy under one
+  exact active commitment, not a site, route container, third place, geometry,
+  progress, segment, capacity use, or physical containment.
+- Made `future_causal_state.unresolved_work` the sole candidate-work discovery
+  surface. Commitment timing, genesis, historical ledger, and local caches may
+  witness consistency but cannot create, repair, or resurrect schedule
+  authority.
+- Required complete Rtransit publication and termination of the start resolver
+  before a separate record-bound completion query. Added negative witnesses
+  for time-derived, ledger-derived, provisional-record, retained-context, and
+  local-itinerary completion authority.
+- Clarified that current reservation state belongs only to the canonical
+  reservation registry; genesis is immutable provenance and
+  `resources_owned` is a consistency index.
+- Kept implementation, Unreal, capacity advancement, physical movement,
+  Phase 3, and adjacent scope closed.
 
 ### 0.7.0-draft.64 — 2026-08-27
 
@@ -738,10 +760,11 @@ predecessor evidence.
 
 The sole current working unit is specification review of
 [Canonical Occupancy Transition Proof —
-v0.1.0-draft.0](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md).
-Review only its exact singular occupancy state, start/in-transition/completion
-lifecycle, resource disposition, blocked control, checkpoint oracle, failure
-surface, provenance, and authority exclusions. Do not write resolver, test,
+v0.1.0-draft.1](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md).
+Review only its exact singular occupancy and `in_transition` ontology,
+start-publication/completion-rediscovery barrier, unresolved-work-only
+scheduler discovery, resource disposition, blocked control, checkpoint oracle,
+failure surface, provenance, and authority exclusions. Do not write resolver, test,
 artifact, verifier, or Unreal code until a reviewed version freezes and grants
 bounded implementation authority.
 
