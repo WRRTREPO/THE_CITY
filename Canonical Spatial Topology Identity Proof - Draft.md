@@ -1,12 +1,12 @@
 # Canonical Spatial Topology Identity Proof
 
-**Version:** 0.1.0-draft.0\
-**Status:** specification review only; implementation is not authorized\
+**Version:** 0.1.0-draft.1\
+**Status:** freeze review only; implementation is not authorized\
 **Selected:** 2026-08-27\
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)\
 **Conceptual source:** [THE_CITY Conceptual City Topology and Developer Framing v0.3.0](THE_CITY_Conceptual_City_Topology_Developer_Framing_v0.3.0.md)\
 **Latest sealed predecessor:** [Concurrent External Evidence Arbitration Proof — v0.1.0](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md)\
-**Candidate simulation identity:** `0.7.0-draft.60` — not frozen
+**Candidate simulation identity:** `0.7.0-draft.61` — not frozen
 
 ## Question
 
@@ -56,17 +56,17 @@ canonical authority.
 
 ## Authority state
 
-This draft opens specification review only.
+This revision is ready for freeze review only.
 
 ```yaml
 proof:
   name: Canonical Spatial Topology Identity Proof
-  version: 0.1.0-draft.0
+  version: 0.1.0-draft.1
   payload_schema_candidate: CanonicalSpatialTopologyIdentityPayload.v1
-  simulation_identity_candidate: 0.7.0-draft.60
+  simulation_identity_candidate: 0.7.0-draft.61
 
 authority:
-  specification_review: authorized
+  freeze_review: authorized
   implementation: prohibited
   unreal_source_changes: prohibited
   capacity_advancement: prohibited
@@ -185,7 +185,7 @@ record_schema: CanonicalResolutionEnvelope.v1
 payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
 scenario_id: canonical-spatial-topology-identity-v1
 scenario_version: 0.1.0
-simulation_version: 0.7.0-draft.60
+simulation_version: 0.7.0-draft.61
 seed: canonical-spatial-topology-identity-v1/0001
 ```
 
@@ -209,7 +209,7 @@ canonical_envelope:
     payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
     scenario_id: canonical-spatial-topology-identity-v1
     scenario_version: 0.1.0
-    simulation_version: 0.7.0-draft.60
+    simulation_version: 0.7.0-draft.61
     seed: canonical-spatial-topology-identity-v1/0001
 
   current_causal_state:
@@ -277,8 +277,8 @@ The candidate schema must fail closed unless all of these are true:
 
 1. `sites` contains exactly the two canonical object keys shown above, with
    null values and canonical JSON key ordering.
-2. Each canonical site identity is unique and conforms to the frozen opaque-ID
-   grammar.
+2. Each canonical site identity belongs to the exact frozen fixture ID value
+   space and passes type-disjoint validation.
 3. `routes` contains exactly one object key with canonical ID
    `topology_route_0001`.
 4. `endpoint_site_ids` contains exactly two distinct existing canonical site
@@ -376,13 +376,14 @@ Candidate result:
 source_record_hash: canonical_hash(record)
 evaluation_status: evaluated
 requested_route_id: topology_route_0001
-requested_endpoint_site_ids: [topology_site_0001, topology_site_0002]
+received_endpoint_site_ids: [topology_site_0002, topology_site_0001]
+normalized_endpoint_site_ids: [topology_site_0001, topology_site_0002]
 evaluated_gates:
   - gate: route_exists
     result: true
-  - gate: requested_endpoint_pair_is_canonical
+  - gate: requested_endpoints_are_two_distinct_canonical_site_ids
     result: true
-  - gate: requested_endpoint_pair_matches_stored_route
+  - gate: normalized_endpoint_pair_matches_stored_route
     observed_value: [topology_site_0001, topology_site_0002]
     result: true
   - gate: route_access_state
@@ -403,14 +404,37 @@ access_state_evaluated: false
 ```
 
 The query must resolve `requested_route_id` only against the canonical route
-table and must compare the exact canonical ordered endpoint pair stored in the
-record. It may not accept a conceptual label, Actor identity, navigation link,
-level path, cell ID, mesh name, or adapter role as a substitute. Request syntax
-and canonical identity validate before eligibility. A wrong, redirected,
-reversed, missing, additional, or representation-derived endpoint pair returns
-`invalid_request` with `eligible = null`; it does not imply blocked or
-directional access. Only the exact canonical ordered pair may reach the stored
-endpoint and access-state gates.
+table. It may not accept a conceptual label, Actor identity, navigation link,
+level path, cell ID, mesh name, or adapter role as a substitute.
+
+Request validation and normalization are exact:
+
+```text
+validate route ID against CanonicalRouteId.v1
+        ↓
+validate an array of exactly two distinct CanonicalSiteId.v1 values
+        ↓
+lexically sort a copy into normalized_endpoint_site_ids
+        ↓
+compare the normalized pair with the stored canonical pair
+        ↓
+evaluate access_state
+```
+
+Therefore `[topology_site_0001, topology_site_0002]` and
+`[topology_site_0002, topology_site_0001]` are both valid requests. They must
+produce identical evaluation status, normalized pair, stored-endpoint
+observation, access-state observation, gates, and eligibility. Received order
+may differ only in the detached `received_endpoint_site_ids` evidence field.
+Request ordering never implies route direction.
+
+Wrong cardinality, a duplicate endpoint, or a value outside the exact fixture
+site-ID value space returns `invalid_request` with `eligible = null` and does
+not evaluate access state. With exactly two exhaustive site-ID values, this
+fixture cannot exhibit a different well-typed two-site set; adding a third site
+for that purpose is prohibited scope expansion. The normalized-pair comparison
+remains a defensive invariant but is not claimed as an exercised mismatch
+witness.
 
 ```text
 R0.topology_route_0001.access_state = available
@@ -543,7 +567,7 @@ expected_canonical_hash: H0 | H1
 expected_record_schema: CanonicalResolutionEnvelope.v1
 expected_payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
 expected_scenario_id: canonical-spatial-topology-identity-v1
-expected_simulation_version: 0.7.0-draft.60
+expected_simulation_version: 0.7.0-draft.61
 expected_mapping_schema: CanonicalTopologyMaterializationMap.v1
 expected_mapping_id: <exact R0 or R1 map identity>
 ```
@@ -670,7 +694,15 @@ B_conceptual_label_neutrality:
 
 C_available_access:
   source: R0
-  expected: topology_route_0001 eligible
+  requests:
+    - received: [topology_site_0001, topology_site_0002]
+      normalized: [topology_site_0001, topology_site_0002]
+    - received: [topology_site_0002, topology_site_0001]
+      normalized: [topology_site_0001, topology_site_0002]
+  expected:
+    - both requests evaluated
+    - identical gates and access observation
+    - topology_route_0001 eligible in both
 
 D_access_mutation:
   source: R0
@@ -682,7 +714,15 @@ D_access_mutation:
 
 E_blocked_access:
   source: R1
-  expected: topology_route_0001 ineligible
+  requests:
+    - received: [topology_site_0001, topology_site_0002]
+      normalized: [topology_site_0001, topology_site_0002]
+    - received: [topology_site_0002, topology_site_0001]
+      normalized: [topology_site_0001, topology_site_0002]
+  expected:
+    - both requests evaluated
+    - identical gates and access observation
+    - topology_route_0001 ineligible in both
 
 F_available_materialization:
   source: R0_only
@@ -712,30 +752,34 @@ Freeze review must retain at least these failures:
 3. cross-type site/route identity substitution;
 4. route endpoint missing from the canonical site table;
 5. identical route endpoints;
-6. non-canonical endpoint ordering;
-7. requested endpoint pair that does not exactly match the stored route being
-   classified as ordinary ineligibility instead of `invalid_request`;
-8. extra route, site, topology field, or access value;
-9. conceptual label supplied where a canonical site/route ID is required;
-10. Unreal Actor name, path, GUID, navigation ID, level identity, cell identity,
+6. stored canonical `endpoint_site_ids` not in lexical order;
+7. reversed request endpoint order being rejected, treated as direction, or
+   producing a semantic evaluation different from canonical-order input after
+   normalization;
+8. invalid route ID, wrong request cardinality, duplicate requested endpoint,
+   or endpoint outside `CanonicalSiteId.v1` reaching access evaluation instead
+   of `invalid_request`;
+9. extra route, site, topology field, or access value;
+10. conceptual label supplied where a canonical site/route ID is required;
+11. Unreal Actor name, path, GUID, navigation ID, level identity, cell identity,
    or streaming identity supplied as canonical identity;
-11. access query redirected through a representation mapping;
-12. access-only mutation attempting to change a site ID, route ID, endpoint, or
+12. access query redirected through a representation mapping;
+13. access-only mutation attempting to change a site ID, route ID, endpoint, or
     endpoint semantics;
-13. boundary bound to a record other than the current canonical source;
-14. materialization mapping with missing, additional, duplicate, or redirected
+14. boundary bound to a record other than the current canonical source;
+15. materialization mapping with missing, additional, duplicate, or redirected
     canonical keys;
-15. map bytes, schema, identity, or source hash disagreeing with the detached
+16. map bytes, schema, identity, or source hash disagreeing with the detached
     launch receipt;
-16. materializer attempting to create canonical topology absent from the
+17. materializer attempting to create canonical topology absent from the
     record;
-17. Unreal or adapter attempting to write canonical access state, ledger,
+18. Unreal or adapter attempting to write canonical access state, ledger,
     ancestry, schedule, or successor identity;
-18. adapter exposing a physical-evidence/Q proposal path;
-19. fresh return process receiving R0, prior Actor/session/cache state, or a
+19. adapter exposing a physical-evidence/Q proposal path;
+20. fresh return process receiving R0, prior Actor/session/cache state, or a
     branch selector in addition to R1;
-20. representation destruction treated as deletion of canonical topology; and
-21. any in-record successor self-hash.
+21. representation destruction treated as deletion of canonical topology; and
+22. any in-record successor self-hash.
 
 Each malformed canonical candidate rejects before mutation. Each invalid
 materialization candidate refuses materialization and produces detached
@@ -773,7 +817,8 @@ inspectable.
 Before `v0.1.0` may freeze, review must fix:
 
 1. the exact canonical identity and payload schema;
-2. the exact opaque canonical-ID grammar and array-order law;
+2. the exact fixture ID value spaces, type-disjoint validation, and canonical
+   array-order law;
 3. the exact R0 and R1 record shapes;
 4. the exact genesis and conceptual-assignment provenance boundary;
 5. the exact scheduled close-work and record-bound boundary schemas;
@@ -812,6 +857,20 @@ evidence + self-excluding release manifest
 No node may execute before explicit freeze and implementation authorization.
 
 ## Draft changelog
+
+### 0.1.0-draft.1 — 2026-08-27
+
+- Preserved lexical ordering as canonical stored-array serialization law while
+  making request endpoint order semantically neutral through exact validation
+  and lexical normalization.
+- Required forward and reversed endpoint requests to record their received and
+  normalized pairs and produce identical access evaluation for both available
+  and blocked records.
+- Replaced the unsupported generalized “opaque-ID grammar” wording with exact
+  fixture ID value spaces and type-disjoint validation.
+- Explicitly declined to add a third site merely to manufacture a different
+  well-typed endpoint-set witness. Implementation and adjacent scope remain
+  unauthorized.
 
 ### 0.1.0-draft.0 — 2026-08-27
 
