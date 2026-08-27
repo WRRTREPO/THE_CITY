@@ -1,11 +1,11 @@
 # External Input Boundary Proof
 
-**Version:** 0.1.0-draft.1
-**Status:** Specification review only. Implementation is not authorized.
+**Version:** 0.1.0
+**Status:** Frozen. Canonical-only implementation is authorized within this exact boundary.
 **Parent law:** [Resolution Semantics Law — v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 **Predecessors:** [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md); [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md); [Crew Arrival Into Live Commitment Proof — v0.1.0](Crew%20Arrival%20Into%20Live%20Commitment%20Proof%20Evidence%20-%20v0.1.0.md)
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
-**Candidate simulation version:** `0.7.0-draft.42` — fixed only when this specification freezes.
+**Simulation version:** `0.7.0-draft.42` — fixed for this proof.
 
 ## Question
 
@@ -189,8 +189,8 @@ autonomous work.
 
 The current sealed scheduler proofs do not implement this semantic; they
 explicitly exclude external input. `next_execution_boundary` is therefore new
-canonical architecture to be specified and tested after freeze, not a policy
-wrapper that may be inserted to make this proof pass.
+canonical architecture to be implemented and tested under this freeze, not a
+policy wrapper that may be inserted to make this proof pass.
 
 ```yaml
 record_schema: CanonicalResolutionEnvelope.v1
@@ -202,10 +202,250 @@ seed: external-input-boundary-v1/0001
 ```
 
 The identity lives only in `canonical_envelope.identity` and is included in the
-canonical hash. The frozen specification must replace this candidate identity
-with the exact same values in its payload validator, artifacts, replay inputs,
-and release manifest. Unknown, missing, redirected, or incompatible
-authoritative fields reject.
+canonical hash. The payload validator, artifacts, replay inputs, and release
+manifest must use these exact values. Unknown, missing, redirected, or
+incompatible authoritative fields reject.
+
+## Frozen canonical representation
+
+Every canonical envelope, execution-boundary capability, Q digest projection,
+and evidence artifact in this proof uses this exact canonical JSON law:
+
+```text
+canonical_json(value)
+  = UTF-8 encoding of JSON with:
+      object keys sorted lexicographically by Unicode code point;
+      compact separators `,` and `:` only;
+      `ensure_ascii = true`;
+      no duplicate object keys;
+      no NaN, Infinity, or -Infinity;
+      arrays preserved exactly in their declared order; and
+      a single terminal LF only for stored text artifacts, never in hashed JSON.
+
+canonical_hash(envelope)
+  = lowercase hexadecimal SHA-256(canonical_json(envelope))
+```
+
+All identifiers and values in this fixture are ASCII. Every canonical envelope
+has exactly these four top-level keys and no others:
+
+```text
+causal_provenance
+current_causal_state
+future_causal_state
+identity
+```
+
+The nested objects and lists shown below are exhaustive. Omitted keys are
+absent, not implicitly null. A key shown with `null` must be present with JSON
+`null`. The payload validator rejects all additional keys, missing keys, enum
+changes, reordering of declared lists, and value changes outside an authorized
+transaction result.
+
+Let `H0 = canonical_hash(R0)`, `HI = canonical_hash(Rinput)`,
+`HF = canonical_hash(Rfinal)`, and `HC = canonical_hash(Rcontrol_final)`.
+These symbols are not placeholders: they are the exact values produced by the
+fixed serializer over the exact records in this specification.
+
+### Exact Q, digest projection, and BQ
+
+Q's digest projection is this exact JSON value, before canonical serialization:
+
+```json
+{
+  "evidence": {
+    "outcome_state": "disabled",
+    "physical_actor_id": "gate_token_01"
+  },
+  "input_id": "crew_evidence_disable_gate_token_0001",
+  "kind": "evidenced_physical_consequence",
+  "observed_outcome": {
+    "state": "disabled"
+  },
+  "occurrence_time": "t0/30",
+  "proposed_mutations": [
+    {
+      "op": "replace",
+      "path": "/current_causal_state/durable_facts/gate_token_state",
+      "value": "disabled"
+    },
+    {
+      "op": "replace",
+      "path": "/current_causal_state/gate_relevant_state/gate_token_state",
+      "value": "disabled"
+    }
+  ],
+  "source": "crew_physical_simulation",
+  "source_record_hash": "H0",
+  "target": {
+    "id": "gate_token_01",
+    "kind": "proof_gate_token"
+  }
+}
+```
+
+`D0 = lowercase hexadecimal SHA-256(canonical_json(Q_digest_projection))`.
+In the literal JSON above, the string `"H0"` denotes the actual canonical
+hash value `H0`, not those two characters. The full exact Q is the same object
+with one additional key in its `evidence` object:
+
+```json
+"evidence_digest": "D0"
+```
+
+Here `"D0"` likewise denotes the actual resulting lowercase digest. This is
+non-self-referential because `evidence_digest` is absent from the digest
+projection. Its presence and exact value are required in full Q.
+
+Successful side-effect-free admission of Q against R0 returns exactly:
+
+```json
+{
+  "decision_time": "t0/30",
+  "due_work_ids": [],
+  "external_input_id": "crew_evidence_disable_gate_token_0001",
+  "kind": "external_input",
+  "source_record_hash": "H0"
+}
+```
+
+This object is `BQ`. It is invalid against any record whose hash is not H0.
+The Rinput autonomous boundary is exactly:
+
+```json
+{
+  "decision_time": "t1/00",
+  "due_work_ids": [
+    "t1/00/input-boundary/commitment_alpha.resolve"
+  ],
+  "external_input_id": null,
+  "kind": "autonomous_consequence",
+  "source_record_hash": "HI"
+}
+```
+
+### Exact successor records
+
+Every record has the exact R0 object shape defined below. Only these declared
+values differ between stages:
+
+| Authoritative path | R0 | Rinput | Rfinal | Q-absent control final |
+| --- | --- | --- | --- | --- |
+| `canonical_clock` | `t0/00` | `t0/30` | `t1/00` | `t1/00` |
+| `gate_token_state` in both state paths | `enabled` | `disabled` | `disabled` | `enabled` |
+| `alpha_outcome` | `pending` | `pending` | `failed_gate` | `succeeded` |
+| `commitment_alpha.state` | `active` | `active` | `failed_gate` | `succeeded` |
+| `commitment_alpha.terminal_disposition` | `null` | `null` | `release_unit_alpha_on_failed_gate` | `release_unit_alpha_on_success` |
+| `unit_alpha` | reserved by `reservation_alpha` | unchanged | available; reservation/owner null | available; reservation/owner null |
+| `accepted_external_inputs` | `[]` | `["crew_evidence_disable_gate_token_0001"]` | unchanged | `[]` |
+| autonomous schedule / gate schedule / execution keys | alpha at `t1/00` | unchanged | all empty / null / empty | all empty / null / empty |
+| ancestry parent / derivation | `null` / `initial_record` | H0 / `external_input_boundary` | HI / `next_consequential_boundary` | H0 / `next_consequential_boundary` |
+| authoritative ledger | `[]` | `[LQ]` | `[LQ, LAlphaFailed]` | `[LAlphaSucceeded]` |
+| `terminal_resource_dispositions.reservation_alpha` | `null` | `null` | `release_unit_alpha_on_failed_gate` | `release_unit_alpha_on_success` |
+
+No other authoritative value may differ. `Rfinal` and the control final carry
+no remaining scheduled work. `next_consequential_boundary` and
+`next_execution_boundary` both return `none` for each.
+
+The exact ledger entry shapes are:
+
+```json
+{
+  "action_id": "crew_evidence_disable_gate_token_0001",
+  "actor_or_process_id": "crew_physical_simulation",
+  "belief_inputs": [],
+  "boundary": {
+    "decision_time": "t0/30",
+    "due_work_ids": [],
+    "external_input_id": "crew_evidence_disable_gate_token_0001",
+    "kind": "external_input",
+    "source_record_hash": "H0"
+  },
+  "canonical_execution_sequence": 0,
+  "canonical_post_state_hash": "HI",
+  "canonical_pre_state_hash": "H0",
+  "commitment_id": null,
+  "decision_time": "t0/30",
+  "evaluated_gates": [
+    {"name":"source_record_hash_matches","observed_value":"H0","required_value":"H0","result":true},
+    {"name":"occurrence_time_is_after_or_equal_to_record_clock","observed_value":"t0/30","required_value":"at_or_after:t0/00","result":true},
+    {"name":"occurrence_time_is_strictly_before_next_autonomous_boundary","observed_value":"t0/30","required_value":"before:t1/00","result":true},
+    {"name":"target_contract_matches","observed_value":"proof_gate_token:gate_token_01","required_value":"proof_gate_token:gate_token_01","result":true},
+    {"name":"evidence_contract_matches","observed_value":"D0","required_value":"D0","result":true},
+    {"name":"proposed_mutation_set_matches","observed_value":"two_exact_gate_token_replacements","required_value":"two_exact_gate_token_replacements","result":true},
+    {"name":"target_currently_enabled","observed_value":"enabled","required_value":"enabled","result":true}
+  ],
+  "eligible_action_set": ["admit_external_input_candidate"],
+  "external_input_id": "crew_evidence_disable_gate_token_0001",
+  "kind": "external_input",
+  "mutation_or_terminal_result": "gate_token_state_disabled",
+  "observed_inputs": ["Q:D0"],
+  "random_draw_reference": null,
+  "resource_disposition": [],
+  "selected_action": "admit_external_input_candidate",
+  "simulation_phase": "external_input_admission",
+  "simulation_version": "0.7.0-draft.42",
+  "source_record_hash": "H0",
+  "threshold_crossings": [],
+  "downstream_eligibility_changes": ["commitment_alpha_revalidates_at_t1/00"]
+}
+```
+
+`LAlphaFailed` is exactly:
+
+```json
+{
+  "boundary": {
+    "decision_time": "t1/00",
+    "due_work_ids": ["t1/00/input-boundary/commitment_alpha.resolve"],
+    "external_input_id": null,
+    "kind": "autonomous_consequence",
+    "source_record_hash": "HI"
+  },
+  "action_id": "commitment_alpha.resolve",
+  "actor_or_process_id": "autonomous_process_alpha",
+  "belief_inputs": [],
+  "canonical_execution_sequence": 1,
+  "canonical_post_state_hash": "HF",
+  "canonical_pre_state_hash": "HI",
+  "commitment_id": "commitment_alpha",
+  "decision_time": "t1/00",
+  "evaluated_gates": [
+    {"observed_value":"disabled","path":"/current_causal_state/gate_relevant_state/gate_token_state","required_value":"enabled","result":false}
+  ],
+  "eligible_action_set": ["commitment_alpha.resolve"],
+  "external_input_id": null,
+  "kind": "autonomous_consequence",
+  "mutation_or_terminal_result": "alpha_failed_gate",
+  "observed_inputs": ["gate_token_state:disabled"],
+  "random_draw_reference": null,
+  "resource_disposition": "release_unit_alpha_on_failed_gate",
+  "selected_action": "commitment_alpha.resolve",
+  "simulation_phase": "autonomous_resolution",
+  "simulation_version": "0.7.0-draft.42",
+  "source_record_hash": "HI",
+  "threshold_crossings": [],
+  "downstream_eligibility_changes": []
+}
+```
+
+`LAlphaSucceeded` is exactly the same object with these substitutions only:
+
+```text
+boundary.source_record_hash = H0
+canonical_execution_sequence = 0
+canonical_post_state_hash = HC
+canonical_pre_state_hash = H0
+evaluated_gates[0].observed_value = enabled
+evaluated_gates[0].result = true
+mutation_or_terminal_result = alpha_succeeded
+observed_inputs = ["gate_token_state:enabled"]
+resource_disposition = release_unit_alpha_on_success
+source_record_hash = H0
+```
+
+The implementation must encode the alpha gate witness as this exact JSON
+object. It must not replace it with a cached boolean or an implicit result.
 
 ## Neutral exact fixture
 
@@ -237,7 +477,7 @@ canonical_envelope:
         state: active
         gate_check_at: t1/00
         required_gate: gate_token_state == enabled
-        terminal_disposition: release_unit_alpha_on_success | release_unit_alpha_on_failed_gate
+        terminal_disposition: null
     reservations_leases_and_resource_ownership:
       unit_alpha:
         state: reserved
@@ -276,53 +516,14 @@ it will later be supplied.
 
 ### Sealed external evidence input Q
 
-The input sequence in the primary witnesses contains exactly one immutable
-input. Its complete canonical JSON shape, evidence digest algorithm, absence
-rules, and canonical ordering must freeze before implementation.
+The primary ordered replay input sequence is exactly `[Q]`, where Q, D0, and
+BQ are the frozen JSON values defined in [Frozen canonical
+representation](#frozen-canonical-representation). No alternate Q field,
+absence rule, digest form, mutation operation, or list ordering is lawful.
 
-```yaml
-input_id: crew_evidence_disable_gate_token_0001
-kind: evidenced_physical_consequence
-source: crew_physical_simulation
-source_record_hash: hash(R0)
-occurrence_time: t0/30
-target:
-  kind: proof_gate_token
-  id: gate_token_01
-observed_outcome:
-  state: disabled
-evidence:
-  physical_actor_id: gate_token_01
-  outcome_state: disabled
-  evidence_digest: <digest of Q digest projection>
-proposed_mutations:
-  - current_causal_state.durable_facts.gate_token_state = disabled
-  - current_causal_state.gate_relevant_state.gate_token_state = disabled
-```
-
-Q's evidence digest is non-self-referential:
-
-```text
-evidence_digest = SHA256(canonical_json({
-  input_id,
-  kind,
-  source,
-  source_record_hash,
-  occurrence_time,
-  target,
-  observed_outcome,
-  evidence.physical_actor_id,
-  evidence.outcome_state,
-  proposed_mutations
-}))
-```
-
-The projection omits `evidence.evidence_digest` itself. The frozen proof must
-define the exact JSON object, key ordering, UTF-8 encoding, and SHA-256 hex
-form before implementation. Any changed digest-covered field without a
-recomputed digest rejects for integrity failure. A changed field with a
-recomputed valid digest still rejects if it violates Q's exact target, actor,
-outcome, or mutation contract.
+Changing a digest-covered Q field without recomputing D0 rejects for integrity
+failure. Changing a field and recomputing a valid digest still rejects if it
+violates Q's exact target, actor, outcome, or mutation contract.
 
 Q's persistence gates are exact and side-effect-free:
 
@@ -392,7 +593,7 @@ against `Rinput` because both carry `source_record_hash = hash(R0)`.
 Rinput
   → next_consequential_boundary(Rinput)
   → t1/00 commitment_alpha.resolve
-  → resolve_execution_boundary(Rinput, autonomous-boundary)
+  → resolve_execution_boundary(Rinput, autonomous-boundary, null)
   → Rfinal
 ```
 
@@ -565,22 +766,27 @@ The demonstrated law is:
 
 ## Explicit exclusions
 
-This scope does not authorize implementation yet. It introduces no Unreal
-execution, live network input transport, wall-clock synchronization, helicopter
-observation, city fixture, route, faction, agent, randomness, same-time input
-ordering, late input after settlement, repair/reversal, additional commitment
-composition, multiple input streams, multiplayer arbitration, rollback,
-save/load, map scale, or production streaming.
+The authorized implementation introduces no Unreal execution, live network
+input transport, wall-clock synchronization, helicopter observation, city
+fixture, route, faction, agent, randomness, same-time input ordering, late
+input after settlement, repair/reversal, additional commitment composition,
+multiple input streams, multiplayer arbitration, rollback, save/load, map
+scale, or production streaming.
 
-## Freeze gate
+## Implementation acceptance boundary
 
-Before implementation, freeze:
+Implementation may contain only:
 
-1. the exact simulation identity, JSON payload schema, null/absence rules, and canonical serialization;
-2. the exact Q digest projection, envelope contract, side-effect-free admission API, BQ tagged-union schema, and input cursor semantics;
-3. the exact canonical execution-boundary selection law, Q-versus-autonomous tie prohibition, and malformed-Q terminal-test disposition;
-4. exact Rinput/Rfinal/control record shapes, terminal dispositions, and allowed counterfactual differences;
-5. the four policy sequences, cursor-reset witness, runtime rejections, equivalence oracle, replay condition, and source audit; and
-6. an explicit continuation revision authorizing only the bounded canonical implementation.
+1. the exact `ExternalInputBoundaryPayload.v1` validator and fixed serializer/hash;
+2. side-effect-free Q admission validation, digest/contract rejections, and BQ construction;
+3. one input-aware execution coordinator, one canonical resolver, and the unchanged autonomous boundary query;
+4. exact R0/Rinput/Rfinal/control records, ledger entries, terminal dispositions, and tagged boundaries;
+5. dense, boundary-jump, and two mixed witnesses; Q-absent control; cursor-reset witness; malformed-Q terminal tests; boundary-crossing/stale-capability tests; replay; checkpoint oracle; and source audit;
+6. proof artifacts, evidence, and a self-excluding release manifest.
+
+The implementation may not add production input continuation, Unreal,
+wall-clock synchronization, city content, input ties, late evidence,
+randomness, additional commitments, networking, rollback, save/load, scale, or
+streaming.
 
 No broader city or FPS scope follows from this specification.
