@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.63
-**Status:** Canonical Spatial Topology Identity Proof v0.1.0 is implemented, proven, and sealed under `CanonicalSpatialTopologyIdentityPayload.v1` / `0.7.0-draft.61`; Development Capacity v0.1.10 records only that bounded result. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only. No successor proof or adjacent scope is selected.
+**Version:** 0.7.0-draft.64
+**Status:** Canonical Spatial Topology Identity Proof v0.1.0 remains the latest sealed proof and Development Capacity v0.1.10 remains governing. Canonical Occupancy Transition Proof v0.1.0-draft.0 is selected for specification review only under candidate `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.64`; implementation, Unreal changes, capacity advancement, Phase 3, and adjacent scope remain unauthorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -162,6 +162,28 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.64 — 2026-08-27
+
+- Selected [Canonical Occupancy Transition Proof —
+  v0.1.0-draft.0](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md)
+  for specification review only under candidate
+  `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.64`.
+- Proposed one proof-local subject with a singular tagged canonical occupancy,
+  one ordered reverse-lexical transition intent over the sealed unordered
+  two-site/one-route topology, one record-bound start, one later
+  record-relative completion, and one fixture-local subject-transition
+  reservation.
+- Required a blocked-access ordinary-failure control, dense-inspection versus
+  boundary-jump checkpoint equivalence, self-hash-safe provenance, exact
+  resource cleanup, failure atomicity, and a hard source audit excluding
+  navigation, interpolation, conceptual, and representation authority.
+- Kept the proof canonical-only. It does not claim physical traversal, derived
+  travel time, route progress, capacity/leases, Unreal occupancy
+  materialization, multiple subjects, contention, movement systems,
+  networking, streaming, production topology, or Phase 3.
+- Retained Canonical Spatial Topology Identity v0.1.0 and Development Capacity
+  v0.1.10 as the latest sealed authority. No implementation is authorized.
 
 ### 0.7.0-draft.63 — 2026-08-27
 
@@ -710,17 +732,23 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 
 The frozen three-area kernel, physical round trip, deployment opportunity,
 live-arrival, shared-state, selection, resolution, Causal-LOD, chronology,
-external-input, same-clock, integrated Unreal lifecycle, and concurrent
-external arbitration, and canonical spatial-topology identity proofs are
-sealed predecessor evidence.
+external-input, same-clock, integrated Unreal lifecycle, concurrent external
+arbitration, and canonical spatial-topology identity proofs are sealed
+predecessor evidence.
 
-No successor proof is selected. Preserve the topology release and stop. A
-future working unit requires a separate reviewed selection, specification,
-freeze, and explicit implementation authority.
+The sole current working unit is specification review of
+[Canonical Occupancy Transition Proof —
+v0.1.0-draft.0](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md).
+Review only its exact singular occupancy state, start/in-transition/completion
+lifecycle, resource disposition, blocked control, checkpoint oracle, failure
+surface, provenance, and authority exclusions. Do not write resolver, test,
+artifact, verifier, or Unreal code until a reviewed version freezes and grants
+bounded implementation authority.
 
-Do not begin stochastic identity, 2+2 player topology, networking, live input
-collection, transport semantics, movement, travel, pathfinding, production
-topology, World Partition, streaming, autonomous batch members,
-retry/re-admission, randomness, generalized resolver behavior, additional input
-classes, production Bridge topology, or city-scale architecture without a
-separate reviewed freeze and explicit authority.
+Do not begin stochastic identity, simultaneous physical domains, 2+2 player
+topology, networking, live input collection, transport semantics, physical
+movement, derived travel time, navigation, pathfinding, production topology,
+World Partition, streaming, autonomous batch members, retry/re-admission,
+randomness, generalized resolver behavior, additional input classes,
+production Bridge topology, or city-scale architecture without a separate
+reviewed freeze and explicit authority.
