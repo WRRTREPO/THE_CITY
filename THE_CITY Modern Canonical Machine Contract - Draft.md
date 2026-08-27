@@ -1,6 +1,6 @@
 # THE_CITY Modern Canonical Machine Contract
 
-**Version:** 0.1.0-draft.0
+**Version:** 0.1.0-draft.1
 **Status:** doctrine extraction / specification review only
 **Implementation authority from this document:** none
 **Successor-proof authority:** none
@@ -124,7 +124,8 @@ sealed boundary/member law.
 Same-clock successor work is lawful only under the demonstrated constraints:
 
 - its canonical phase is strictly later than its creator's phase;
-- it consumes finite canonical generation authority;
+- it consumes declared finite canonical anti-cycle authority (a generation
+  budget in the sealed fixture);
 - it is absent from the predecessor schedule and rediscovered from the
   committed successor record; and
 - its causal parentage is explicit without converting member order into hidden
@@ -178,6 +179,8 @@ external evidence
     non-authoritative
         ↓
 side-effect-free admission
+        ↓ integrity validation
+        ↓ exact consequence-contract validation
         ↓
 record-bound execution capability
         ↓
@@ -185,8 +188,21 @@ canonical transaction
 ```
 
 Observation alone does not create city truth. Admission is side-effect-free.
+
+> **Admission must validate evidence integrity and the exact permitted
+> consequence contract separately. A valid digest does not grant mutation
+> authority. Unknown, missing, additional, redirected, or incompatible target,
+> actor, outcome, or mutation fields reject before a canonical transaction.**
+
+Malformed evidence rejected before admission is diagnostic-only. It may not
+mutate the canonical record, causal ledger, future schedule, or input cursor.
+Only successfully admitted evidence produces a record-bound execution
+capability eligible to enter canonical resolution and acquire canonical
+provenance obligations.
+
 An admitted capability binds to its exact source record, and the resulting
-canonical transaction may change only its declared canonical facts.
+canonical transaction may change only its declared, contract-authorized
+canonical facts.
 
 An input cannot directly choose a later autonomous terminal result. Later
 autonomous work must be rediscovered from the successor record and revalidate
@@ -277,13 +293,15 @@ authority leakage
 illegal promotion/demotion mutation
 invalid external evidence or admission
 retrograde same-clock successor
-same-clock generation-budget exhaustion
+exhaustion of declared finite same-clock anti-cycle authority
 ────────────────────────────────────────
 → no unauthorized canonical mutation
 ```
 
-Some classes were demonstrated only in bounded fixtures. This contract does
-not claim their full production generalization without an explicit successor
+Some classes were demonstrated only in bounded fixtures. The sealed same-clock
+fixture represents finite anti-cycle authority with a generation budget; this
+contract does not require that exact representation for every future payload.
+Nor does it claim full production generalization without an explicit successor
 proof.
 
 ## Randomness boundary
@@ -323,7 +341,7 @@ A successful fixture does not automatically amend this contract. Human review
 must explicitly adopt any extracted general law in a versioned amendment.
 Historical contract versions remain immutable.
 
-## Draft.0 review gate
+## Draft.1 review gate
 
 This draft is ready for review only when:
 
@@ -335,7 +353,8 @@ This draft is ready for review only when:
 6. no stochastic, production-topology, or streaming law is invented;
 7. `CanonicalResolutionEnvelope` and exact payload-schema authority remain distinct;
 8. record-relative rediscovery and predecessor-capability invalidation are explicit;
-9. external evidence, admission, and canonical transaction remain distinct;
+9. evidence integrity, consequence-contract authorization, admission, and
+   canonical transaction remain distinct;
 10. resolution policy and representation remain non-authoritative;
 11. provenance and successor identity remain self-hash-safe; and
 12. the spatial identity mapping remains marked candidate doctrine pending explicit adoption; and

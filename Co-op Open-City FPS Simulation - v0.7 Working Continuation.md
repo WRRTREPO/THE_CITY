@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.53
-**Status:** Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0 remains frozen, unsealed, and the sole bounded implementation target. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.0 is parallel doctrine review only.
+**Version:** 0.7.0-draft.54
+**Status:** Integrated Unreal Promotion-Unload-Repromotion Proof v0.1.0 remains frozen, unsealed, and the sole bounded implementation target. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 is parallel doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -141,6 +141,24 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.54 — 2026-08-27
+
+- Revised THE_CITY Modern Canonical Machine Contract to v0.1.0-draft.1 during
+  contract-level red-team review; the contract is not frozen and implementation
+  authority from it remains none.
+- Separated external-evidence integrity from exact consequence-contract
+  authorization: a valid digest alone cannot grant canonical mutation
+  authority.
+- Defined malformed pre-admission evidence as diagnostic-only: it cannot
+  mutate the canonical record, causal ledger, future schedule, or input cursor.
+  Only an admitted record-bound capability can enter canonical resolution and
+  acquire provenance obligations.
+- Generalized the same-clock fixture's generation budget into declared finite,
+  canonical anti-cycle authority; the sealed budget remains one demonstrated
+  representation, not a required future field.
+- No code, capacity record, sealed proof/evidence, release manifest, or
+  Integrated Unreal implementation authority changed.
 
 ### 0.7.0-draft.53 — 2026-08-27
 
