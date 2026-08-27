@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.40
-**Status:** Record-Relative Chronological Resolution Proof v0.1.0 is frozen. Canonical-only implementation is authorized.
+**Version:** 0.7.0-draft.41
+**Status:** Record-Relative Chronological Resolution Proof v0.1.0 is sealed. No successor city scope is authorized.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -55,7 +55,7 @@ The frozen [Resolution Semantics Substrate Proof — v0.1.0](Resolution%20Semant
 
 The sealed [Causal-LOD Equivalence Proof — v0.1.0](Causal-LOD%20Equivalence%20Proof%20-%20Draft.md) and its [evidence](Causal-LOD%20Equivalence%20Proof%20Evidence%20-%20v0.1.0.md) establish one neutral canonical execution fixture under dense-inspection, boundary-jump, and mixed promotion/demotion policy sequences. Every witness uses byte-identical R0 as parent and transaction pre-state for the one t1/00 resolver and produces byte-identical R1 authority, ledger, disposition, future schedule, and no-next-boundary result. Local traces differ; policy has no causal authority. Unreal, city content, external inputs, randomness, planning, and successor scope remain excluded.
 
-The frozen [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20-%20Draft.md) is the sole authorized canonical implementation scope. It requires every next consequential boundary to be rediscovered from the newly committed record after the prior boundary resolves. Its neutral X/Y/Z fixture makes X mutate one shared fact at t1/00, requires Y to revalidate that fact at t1/30, and resolves independent Z at t2/00. Every discovered boundary is bound to the queried record hash, so it loses authority after that record commits. No Unreal, city content, input, randomness, scale, or successor scope is authorized.
+The sealed [Record-Relative Chronological Resolution Proof — v0.1.0](Record-Relative%20Chronological%20Resolution%20Proof%20-%20Draft.md) and its [evidence](Record-Relative%20Chronological%20Resolution%20Proof%20Evidence%20-%20v0.1.0.md) establish record-relative chronological resolution. Its neutral X/Y/Z fixture resolves X at t1/00, rediscoveries and revalidates Y from R1 at t1/30, then proves that Z remains discoverable at t2/00 after Y's ordinary failure. Every discovered boundary is bound to the queried record hash, so it loses authority after that record commits. The result proves four policy histories converge byte-identically at R0/R1/R2/R3. No Unreal, city content, input, randomness, scale, or successor scope is authorized.
 
 ## Product framing
 
@@ -135,6 +135,11 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.41 — 2026-08-26
+
+- Sealed Record-Relative Chronological Resolution Proof v0.1.0: one exact payload, record-bound boundary capabilities, singular successor ancestry, R1-relative Y gate evidence, continued Z discovery, four checkpoint-equivalent policy witnesses, runtime rejection, replay, source audit, and a self-excluding release manifest.
+- Recorded 117 passing Python checks. This proves only the neutral X/Y/Z chronology fixture; no same-clock successor, external input, random, Unreal, city content, scale, multiplayer, or successor scope is authorized.
 
 ### 0.7.0-draft.40 — 2026-08-26
 
