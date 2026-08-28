@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.68
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and is open for specification review only under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.68`. It reuses the exact sealed Phase-1 H0/H1 canonical payload and mutation without inheriting Phase 1's source-destruction lifecycle. No implementation, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.69
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.1](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and has advanced to freeze review under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.69`. Draft.1 fixes fail-closed current-head observation, H1-only authoritative-derived reconstruction with an exact retained-local whitelist, uninterrupted process-birth liveness, and one exact stdin-plus-three-file refresh mechanism. The proof is not frozen. No implementation, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -85,8 +85,8 @@ production topology, World Partition, streaming, networking, city expansion,
 and adjacent scope remain unauthorized.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the
-sole active successor and is open for specification review only. It asks
+v0.1.0-draft.1](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the
+sole active successor and is in freeze review. It asks
 whether two process-isolated Unreal representation domains can remain alive
 across the exact sealed Phase-1 H0-to-H1 access transition, then independently
 rebind to H1 while an H0 representation is mechanically stale and incapable of
@@ -94,7 +94,10 @@ current-head authority. Both exact detached domain projections include one
 distinct canonical site scope and the shared `topology_route_0001` access fact.
 The candidate explicitly does not inherit Phase 1's source-destruction
 lifecycle, create a new canonical payload or mutation, materialize occupancy,
-or exercise Q/BQ/BEXT. No implementation or Unreal source change is authorized.
+or exercise Q/BQ/BEXT. Draft.1 closes current-head observer atomicity,
+refresh reconstruction/retention, uninterrupted process liveness, and refresh
+invocation/input ambiguity. It remains unfrozen; no implementation or Unreal
+source change is authorized.
 
 ## Product framing
 
@@ -174,6 +177,40 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.69 — 2026-08-28
+
+- Advanced [Simultaneous Physical Domains Proof —
+  v0.1.0-draft.1](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) to
+  freeze review under candidate proof-harness identity
+  `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.69`; the proof remains
+  unfrozen and implementation remains prohibited.
+- Closed the global current-head guard before canonical invocation and required
+  one exact detached H1 observation to be atomically published, reread, and
+  independently reverified before refresh eligibility. A nine-point observer
+  fault surface and the exact post-commit/prepublication injection leave both
+  domains `head_unconfirmed` with every current-head path disabled while H1
+  remains sole canonical authority.
+- Replaced refresh merge ambiguity with pure reconstruction of every
+  authoritative-derived representation fact from exact H1 plus the exact
+  role/H1 projection. Only three detached scalar fields may survive; stale
+  Actor, cache, collision, physics, receipt, capability, and H0-derived
+  representation state must be discarded. Added the exact baseline/perturbed
+  equivalence witness.
+- Bound each operational process identity to one macOS process-start witness,
+  executable/root/pipe binding, original child handle, continuous exit/EOF
+  monitor, exact L0–L4B samples, and a two-launch/no-replacement audit. Equal
+  PID alone cannot prove uninterrupted simultaneous liveness.
+- Fixed the sole refresh mechanism as one canonical-JSON line on each original
+  process stdin pipe plus one isolated, role-specific, read-only three-file H1
+  bundle. Watchers, polling, signals, FIFOs, sockets, shared roots, alternate
+  pipes, and second invocations are prohibited.
+- Preserved the exact sealed Phase-1 H0/H1 canonical payload and mutation,
+  Development Capacity v0.1.11, all prior seals, and every existing exclusion.
+  Authorized no implementation, Unreal source change, occupancy
+  materialization, Q/BQ/BEXT, live input, movement, networking, World
+  Partition, streaming, split players, cross-domain causality, or production
+  architecture.
 
 ### 0.7.0-draft.68 — 2026-08-28
 
@@ -859,13 +896,16 @@ predecessor evidence.
 Canonical Occupancy Transition Proof v0.1.0 is complete and sealed in its exact
 bounded canonical scope.
 
-Simultaneous Physical Domains Proof v0.1.0-draft.0 is the sole current working
-unit. It is specification review only. Review must freeze the exact sealed
+Simultaneous Physical Domains Proof v0.1.0-draft.1 is the sole current working
+unit. It is in freeze review and is not frozen. Review must verify the exact sealed
 Phase-1 H0/H1 reuse, noninheritance of Phase 1's physical lifecycle, two live
 process-isolated domain projections, shared-route representation, operational
-head-state machine, quarantined stale execution, atomic refresh boundary,
-asymmetric failure, isolation, current-head rejection surface, replay,
-provenance, and source audit before implementation may be considered.
+head-state machine, fail-closed current-head observer, H1-only refresh
+reconstruction and retained-local whitelist, uninterrupted L0–L4B process-birth
+evidence, exact stdin/three-file refresh mechanism, quarantined stale
+execution, atomic refresh boundary, asymmetric failure, isolation, current-head
+rejection surface, replay, provenance, and source audit before freeze or
+implementation may be considered.
 
 Do not implement the candidate or begin stochastic identity, 2+2 player
 topology, networking, live input collection, transport semantics, physical

@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.68`
+**Governing continuation:** `0.7.0-draft.69`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -112,13 +112,15 @@ phase_2_canonical_occupancy_transition:
 
 phase_3_simultaneous_physical_domains:
   selected: true
-  specification: v0.1.0-draft.0_review_only
+  specification: v0.1.0-draft.1_freeze_review
+  frozen: false
   implementation: prohibited
 ```
 
 Phase 1 established what canonical places and their relation are. Phase 2
 established how one subject's settled occupancy can lawfully change between
-them. Phase 3 is now selected for specification review only. It asks whether
+them. Phase 3 is now selected and in freeze review, but is not frozen. It asks
+whether
 two process-isolated Unreal representation domains can remain simultaneously
 alive against one canonical head, survive the exact sealed Phase-1 H0-to-H1
 access transition without participating in it, and independently rebind while
@@ -130,6 +132,17 @@ operational process instances to remain alive across the commit. Domain A is
 detached-representation-scoped to `topology_site_0001`, domain B to
 `topology_site_0002`, and both projections include
 `topology_route_0001`. Site scope is not canonical occupancy.
+
+Draft.1 closes four material review seams without granting implementation:
+
+- a global current-head guard fails closed as `head_unconfirmed` unless exact
+  committed H1 is atomically observed and independently reverified;
+- refresh reconstructs every authoritative-derived fact from exact H1 plus the
+  exact projection, retaining only three detached scalar local values;
+- original child handles, macOS process-start pairs, process bindings, and
+  control/output pipes prove uninterrupted A/B liveness across L0–L4B; and
+- refresh uses exactly one canonical-JSON command on each original stdin pipe
+  plus one isolated role-specific read-only three-file H1 bundle.
 
 ## Exact current proof envelope
 
@@ -181,19 +194,20 @@ The current corpus does not establish:
 ## Development frontier
 
 The active working unit is [Simultaneous Physical Domains Proof —
-v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
-specification review only. Review must freeze its exact detached projections,
-simultaneous process-liveness witness, physical head-state machine, stale local
-execution quarantine, refresh publication boundary, asymmetric failure,
-isolation, provenance, replay, and current-head rejection surface before any
-implementation authority may be considered.
+v0.1.0-draft.1](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
+freeze review but not frozen. Review must verify its exact detached
+projections, fail-closed current-head observation, H1-only reconstruction and
+retention whitelist, uninterrupted process-birth witness, fixed local refresh
+mechanism, physical head-state machine, stale local execution quarantine,
+refresh publication boundary, asymmetric failure, isolation, provenance,
+replay, and current-head rejection surface before freeze may be considered.
 
 Current authority:
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.0
+working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.1
 successor_selected: true
-specification_status: review_only
+specification_status: freeze_review
 freeze_status: not_frozen
 implementation_authority: none
 governing_record_change_from_this_note: none

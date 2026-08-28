@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-28)\
 **Date:** 2026-08-28\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.68`\
+**Governing continuation:** `0.7.0-draft.69`\
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
@@ -72,13 +72,16 @@ Unreal occupancy, contention, simultaneous domains, networking, streaming,
 Phase 3, or adjacent architecture.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is now
-the sole active successor. It is specification review only under candidate
+v0.1.0-draft.1](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is now
+the sole active successor. It is in freeze review under candidate
 proof-harness identity `SimultaneousPhysicalDomainsProof.v1` /
-`0.7.0-draft.68`. It reuses the exact sealed Phase-1 H0/H1 payload and
+`0.7.0-draft.69`. It reuses the exact sealed Phase-1 H0/H1 payload and
 access-only canonical transition, but explicitly does not inherit Phase 1's
-source-destruction physical lifecycle. No implementation, Unreal source
-change, capacity advancement, or adjacent scope is authorized.
+source-destruction physical lifecycle. Draft.1 fixes fail-closed current-head
+observation, H1-only representation reconstruction with an exact retained-local
+whitelist, uninterrupted process-birth liveness, and one exact
+stdin-plus-three-file refresh mechanism. It is not frozen. No implementation,
+Unreal source change, capacity advancement, or adjacent scope is authorized.
 
 ## Current proof progression
 
@@ -112,7 +115,7 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Simultaneous Physical Domains
-                SPECIFICATION REVIEW ONLY
+                FREEZE REVIEW / NOT FROZEN
 ```
 
 Record-relative chronological resolution remains an essential
@@ -446,7 +449,7 @@ streaming identity
 
 9. Simultaneous physical domains
    ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-   SPECIFICATION REVIEW ONLY
+   FREEZE REVIEW / NOT FROZEN
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -500,7 +503,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.68
+  version: 0.7.0-draft.69
 
 latest_capacity_record:
   version: 0.1.11
@@ -514,11 +517,11 @@ latest_sealed_proof:
 
 active_proof:
   name: Simultaneous Physical Domains Proof
-  version: 0.1.0-draft.0
+  version: 0.1.0-draft.1
   candidate_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1
   canonical_source_payload: CanonicalSpatialTopologyIdentityPayload.v1
   canonical_source_simulation_identity: 0.7.0-draft.61
-  status: specification_review_only
+  status: freeze_review
   freeze_status: not_frozen
   implementation: prohibited
 ```
@@ -566,8 +569,8 @@ traversal, derived travel time, Unreal occupancy materialization, multiple
 occupancy, contention, simultaneous physical domains, or Phase 3, and it
 authorizes no successor implementation.
 
-Simultaneous Physical Domains v0.1.0-draft.0 is selected only for
-specification review. It reuses the exact sealed Phase-1 R0/H0 and R1/H1
+Simultaneous Physical Domains v0.1.0-draft.1 is selected only for freeze review
+and is not frozen. It reuses the exact sealed Phase-1 R0/H0 and R1/H1
 canonical payloads and their sole access-state mutation. It does not create a
 new canonical payload or materialize Phase-2 occupancy. Its novelty is the
 physical lifecycle: two process-isolated Unreal representations must remain
@@ -583,6 +586,26 @@ quarantined nonconsequential local execution; current-head evidence,
 scheduling, mutation, and truth claims are prohibited. A refresh rejected
 before local publication leaves the domain stale. An unprovable partial local
 publication makes it invalid and halts local execution.
+
+Draft.1 closes the current-head observation boundary by closing one global
+guard before canonical invocation and requiring exact H1 publication, reread,
+and independent verification before refresh eligibility. If observation fails
+after H1 commits, both domains are `head_unconfirmed`; H1 remains sole
+authority and every current-head claim, evidence, scheduling, mutation, and
+refresh path is disabled.
+
+Refresh reconstructs every authoritative-derived representation fact solely
+from exact H1 plus the exact role/H1 projection. Only
+`nonconsequential_tick_counter`, `cosmetic_phase_token`, and
+`diagnostic_counter` may survive as detached local state. Stale Actor, cache,
+collision, physics, receipt, capability, and H0-derived representation state
+must not merge or select H1 truth.
+
+Each operational instance is bound to a macOS process-start witness, original
+child handle, executable/root/pipe binding, continuous exit/EOF monitor, exact
+L0–L4B samples, and a two-launch/no-replacement audit. Refresh uses exactly one
+canonical-JSON line on each original stdin pipe plus one isolated role-specific
+read-only three-file H1 bundle; no alternate mechanism is permitted.
 
 Do not begin any of the following without a separately reviewed freeze and
 explicit implementation authority:
@@ -727,13 +750,16 @@ The blocked-access control, dense/jump equivalence, singular occupancy,
 reservation closure, record-relative completion, failure atomicity, replay,
 source audit, and release package are sealed predecessor evidence.
 
-Simultaneous Physical Domains v0.1.0-draft.0 is the sole current working unit
-and remains specification review only. Review the exact Phase-1 H0/H1 reuse,
+Simultaneous Physical Domains v0.1.0-draft.1 is the sole current working unit
+and is in freeze review but not frozen. Review the exact Phase-1 H0/H1 reuse,
 noninheritance of Phase 1's physical lifecycle, detached A/B site-and-route
-projections, simultaneous process liveness, synchronized/stale/invalid state
-machine, quarantined stale execution, atomic refresh boundary, A-synchronized/
-B-stale asymmetric failure and symmetric branch, isolation, current-head
-rejection surface, canonical equivalence, replay, provenance, and source audit.
+projections, fail-closed current-head observation, uninterrupted process-birth
+liveness, head-unconfirmed/synchronized/stale/invalid state machine, H1-only
+reconstruction and retained-local perturbation witness, exact stdin/three-file
+refresh mechanism, quarantined stale execution, atomic refresh boundary,
+A-synchronized/B-stale asymmetric failure and symmetric branch, isolation,
+current-head rejection surface, canonical equivalence, replay, provenance, and
+source audit.
 
 > **Do not implement the Phase 3 candidate until a separately reviewed freeze
 > explicitly grants its bounded implementation. Do not infer physical movement,
