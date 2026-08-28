@@ -47,6 +47,9 @@ public:
         TSharedPtr<FJsonObject>& OutReceipt,
         FString& OutReason);
 
+    TSharedPtr<FJsonObject> BuildRetentionExecutionObservation(
+        const FSPDImmutableProcessBinding& Binding) const;
+
     const FString& GetRepresentedCanonicalHash() const { return RepresentedCanonicalHash; }
 
 private:
@@ -72,4 +75,9 @@ private:
     FString CosmeticPhaseToken;
     uint64 DiagnosticCounter = 0;
     bool bRefreshConsumed = false;
+    bool bRetentionWitness = false;
+    bool bPerturbedRetentionWitness = false;
+    bool bPoisonObservedBeforeRefresh = false;
+    bool bPublishedH1PoisonClear = false;
+    bool bPriorH0ActorReplaced = false;
 };

@@ -246,11 +246,16 @@ def _verify_primary(order: str) -> dict[str, Any]:
 
 def _verify_other_witnesses() -> None:
     w3 = _load("physical_W3_stale_quarantine_witness.json")
+    w3_samples = w3["observed_domain_samples"]
     if not all((
-        w3["canonical_R1_raw_sha256_before"] == D1,
-        w3["canonical_R1_raw_sha256_after"] == D1,
-        w3["current_head_receipts_emitted"] == 0,
-        w3["physical_witness"].get("refresh_invocations", 0) == 0,
+        w3["canonical_R1_raw_sha256_before_after"] == [D1, D1],
+        w3["current_head_receipt_count_delta"] == 0,
+        w3["canonical_evidence_count_delta"] == 0,
+        w3["canonical_scheduling_count_delta"] == 0,
+        w3["canonical_mutation_count_delta"] == 0,
+        w3["observed_live_UE_execution_in_both_original_processes"],
+        all(w3_samples[role]["total_cpu_nanoseconds_delta"] > 0 for role in DOMAIN_ROLES),
+        all(w3_samples[role]["accepted_represented_hash_before_after"] == [H0, H0] for role in DOMAIN_ROLES),
     )):
         raise ValueError("W3 stale quarantine drift")
     w4 = _load("physical_W4_head_observation_failure_witness.json")
@@ -267,11 +272,27 @@ def _verify_other_witnesses() -> None:
     perturbed = _load("physical_W5_retention_perturbed_witness.json")
     oracle = _load("physical_W5_retention_equivalence_oracle.json")
     if (
-        baseline["retained_local_state"] == perturbed["retained_local_state"]
-        or not oracle["authoritative_derived_H1_byte_identical"]
-        or not oracle["poison_discarded"]
+        baseline["observed_retained_local_state_by_domain"]
+        == perturbed["observed_retained_local_state_by_domain"]
+        or not all(oracle["authoritative_derived_H1_byte_identical_by_role"].values())
+        or not oracle["poison_observed_and_discarded_in_both_branches"]
+        or not baseline["all_discard_required_H0_poison_observed_then_discarded"]
+        or not perturbed["all_discard_required_H0_poison_observed_then_discarded"]
     ):
         raise ValueError("W5 retained-local-state perturbation selected H1 truth")
+    for branch in (baseline, perturbed):
+        for role in DOMAIN_ROLES:
+            retention = branch["live_retention_execution_observations"][role]
+            physical = branch["independent_live_H1_physical_observations"][role]
+            if (
+                retention["observation_source"] != "live_ue_adapter_postpublication_state_inspection"
+                or not retention["discard_required_H0_poison_observed_before_refresh"]
+                or not retention["prior_H0_actor_replaced"]
+                or not retention["published_H1_actor_poison_clear"]
+                or physical["observed_physical_access_state"] != "blocked"
+                or physical["observation_source"] != "live_ue_world_actor_component_inspection"
+            ):
+                raise ValueError(f"W5 live execution evidence failed: {branch['branch']}/{role}")
     for name, success_role, stale_role in (
         ("physical_W6_asymmetric_A_synchronized_witness.json", "domain_A", "domain_B"),
         ("physical_W6_asymmetric_B_synchronized_witness.json", "domain_B", "domain_A"),
@@ -312,23 +333,55 @@ def _verify_oracles(w1: Mapping[str, Any], w2: Mapping[str, Any]) -> None:
         if guard.get(key) != value:
             raise ValueError(f"guard-open control deterministic field drift: {key}")
     if (
-        guard["physical_witness"]["guard_transitions"] != ["open_for_H0", "failed_closed"]
+        guard["physical_witness"]["guard_machine"]["state"] != "failed_closed"
         or set(guard["physical_witness"]["terminal_dispositions"].values()) != {"protocol_invalid(H0/H1)"}
         or guard["physical_witness"]["refresh_invocations"] != 0
     ):
         raise ValueError("guard-open live canonical control drift")
     authority = _load("simultaneous_physical_domains_current_head_authority_failures.json")
-    if authority != current_head_authority_failures() or authority["case_count"] != 37:
+    if (
+        authority != current_head_authority_failures()
+        or authority["case_count"] != 37
+        or not authority["all_real_validation_paths_executed"]
+        or not all(case["actual_validation_path"] and case["reason_code"] for case in authority["cases"])
+    ):
         raise ValueError("37 current-head authority rejection cases drift")
     refresh_faults = _load("simultaneous_physical_domains_refresh_fault_atomicity.json")
-    if refresh_faults != refresh_fault_atomicity() or refresh_faults["fault_stages"] != list(REFRESH_FAULT_STAGES):
+    if (
+        refresh_faults["fault_stages"] != list(REFRESH_FAULT_STAGES)
+        or refresh_faults["pre_post_case_count"] != 36
+        or len(refresh_faults["cases"]) != 36
+        or not refresh_faults["all_faults_executed"]
+        or not refresh_faults["all_fail_closed_without_canonical_effect"]
+        or {case["input_origin"] for case in refresh_faults["cases"]}
+        != {"W1_original_live_UE_exact_H1_refresh_bundle"}
+        or any(case["validation_path"] != "execute_refresh_validation_path" for case in refresh_faults["cases"])
+    ):
         raise ValueError("exact refresh pre/post fault surface drift")
     physical_faults = _load("simultaneous_physical_domains_physical_observation_fault_atomicity.json")
-    if physical_faults != physical_observation_fault_atomicity() or physical_faults["fault_stages"] != list(PHYSICAL_OBSERVATION_FAULT_STAGES):
+    if (
+        physical_faults["fault_stages"] != list(PHYSICAL_OBSERVATION_FAULT_STAGES)
+        or physical_faults["head_role_case_count"] != 24
+        or len(physical_faults["cases"]) != 24
+        or {case["head_role"] for case in physical_faults["cases"]} != {"H0", "H1"}
+        or not physical_faults["all_faults_executed"]
+        or not physical_faults["all_fail_closed_without_canonical_effect"]
+        or {case["input_origin"] for case in physical_faults["cases"]}
+        != {"W1_original_live_UE_component_observations"}
+        or any(case["validation_path"] != "execute_physical_observation_validation" for case in physical_faults["cases"])
+    ):
         raise ValueError("exact physical observation fault surface drift")
     head_faults = _load("simultaneous_physical_domains_head_observation_fault_atomicity.json")
     if head_faults["fault_points"] != list(HEAD_OBSERVATION_FAULT_POINTS):
         raise ValueError("exact head observation fault surface drift")
+    if (
+        len(head_faults["cases"]) != 9
+        or not head_faults["all_faults_executed"]
+        or not head_faults["all_fail_closed_without_canonical_effect"]
+        or len(head_faults["guard_illegal_transition_cases"]) != 8
+        or not all(case["rejected"] for case in head_faults["guard_illegal_transition_cases"])
+    ):
+        raise ValueError("head/guard executable failure surface drift")
     input_audit = _load("simultaneous_physical_domains_proof_semantic_input_audit.json")
     if not all((
         input_audit["proof_semantic_closure_complete"],
@@ -384,8 +437,6 @@ def _isolated_role_regeneration() -> None:
             ARTIFACT_NAMES[3]: current_head_observation(),
             ARTIFACT_NAMES[4]: head_observation_fault_atomicity(),
             ARTIFACT_NAMES[35]: current_head_authority_failures(),
-            ARTIFACT_NAMES[36]: refresh_fault_atomicity(),
-            ARTIFACT_NAMES[37]: physical_observation_fault_atomicity(),
         }
         for name in ARTIFACT_NAMES:
             payload = deterministic.get(name, _load(name))

@@ -12,8 +12,37 @@
 #include "GameFramework/SpectatorPawn.h"
 #include "Misc/CommandLine.h"
 
+namespace
+{
+bool IsSimultaneousPhysicalDomainProcess()
+{
+    FString IntegratedPayloadPath;
+    FParse::Value(FCommandLine::Get(), TEXT("IntegratedProofPayload="), IntegratedPayloadPath);
+    const FString CommandLine(FCommandLine::Get());
+    return CommandLine.Contains(TEXT("-Multiprocess")) &&
+        !CommandLine.Contains(TEXT("CanonicalTopologyProof")) &&
+        !CommandLine.Contains(TEXT("ConcurrentEvidence")) &&
+        IntegratedPayloadPath.IsEmpty();
+}
+}
+
 ACityProofGameMode::ACityProofGameMode()
 {
+    if (IsSimultaneousPhysicalDomainProcess())
+    {
+        // Phase 3 is representation-only.  Prevent GameMode restart/spectator
+        // paths from constructing or possessing any Pawn before BeginPlay.
+        DefaultPawnClass = nullptr;
+        SpectatorClass = nullptr;
+        // UE's -game bootstrap requires a controller class before BeginPlay.
+        // Use only the inert engine base controller; both Pawn classes remain
+        // null and the Phase-3 branch never possesses or reads player input.
+        PlayerControllerClass = APlayerController::StaticClass();
+        ReplaySpectatorPlayerControllerClass = APlayerController::StaticClass();
+        HUDClass = nullptr;
+        bStartPlayersAsSpectators = true;
+        return;
+    }
     // Topology proof worlds must never instantiate the legacy Q-capable pawn,
     // even transiently before BeginPlay replaces the view target.
     const FString CommandLine(FCommandLine::Get());
@@ -43,8 +72,7 @@ void ACityProofGameMode::BeginPlay()
     // without a named topology, concurrent-evidence, or integrated payload.
     // The router still begins unbound and can acquire proof semantics only
     // from its one exact process-binding command on the original stdin pipe.
-    const bool bSimultaneousPhysicalDomainProcess = CommandLine.Contains(TEXT("-Multiprocess")) &&
-        !bTopologyProofRequested && !bConcurrentProofRequested && IntegratedPayloadPath.IsEmpty();
+    const bool bSimultaneousPhysicalDomainProcess = IsSimultaneousPhysicalDomainProcess();
     if (bTopologyProofRequested)
     {
         GetWorld()->SpawnActor<ACanonicalSpatialTopologyProofAdapter>(ACanonicalSpatialTopologyProofAdapter::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
@@ -66,22 +94,27 @@ void ACityProofGameMode::BeginPlay()
         GetWorld()->SpawnActor<AIntegratedUnrealProofAdapter>(AIntegratedUnrealProofAdapter::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
     }
 
-    APlayerController* Controller = GetWorld()->GetFirstPlayerController();
-    if (Controller != nullptr)
+    // The Phase-3 dispatch terminates here.  It never enters the legacy
+    // player-controller, Pawn creation, possession, view-target, or input path.
+    if (!bSimultaneousPhysicalDomainProcess)
     {
-        if (APawn* ExistingPawn = Controller->GetPawn())
+        APlayerController* Controller = GetWorld()->GetFirstPlayerController();
+        if (Controller != nullptr)
         {
-            ExistingPawn->Destroy();
-        }
+            if (APawn* ExistingPawn = Controller->GetPawn())
+            {
+                ExistingPawn->Destroy();
+            }
 
-        const FVector SpawnLocation(-700.0f, 250.0f, 110.0f);
-        const FRotator SpawnRotation = (FVector(-120.0f, 250.0f, 110.0f) - SpawnLocation).Rotation();
-        UClass* PawnClass = bTopologyProofRequested ? ASpectatorPawn::StaticClass() : DefaultPawnClass.Get();
-        if (APawn* Pawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnLocation, SpawnRotation))
-        {
-            Controller->Possess(Pawn);
-            Controller->SetControlRotation(SpawnRotation);
-            Controller->SetViewTarget(Pawn);
+            const FVector SpawnLocation(-700.0f, 250.0f, 110.0f);
+            const FRotator SpawnRotation = (FVector(-120.0f, 250.0f, 110.0f) - SpawnLocation).Rotation();
+            UClass* PawnClass = bTopologyProofRequested ? ASpectatorPawn::StaticClass() : DefaultPawnClass.Get();
+            if (APawn* Pawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnLocation, SpawnRotation))
+            {
+                Controller->Possess(Pawn);
+                Controller->SetControlRotation(SpawnRotation);
+                Controller->SetViewTarget(Pawn);
+            }
         }
     }
 }

@@ -33,6 +33,7 @@ from simultaneous_physical_domains import (
     DOMAIN_ROLES,
     H0,
     H1,
+    PhysicalCurrentHeadGuard,
     PROOF_SCENARIO,
     WITNESS_IDS,
     authoritative_representation,
@@ -42,6 +43,7 @@ from simultaneous_physical_domains import (
     canonical_transition_run,
     current_head_authority_failures,
     current_head_observation,
+    execute_refresh_validation_path,
     expected_physical_observation,
     guard_open_control,
     head_disposition,
@@ -91,6 +93,7 @@ POSIX_SPAWN_START_SUSPENDED = 0x0080
 POSIX_SPAWN_SETSID = 0x0400
 POSIX_SPAWN_CLOEXEC_DEFAULT = 0x4000
 PROC_PIDTBSDINFO = 3
+PROC_PIDTASKINFO = 4
 
 
 class ProcBsdInfo(ctypes.Structure):
@@ -117,6 +120,29 @@ class ProcBsdInfo(ctypes.Structure):
         ("pbi_nice", ctypes.c_int32),
         ("pbi_start_tvsec", ctypes.c_uint64),
         ("pbi_start_tvusec", ctypes.c_uint64),
+    ]
+
+
+class ProcTaskInfo(ctypes.Structure):
+    _fields_ = [
+        ("pti_virtual_size", ctypes.c_uint64),
+        ("pti_resident_size", ctypes.c_uint64),
+        ("pti_total_user", ctypes.c_uint64),
+        ("pti_total_system", ctypes.c_uint64),
+        ("pti_threads_user", ctypes.c_uint64),
+        ("pti_threads_system", ctypes.c_uint64),
+        ("pti_policy", ctypes.c_int32),
+        ("pti_faults", ctypes.c_int32),
+        ("pti_pageins", ctypes.c_int32),
+        ("pti_cow_faults", ctypes.c_int32),
+        ("pti_messages_sent", ctypes.c_int32),
+        ("pti_messages_received", ctypes.c_int32),
+        ("pti_syscalls_mach", ctypes.c_int32),
+        ("pti_syscalls_unix", ctypes.c_int32),
+        ("pti_csw", ctypes.c_int32),
+        ("pti_threadnum", ctypes.c_int32),
+        ("pti_numrunning", ctypes.c_int32),
+        ("pti_priority", ctypes.c_int32),
     ]
 
 
@@ -246,6 +272,24 @@ def _proc_info(pid: int) -> dict[str, Any]:
         "ppid": int(info.pbi_ppid),
         "seconds": int(info.pbi_start_tvsec),
         "microseconds": int(info.pbi_start_tvusec),
+    }
+
+
+def _task_info(pid: int) -> dict[str, int]:
+    info = ProcTaskInfo()
+    result = LIBPROC.proc_pidinfo(
+        pid, PROC_PIDTASKINFO, 0, ctypes.byref(info), ctypes.sizeof(info)
+    )
+    if result != ctypes.sizeof(info):
+        error = ctypes.get_errno()
+        raise RuntimeError(
+            f"proc_pidinfo task sample failed for {pid}: result={result} errno={error}"
+        )
+    return {
+        "total_user_nanoseconds": int(info.pti_total_user),
+        "total_system_nanoseconds": int(info.pti_total_system),
+        "thread_count": int(info.pti_threadnum),
+        "running_thread_count": int(info.pti_numrunning),
     }
 
 
@@ -588,7 +632,10 @@ def _checkpoint(domains: Mapping[str, LiveDomain], checkpoint: str) -> dict[str,
     }
 
 
-def _accept_launch(domain: LiveDomain) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+def _accept_launch(
+    domain: LiveDomain,
+    guard: PhysicalCurrentHeadGuard,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     receipt = domain.next_object(_is_receipt)
     validate_materialization_receipt(receipt, domain.binding)
     domain.send(inspection_invocation(domain.role, "launch_physical_0001"))
@@ -600,7 +647,7 @@ def _accept_launch(domain: LiveDomain) -> tuple[dict[str, Any], dict[str, Any], 
     disposition = head_disposition(
         domain_role=domain.role, binding=domain.binding, receipt=receipt,
         physical_observation=observation, represented_hash=H0, observed_head=H0,
-        guard_state="open_for_H0", head_state="synchronized",
+        guard_state=guard.state, head_state="synchronized",
     )
     return receipt, observation, disposition
 
@@ -622,11 +669,82 @@ def _stage_refresh(domain: LiveDomain, *, corrupt_receipt_digest: bool = False) 
     return bundle
 
 
-def _refresh_success(domain: LiveDomain) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+def _retained_and_poison_fixtures(domain: LiveDomain) -> tuple[dict[str, Any], dict[str, Any]]:
+    perturbed = domain.witness_id == "w5_retention_perturbed"
+    retained = {
+        "retained_schema": "SimultaneousPhysicalDomainRetainedLocalState.v1",
+        "nonconsequential_tick_counter": 991 if perturbed else 7,
+        "cosmetic_phase_token": "cosmetic_phase_3" if perturbed else "cosmetic_phase_0",
+        "diagnostic_counter": 47 if perturbed else 1,
+    }
+    poison = {
+        "actor_ids": ["poison_actor_991" if perturbed else "baseline_actor_7"],
+        "topology_cache": "poisoned_topology" if perturbed else "baseline_topology",
+        "route_access_cache": "available",
+        "collision_open": True,
+        "physics_diagnostic": "poisoned_47" if perturbed else "baseline_1",
+    }
+    return retained, poison
+
+
+def _is_retention_observation(value: Mapping[str, Any]) -> bool:
+    return value.get("observation_schema") == (
+        "SimultaneousPhysicalDomainRetentionExecutionObservation.v1"
+    )
+
+
+def _refresh_success(
+    domain: LiveDomain,
+    guard: PhysicalCurrentHeadGuard,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any] | None]:
+    guard.assert_refresh_eligible(domain.role)
     bundle = _stage_refresh(domain)
+    retained, poison = _retained_and_poison_fixtures(domain)
+    harness_validation = execute_refresh_validation_path(
+        bundle["directory"],
+        domain_role=domain.role,
+        binding=domain.binding,
+        command=refresh_invocation(domain.role),
+        retained_local_state=retained,
+        discard_required_poison=poison,
+    )
     domain.send(refresh_invocation(domain.role))
     receipt = domain.next_object(_is_receipt)
     validate_materialization_receipt(receipt, domain.binding)
+    if receipt != harness_validation["materialization_receipt"]:
+        raise RuntimeError("live UE refresh receipt differs from harness validation path")
+    retention_observation = (
+        domain.next_object(_is_retention_observation)
+        if domain.witness_id in ("w5_retention_baseline", "w5_retention_perturbed")
+        else None
+    )
+    if retention_observation is not None:
+        expected_branch = "perturbed" if domain.witness_id.endswith("perturbed") else "baseline"
+        expected = {
+            "branch": expected_branch,
+            "retained_nonconsequential_tick_counter": retained["nonconsequential_tick_counter"],
+            "retained_cosmetic_phase_token": retained["cosmetic_phase_token"],
+            "retained_diagnostic_counter": retained["diagnostic_counter"],
+            "discard_required_H0_poison_observed_before_refresh": True,
+            "prior_H0_actor_replaced": True,
+            "published_H1_actor_poison_clear": True,
+            "poisoned_actor_ids_discarded": True,
+            "poisoned_topology_cache_discarded": True,
+            "poisoned_route_access_cache_discarded": True,
+            "poisoned_collision_state_discarded": True,
+            "poisoned_physics_diagnostics_discarded": True,
+            "represented_canonical_hash": H1,
+            "observation_source": "live_ue_adapter_postpublication_state_inspection",
+        }
+        for key, value in expected.items():
+            if retention_observation.get(key) != value:
+                raise RuntimeError(f"live retention observation mismatch: {key}")
+        if (
+            retention_observation.get("domain_role") != domain.role
+            or retention_observation.get("operational_process_instance_id") != domain.instance_id
+            or retention_observation.get("process_binding_raw_sha256") != sha256_value(domain.binding)
+        ):
+            raise RuntimeError("live retention observation process binding mismatch")
     domain.refresh_inventory_after = validate_exact_directory(bundle["directory"], bundle["names"])
     if domain.refresh_inventory_after != domain.refresh_inventory_before:
         raise RuntimeError("refresh bundle changed during Unreal read")
@@ -639,12 +757,16 @@ def _refresh_success(domain: LiveDomain) -> tuple[dict[str, Any], dict[str, Any]
     disposition = head_disposition(
         domain_role=domain.role, binding=domain.binding, receipt=receipt,
         physical_observation=observation, represented_hash=H1, observed_head=H1,
-        guard_state="open_for_H1", head_state="synchronized",
+        guard_state=guard.state, head_state="synchronized",
     )
-    return receipt, observation, disposition
+    return receipt, observation, disposition, retention_observation
 
 
-def _refresh_rejection(domain: LiveDomain) -> tuple[dict[str, Any], dict[str, Any]]:
+def _refresh_rejection(
+    domain: LiveDomain,
+    guard: PhysicalCurrentHeadGuard,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    guard.assert_refresh_eligible(domain.role)
     bundle = _stage_refresh(domain, corrupt_receipt_digest=True)
     domain.send(refresh_invocation(domain.role))
     failure = domain.next_object(_is_failure)
@@ -655,9 +777,56 @@ def _refresh_rejection(domain: LiveDomain) -> tuple[dict[str, Any], dict[str, An
         raise RuntimeError("prepublication refresh rejection did not preserve H0 representation")
     disposition = head_disposition(
         domain_role=domain.role, binding=domain.binding, receipt=None, physical_observation=None,
-        represented_hash=H0, observed_head=H1, guard_state="open_for_H1", head_state="stale",
+        represented_hash=H0, observed_head=H1, guard_state=guard.state, head_state="stale",
     )
     return failure, disposition
+
+
+def _observe_stale_local_execution(
+    domains: Mapping[str, LiveDomain],
+) -> dict[str, Any]:
+    before = {role: _task_info(domains[role].pid) for role in DOMAIN_ROLES}
+    command_counts_before = {role: len(domains[role].commands) for role in DOMAIN_ROLES}
+    output_counts_before = {role: len(domains[role].parsed_objects) for role in DOMAIN_ROLES}
+    started = time.monotonic()
+    time.sleep(0.25)
+    checkpoints = {role: domains[role].assert_alive("W3_stale_local_execution") for role in DOMAIN_ROLES}
+    finished = time.monotonic()
+    after = {role: _task_info(domains[role].pid) for role in DOMAIN_ROLES}
+    samples: dict[str, Any] = {}
+    for role in DOMAIN_ROLES:
+        cpu_before = before[role]["total_user_nanoseconds"] + before[role]["total_system_nanoseconds"]
+        cpu_after = after[role]["total_user_nanoseconds"] + after[role]["total_system_nanoseconds"]
+        delta = cpu_after - cpu_before
+        if delta <= 0:
+            raise RuntimeError(f"{role} showed no executed UE work during W3 interval")
+        if len(domains[role].commands) != command_counts_before[role]:
+            raise RuntimeError(f"{role} received a command during W3 quarantine interval")
+        if len(domains[role].parsed_objects) != output_counts_before[role]:
+            raise RuntimeError(f"{role} emitted a structured authority object during W3 interval")
+        samples[role] = {
+            "process_binding": domains[role].binding,
+            "before": before[role],
+            "after": after[role],
+            "total_cpu_nanoseconds_delta": delta,
+            "original_process_alive_after_interval": checkpoints[role],
+            "stdin_command_count_delta": 0,
+            "structured_authority_object_count_delta": 0,
+            "accepted_represented_hash_before_after": [H0, H0],
+            "harness_head_state_before_after": ["stale(H0/H1)", "stale(H0/H1)"],
+        }
+    return {
+        "observation_schema": "SimultaneousPhysicalDomainsStaleLocalExecutionObservation.v1",
+        "observation_source": "macos_proc_taskinfo_original_live_UE_process_interval",
+        "bounded_observation_interval_count": 1,
+        "bounded_window_seconds": finished - started,
+        "domains": samples,
+        "canonical_R1_raw_sha256_before_after": [D1, D1],
+        "current_head_receipt_count_delta": 0,
+        "canonical_evidence_count_delta": 0,
+        "canonical_scheduling_count_delta": 0,
+        "canonical_mutation_count_delta": 0,
+    }
 
 
 def _publish_head_observation(control_root: Path) -> dict[str, Any]:
@@ -723,14 +892,15 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
     refresh_observations: dict[str, Any] = {}
     refresh_dispositions: dict[str, Any] = {}
     failures: dict[str, Any] = {}
+    retention_observations: dict[str, Any] = {}
     terminations: dict[str, Any] = {}
-    guard_transitions = ["open_for_H0"]
-    transition = canonical_transition_run()
+    guard = PhysicalCurrentHeadGuard()
+    transition: dict[str, Any] | None = None
     control_root = runtime_root / "harness_private_control"
     head_publication: dict[str, Any] | None = None
     try:
         for role in DOMAIN_ROLES:
-            receipt, observation, disposition = _accept_launch(domains[role])
+            receipt, observation, disposition = _accept_launch(domains[role], guard)
             launch_receipts[role] = receipt
             launch_observations[role] = observation
             launch_dispositions[role] = disposition
@@ -738,11 +908,12 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
 
         if witness_id == "w8_guard_open_control":
             checkpoints.append(_checkpoint(domains, "guard_open_before_canonical_invocation"))
-            guard_transitions.append("failed_closed")
+            transition = canonical_transition_run()
+            guard.fail_closed("guard_open_at_canonical_commit")
             return {
                 "witness_id": witness_id,
                 "canonical_transition": transition,
-                "guard_transitions": guard_transitions,
+                "guard_machine": guard.snapshot(),
                 "launch_receipts": launch_receipts,
                 "launch_observations": launch_observations,
                 "launch_dispositions": launch_dispositions,
@@ -754,15 +925,16 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
                 "phase_3_harness_protocol_passed": False,
             }
 
-        guard_transitions.append("closed_for_H0_to_H1")
+        guard.close_for_h0_to_h1()
         checkpoints.append(_checkpoint(domains, "L1"))
+        transition = canonical_transition_run()
         checkpoints.append(_checkpoint(domains, "L2"))
         if witness_id == "w4_head_observation_failure":
-            guard_transitions.append("failed_closed")
+            guard.fail_closed("after_R1_H1_commit_verification_before_observation_construction")
             return {
                 "witness_id": witness_id,
                 "canonical_transition": transition,
-                "guard_transitions": guard_transitions,
+                "guard_machine": guard.snapshot(),
                 "launch_receipts": launch_receipts,
                 "launch_observations": launch_observations,
                 "checkpoints": checkpoints,
@@ -775,19 +947,23 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
             }
 
         head_publication = _publish_head_observation(control_root)
-        guard_transitions.append("open_for_H1")
+        guard.verify_h1_observation(head_publication["observation"]["observed_canonical_hash"])
+        for role in DOMAIN_ROLES:
+            guard.classify_stale(role, H0, H1)
+        guard.open_for_h1()
         checkpoints.append(_checkpoint(domains, "L3"))
 
         if witness_id == "w3_stale_quarantine":
+            stale_execution_observation = _observe_stale_local_execution(domains)
             return {
                 "witness_id": witness_id,
                 "canonical_transition": transition,
-                "guard_transitions": guard_transitions,
+                "guard_machine": guard.snapshot(),
                 "head_publication": head_publication,
                 "checkpoints": checkpoints,
                 "launch_receipts": launch_receipts,
                 "launch_observations": launch_observations,
-                "bounded_nonconsequential_steps": {role: 1 for role in DOMAIN_ROLES},
+                "stale_local_execution_observation": stale_execution_observation,
                 "terminal_states": {role: "stale(H0/H1)" for role in DOMAIN_ROLES},
                 "current_head_claims": 0,
                 "canonical_R1_byte_identical": True,
@@ -802,12 +978,16 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
             success_role = failure_role = ""
 
         if success_role:
-            receipt, observation, disposition = _refresh_success(domains[success_role])
+            receipt, observation, disposition, retention_observation = _refresh_success(
+                domains[success_role], guard
+            )
             refresh_receipts[success_role] = receipt
             refresh_observations[success_role] = observation
             refresh_dispositions[success_role] = disposition
+            if retention_observation is not None:
+                retention_observations[success_role] = retention_observation
             checkpoints.append(_checkpoint(domains, "L4A"))
-            failure, stale_disposition = _refresh_rejection(domains[failure_role])
+            failure, stale_disposition = _refresh_rejection(domains[failure_role], guard)
             failures[failure_role] = failure
             refresh_dispositions[failure_role] = stale_disposition
             checkpoints.append(_checkpoint(domains, "asymmetric_terminal"))
@@ -816,10 +996,14 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
                 "w1_a_then_b", "w5_retention_baseline", "w5_retention_perturbed", "w7_destroy_a", "w7_destroy_b"
             ) else ("domain_B", "domain_A")
             for index, role in enumerate(order):
-                receipt, observation, disposition = _refresh_success(domains[role])
+                receipt, observation, disposition, retention_observation = _refresh_success(
+                    domains[role], guard
+                )
                 refresh_receipts[role] = receipt
                 refresh_observations[role] = observation
                 refresh_dispositions[role] = disposition
+                if retention_observation is not None:
+                    retention_observations[role] = retention_observation
                 checkpoints.append(_checkpoint(domains, "L4A" if index == 0 else "L4B"))
 
         if witness_id in ("w7_destroy_a", "w7_destroy_b"):
@@ -838,7 +1022,7 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
             "proof_scenario": PROOF_SCENARIO,
             "witness_id": witness_id,
             "canonical_transition": transition,
-            "guard_transitions": guard_transitions,
+            "guard_machine": guard.snapshot(),
             "head_publication": head_publication,
             "launch_receipts": launch_receipts,
             "launch_observations": launch_observations,
@@ -847,6 +1031,7 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
             "refresh_observations": refresh_observations,
             "refresh_dispositions": refresh_dispositions,
             "refresh_failures": failures,
+            "retention_execution_observations": retention_observations,
             "checkpoints": checkpoints,
             "launch_count": 2,
             "replacement_spawn_count": 0,
@@ -863,16 +1048,56 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
 
 def _source_audit() -> dict[str, Any]:
     source_root = ROOT / "CityMaterializationProof" / "Source" / "CityMaterializationProof"
-    router = (source_root / "SimultaneousPhysicalDomainCommandRouter.cpp").read_text(encoding="utf-8")
-    adapter = (source_root / "SimultaneousPhysicalDomainProofAdapter.cpp").read_text(encoding="utf-8")
-    probe = (source_root / "SimultaneousPhysicalRebindProbe.cpp").read_text(encoding="utf-8")
-    actor = (source_root / "SimultaneousPhysicalDomainRepresentationActor.cpp").read_text(encoding="utf-8")
+    unreal_paths = tuple(sorted(source_root.glob("SimultaneousPhysical*")))
+    if len(unreal_paths) != 8:
+        raise RuntimeError(f"Phase-3 Unreal source closure is not exact eight: {unreal_paths}")
+    unreal_text = {path.name: path.read_text(encoding="utf-8") for path in unreal_paths}
+    router = unreal_text["SimultaneousPhysicalDomainCommandRouter.cpp"]
+    adapter = unreal_text["SimultaneousPhysicalDomainProofAdapter.cpp"]
+    probe = unreal_text["SimultaneousPhysicalRebindProbe.cpp"]
+    actor = unreal_text["SimultaneousPhysicalDomainRepresentationActor.cpp"]
+    game_mode_path = source_root / "CityProofGameMode.cpp"
+    game_mode = game_mode_path.read_text(encoding="utf-8")
     phase1 = (ROOT / "proof_kernel" / "canonical_spatial_topology_identity.py").read_text(encoding="utf-8")
+    python_paths = tuple(
+        ROOT / "proof_kernel" / name
+        for name in (
+            "simultaneous_physical_domains.py",
+            "simultaneous_physical_domains_harness.py",
+            "test_simultaneous_physical_domains.py",
+            "verify_simultaneous_physical_domains_release.py",
+        )
+    )
+    python_text = {path.name: path.read_text(encoding="utf-8") for path in python_paths}
     forbidden_unreal = (
         "current_head_observation.json", "physical_current_head_guard", "harness_refresh_eligibility",
         "CanonicalSpatialTopologyBoundary", "resolve_next_due", "canonical_ancestry",
     )
-    phase3_unreal = router + adapter + probe + actor
+    phase3_unreal = "\n".join(unreal_text.values())
+    non_probe_unreal = "\n".join(
+        value for name, value in unreal_text.items()
+        if name not in ("SimultaneousPhysicalRebindProbe.cpp", "SimultaneousPhysicalRebindProbe.h")
+    )
+    exact_no_player_pawn_constructor = all(
+        token in game_mode
+        for token in (
+            "if (IsSimultaneousPhysicalDomainProcess())",
+            "DefaultPawnClass = nullptr;",
+            "SpectatorClass = nullptr;",
+            "PlayerControllerClass = APlayerController::StaticClass();",
+            "ReplaySpectatorPlayerControllerClass = APlayerController::StaticClass();",
+            "bStartPlayersAsSpectators = true;",
+        )
+    )
+    phase3_dispatch_skips_legacy_player_path = all(
+        token in game_mode
+        for token in (
+            "else if (bSimultaneousPhysicalDomainProcess)",
+            "GetWorld()->SpawnActor<ASimultaneousPhysicalDomainCommandRouter>",
+            "if (!bSimultaneousPhysicalDomainProcess)",
+            "Controller->Possess(Pawn);",
+        )
+    )
     checks = {
         "no_new_canonical_resolver_in_unreal": "resolve_next_due" not in phase3_unreal,
         "canonical_transition_calls_sealed_phase1_resolver": "def resolve_next_due" in phase1,
@@ -887,6 +1112,55 @@ def _source_audit() -> dict[str, Any]:
         "representation_receipt_authority_only": "representation_only" in adapter,
         "other_domain_input_absent": "other_domain_root" not in phase3_unreal.lower(),
         "occupancy_movement_streaming_absent": all(token not in phase3_unreal for token in ("WorldPartition", "Occupancy", "NavigationSystem")),
+        "phase3_constructor_disables_all_pawn_classes_and_uses_inert_base_controller": exact_no_player_pawn_constructor,
+        "phase3_dispatch_cannot_enter_legacy_player_path": phase3_dispatch_skips_legacy_player_path,
+        "phase3_actors_have_no_player_or_input_api": all(
+            token not in non_probe_unreal
+            for token in (
+                "APlayerController", "APawn", "EnableInput(", "DisableInput(",
+                "BindAction(", "BindAxis(", "AutoReceiveInput", "InputComponent",
+                "GetFirstPlayerController", "CreatePlayer", "Possess(",
+            )
+        ),
+        "probe_player_inventory_is_negative_gate_only": all(
+            token in probe
+            for token in (
+                "TActorIterator<APlayerController>", "TActorIterator<APawn>",
+                "PlayerControllerWithPawnCount", "phase3_player_input_isolation_failed",
+            )
+        ),
+        "live_observation_emission_occurs_after_zero_player_gate": (
+            probe.index("phase3_player_input_isolation_failed")
+            < probe.index("SimultaneousPhysicalDomainPhysicalObservation.v1")
+        ),
+        "retention_poison_is_checked_before_H1_load_and_after_publication": all(
+            token in adapter
+            for token in (
+                "HasExactDiscardRequiredH0Poison",
+                "LoadVisibleTuple(Binding, true",
+                "IsDiscardRequiredPoisonClear",
+                "BuildRetentionExecutionObservation",
+            )
+        ) and adapter.index("HasExactDiscardRequiredH0Poison") < adapter.index("LoadVisibleTuple(Binding, true"),
+        "python_harness_owns_guard_and_refresh_acceptance": all(
+            token in python_text["simultaneous_physical_domains_harness.py"]
+            for token in (
+                "PhysicalCurrentHeadGuard",
+                "execute_refresh_validation_path",
+                "guard.classify_stale",
+                "guard.open_for_h1()",
+                "guard.assert_refresh_eligible",
+            )
+        ),
+        "guard_stale_classification_precedes_open_in_harness": (
+            python_text["simultaneous_physical_domains_harness.py"].index("guard.classify_stale")
+            < python_text["simultaneous_physical_domains_harness.py"].index("guard.open_for_h1()")
+        ),
+        "all_four_frozen_python_paths_audited": all(path.is_file() for path in python_paths),
+    }
+    source_hashes = {
+        str(path.relative_to(ROOT)): _sha_file(path)
+        for path in (*unreal_paths, game_mode_path, *python_paths)
     }
     return {
         "audit_schema": "SimultaneousPhysicalDomainsSourceAudit.v1",
@@ -895,10 +1169,33 @@ def _source_audit() -> dict[str, Any]:
         "all_checks_passed": all(checks.values()),
         "forbidden_unreal_semantic_inputs": list(forbidden_unreal),
         "canonical_resolver_owner": "proof_kernel/canonical_spatial_topology_identity.py",
-        "phase3_unreal_source_paths": [
-            str(path.relative_to(ROOT))
-            for path in sorted(source_root.glob("SimultaneousPhysical*"))
-        ],
+        "reachable_phase3_dispatch_and_input_graph": {
+            "dispatch": ["ACityProofGameMode::ACityProofGameMode", "ACityProofGameMode::BeginPlay"],
+            "stdin_router": [
+                "FSPDInputRunnable::Run", "ASimultaneousPhysicalDomainCommandRouter::Tick",
+                "ASimultaneousPhysicalDomainCommandRouter::HandleLine",
+                "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding",
+                "ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding",
+            ],
+            "adapter": [
+                "MaterializeLaunch", "RefreshOnce", "LoadVisibleTuple", "PublishCandidate",
+                "BuildMaterializationReceipt", "BuildRetentionExecutionObservation",
+            ],
+            "representation": [
+                "PublishRepresentation", "InstallDiscardRequiredH0Poison",
+                "HasExactDiscardRequiredH0Poison", "IsDiscardRequiredPoisonClear",
+            ],
+            "independent_probe": ["BindProcessIdentity", "InspectPublishedRoute"],
+            "harness_acceptance": [
+                "_accept_launch", "_publish_head_observation", "PhysicalCurrentHeadGuard",
+                "_refresh_success", "_refresh_rejection", "_observe_stale_local_execution",
+            ],
+        },
+        "phase3_unreal_source_paths": [str(path.relative_to(ROOT)) for path in unreal_paths],
+        "bounded_game_mode_dispatch_path": str(game_mode_path.relative_to(ROOT)),
+        "phase3_python_source_paths": [str(path.relative_to(ROOT)) for path in python_paths],
+        "audited_source_raw_sha256": source_hashes,
+        "live_observer_requires_one_inert_engine_controller_zero_possessed_or_free_pawns_and_zero_phase3_input_paths": True,
     }
 
 
@@ -926,6 +1223,135 @@ def _liveness_artifact(witness: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _w3_evidence(witness: Mapping[str, Any]) -> dict[str, Any]:
+    observed = witness["stale_local_execution_observation"]
+    domain_samples = observed["domains"]
+    all_executed = all(
+        domain_samples[role]["total_cpu_nanoseconds_delta"] > 0
+        for role in DOMAIN_ROLES
+    )
+    all_stale = all(
+        domain_samples[role]["harness_head_state_before_after"]
+        == ["stale(H0/H1)", "stale(H0/H1)"]
+        and domain_samples[role]["accepted_represented_hash_before_after"] == [H0, H0]
+        for role in DOMAIN_ROLES
+    )
+    if not all_executed or not all_stale:
+        raise RuntimeError("W3 live stale-execution observation failed")
+    return {
+        "witness_schema": "SimultaneousPhysicalDomainsStaleQuarantineWitness.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "execution_evidence_source": observed["observation_source"],
+        "bounded_observation_interval_count": observed["bounded_observation_interval_count"],
+        "observed_live_UE_execution_in_both_original_processes": all_executed,
+        "observed_domain_samples": domain_samples,
+        "accepted_heads_remained_H0": all_stale,
+        "canonical_R1_raw_sha256_before_after": observed["canonical_R1_raw_sha256_before_after"],
+        "current_head_receipt_count_delta": observed["current_head_receipt_count_delta"],
+        "canonical_evidence_count_delta": observed["canonical_evidence_count_delta"],
+        "canonical_scheduling_count_delta": observed["canonical_scheduling_count_delta"],
+        "canonical_mutation_count_delta": observed["canonical_mutation_count_delta"],
+        "physical_witness": copy.deepcopy(dict(witness)),
+    }
+
+
+def _authoritative_projection_from_receipt(receipt: Mapping[str, Any]) -> dict[str, Any]:
+    keys = (
+        "accepted_canonical_payload_raw_sha256",
+        "accepted_canonical_hash",
+        "accepted_projection_raw_sha256",
+        "accepted_projection_id",
+        "materialized_canonical_site_id",
+        "materialized_site_representation_slot",
+        "materialized_canonical_route_id",
+        "materialized_route_representation_slot",
+        "materialized_endpoint_site_ids",
+        "materialized_route_access_state",
+        "authoritative_derived_representation_raw_sha256",
+    )
+    return {key: copy.deepcopy(receipt[key]) for key in keys}
+
+
+def _w5_evidence(witness: Mapping[str, Any], *, perturbed: bool) -> dict[str, Any]:
+    expected_branch = "perturbed" if perturbed else "baseline"
+    observations = witness["retention_execution_observations"]
+    if set(observations) != set(DOMAIN_ROLES):
+        raise RuntimeError(f"W5 {expected_branch} lacks both live retention observations")
+    retained = {
+        role: {
+            "retained_schema": "SimultaneousPhysicalDomainRetainedLocalState.v1",
+            "nonconsequential_tick_counter": observations[role]["retained_nonconsequential_tick_counter"],
+            "cosmetic_phase_token": observations[role]["retained_cosmetic_phase_token"],
+            "diagnostic_counter": observations[role]["retained_diagnostic_counter"],
+        }
+        for role in DOMAIN_ROLES
+    }
+    discarded_fields = (
+        "poisoned_actor_ids_discarded",
+        "poisoned_topology_cache_discarded",
+        "poisoned_route_access_cache_discarded",
+        "poisoned_collision_state_discarded",
+        "poisoned_physics_diagnostics_discarded",
+    )
+    all_discarded = all(
+        observations[role].get("branch") == expected_branch
+        and observations[role].get("discard_required_H0_poison_observed_before_refresh") is True
+        and observations[role].get("prior_H0_actor_replaced") is True
+        and observations[role].get("published_H1_actor_poison_clear") is True
+        and all(observations[role].get(field) is True for field in discarded_fields)
+        for role in DOMAIN_ROLES
+    )
+    if not all_discarded:
+        raise RuntimeError(f"W5 {expected_branch} live poison-disposal observation failed")
+    return {
+        "witness_schema": "SimultaneousPhysicalDomainsRetentionWitness.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "branch": expected_branch,
+        "execution_evidence_source": "live_ue_adapter_and_independent_live_component_probe",
+        "canonical_R0_raw_sha256": D0,
+        "canonical_R1_raw_sha256": D1,
+        "observed_retained_local_state_by_domain": retained,
+        "live_retention_execution_observations": copy.deepcopy(observations),
+        "authoritative_derived_H1_from_live_receipts": {
+            role: _authoritative_projection_from_receipt(witness["refresh_receipts"][role])
+            for role in DOMAIN_ROLES
+        },
+        "independent_live_H1_physical_observations": copy.deepcopy(witness["refresh_observations"]),
+        "all_discard_required_H0_poison_observed_then_discarded": all_discarded,
+        "physical_witness": copy.deepcopy(dict(witness)),
+    }
+
+
+def _w5_equivalence_from_live(
+    baseline: Mapping[str, Any],
+    perturbed: Mapping[str, Any],
+) -> dict[str, Any]:
+    baseline_projection = baseline["authoritative_derived_H1_from_live_receipts"]
+    perturbed_projection = perturbed["authoritative_derived_H1_from_live_receipts"]
+    equal_by_role = {
+        role: stored_json_bytes(baseline_projection[role])
+        == stored_json_bytes(perturbed_projection[role])
+        for role in DOMAIN_ROLES
+    }
+    retained_differs = (
+        baseline["observed_retained_local_state_by_domain"]
+        != perturbed["observed_retained_local_state_by_domain"]
+    )
+    if not all(equal_by_role.values()) or not retained_differs:
+        raise RuntimeError("live W5 retention equivalence failed")
+    return {
+        "oracle_schema": "SimultaneousPhysicalDomainsRetentionEquivalenceOracle.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "evidence_source": "two_fresh_live_UE_retention_witnesses",
+        "canonical_and_projection_inputs_byte_identical": True,
+        "retained_local_state_differs": retained_differs,
+        "authoritative_derived_H1_byte_identical_by_role": equal_by_role,
+        "poison_observed_and_discarded_in_both_branches": (
+            baseline["all_discard_required_H0_poison_observed_then_discarded"]
+            and perturbed["all_discard_required_H0_poison_observed_then_discarded"]
+        ),
+        "roles": list(DOMAIN_ROLES),
+    }
 def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
     if output_directory.exists():
         raise ValueError("output artifact directory must not already exist")
@@ -945,6 +1371,30 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
 
     w1 = acquired["w1_a_then_b"]
     w2 = acquired["w2_b_then_a"]
+    w5_baseline = _w5_evidence(acquired["w5_retention_baseline"], perturbed=False)
+    w5_perturbed = _w5_evidence(acquired["w5_retention_perturbed"], perturbed=True)
+    w5_equivalence = _w5_equivalence_from_live(w5_baseline, w5_perturbed)
+    w1_domain_a = w1["domains"]["domain_A"]
+    w1_refresh_directory = (
+        Path(w1_domain_a["binding"]["process_root_realpath"])
+        / "refresh_input"
+        / "refresh_0001"
+    )
+    live_refresh_faults = refresh_fault_atomicity(
+        bundle_directory=w1_refresh_directory,
+        binding=w1_domain_a["binding"],
+        domain_role="domain_A",
+        input_origin="W1_original_live_UE_exact_H1_refresh_bundle",
+    )
+    live_physical_faults = physical_observation_fault_atomicity(
+        observations={
+            "H0": w1["launch_observations"]["domain_A"],
+            "H1": w1["refresh_observations"]["domain_A"],
+        },
+        binding=w1_domain_a["binding"],
+        domain_role="domain_A",
+        input_origin="W1_original_live_UE_component_observations",
+    )
     mapping = {
         "physical_W1_domain_A_H0_materialization_receipt.json": w1["launch_receipts"]["domain_A"],
         "physical_W1_domain_A_H0_observation.json": w1["launch_observations"]["domain_A"],
@@ -966,18 +1416,18 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
         "physical_W2_domain_A_H1_observation.json": w2["refresh_observations"]["domain_A"],
         "physical_W2_liveness_witness.json": _liveness_artifact(w2),
         "physical_W2_b_then_a_witness.json": w2,
-        "physical_W3_stale_quarantine_witness.json": {**stale_quarantine_witness(), "physical_witness": acquired["w3_stale_quarantine"]},
+        "physical_W3_stale_quarantine_witness.json": _w3_evidence(acquired["w3_stale_quarantine"]),
         "physical_W4_head_observation_failure_witness.json": {**head_observation_failure_witness(), "physical_witness": acquired["w4_head_observation_failure"]},
-        "physical_W5_retention_baseline_witness.json": {**retention_witness(perturbed=False), "physical_witness": acquired["w5_retention_baseline"]},
-        "physical_W5_retention_perturbed_witness.json": {**retention_witness(perturbed=True), "physical_witness": acquired["w5_retention_perturbed"]},
-        "physical_W5_retention_equivalence_oracle.json": retention_equivalence_oracle(),
+        "physical_W5_retention_baseline_witness.json": w5_baseline,
+        "physical_W5_retention_perturbed_witness.json": w5_perturbed,
+        "physical_W5_retention_equivalence_oracle.json": w5_equivalence,
         "physical_W6_asymmetric_A_synchronized_witness.json": acquired["w6_asymmetric_a_synchronized"],
         "physical_W6_asymmetric_B_synchronized_witness.json": acquired["w6_asymmetric_b_synchronized"],
         "physical_W7_destroy_A_witness.json": acquired["w7_destroy_a"],
         "physical_W7_destroy_B_witness.json": acquired["w7_destroy_b"],
         "simultaneous_physical_domains_current_head_authority_failures.json": current_head_authority_failures(),
-        "simultaneous_physical_domains_refresh_fault_atomicity.json": refresh_fault_atomicity(),
-        "simultaneous_physical_domains_physical_observation_fault_atomicity.json": physical_observation_fault_atomicity(),
+        "simultaneous_physical_domains_refresh_fault_atomicity.json": live_refresh_faults,
+        "simultaneous_physical_domains_physical_observation_fault_atomicity.json": live_physical_faults,
     }
     for name, value in mapping.items():
         write_json(output_directory / name, value)
@@ -1038,7 +1488,7 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
             {role: [w1["launch_observations"][role]["observed_physical_access_state"], w1["refresh_observations"][role]["observed_physical_access_state"]] for role in DOMAIN_ROLES}
             == {role: [w2["launch_observations"][role]["observed_physical_access_state"], w2["refresh_observations"][role]["observed_physical_access_state"]] for role in DOMAIN_ROLES}
         ),
-        "retention_equivalence": retention_equivalence_oracle(),
+        "retention_equivalence": w5_equivalence,
     }
     write_json(output_directory / "simultaneous_physical_domains_replay_oracle.json", replay)
 

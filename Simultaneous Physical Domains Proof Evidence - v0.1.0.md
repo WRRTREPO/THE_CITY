@@ -5,7 +5,7 @@
 **Status:** Implementation evidence passed; evidence unsealed pending independent review
 **Specification:** [Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md)
 **Proof harness identity:** `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`
-**Evidence continuation:** `0.7.0-draft.75`
+**Evidence continuation:** `0.7.0-draft.76`
 
 ## Claim tested
 
@@ -18,6 +18,10 @@
 
 The bounded implementation passes this claim. This document records a release
 candidate for separate evidence review. It does not seal the result.
+
+This is the forward corrective candidate after the independent STOP review of
+`f19576457bc9f2f838d6a94a70258434829ebe4e`. It preserves that pushed history
+and does not accept or seal it.
 
 ## Exact canonical reuse
 
@@ -68,7 +72,15 @@ domain_A_H1_live_observation: blocked
 domain_B_H1_live_observation: blocked
 same_original_process_binding_before_after: true
 receipt_independent_probe: true
+player_pawns_or_possessions_observed: 0
+phase_3_actor_input_paths_observed: 0
 ```
+
+UE's `-game` bootstrap retains one inert engine-base player controller. Both
+Pawn classes are null, the Phase-3 dispatch never enters the legacy
+controller/Pawn/possession path, and every physical observation fails unless
+there are zero Pawns, zero possessed controllers, and zero Phase-3 Actor input
+components or auto-receive bindings.
 
 The adapter derives site identity, route identity, endpoints, and
 `topology_route_0001.access_state` only from the exact payload and exact
@@ -80,11 +92,16 @@ correspondence only. It grants no current-head or canonical authority.
 All 11 frozen live-process witnesses were acquired:
 
 - W1 and W2: both refresh orders with uninterrupted simultaneous liveness;
-- W3: stale H0 quarantine with no current-head receipt;
+- W3: both original stale H0 UE processes execute during one bounded observed
+  `proc_pidinfo` task interval with positive CPU deltas, no new stdin command,
+  no structured authority object, no current-head receipt, and no accepted-head
+  or canonical-byte change;
 - W4: injected failure after canonical H1 commit verification and before
   operational observation construction, failing both domains closed;
-- W5 baseline and perturbation: distinct allowed stale local state produces
-  byte-identical H1 authoritative-derived representation facts;
+- W5 baseline and perturbation: live UE observes exact H0 Actor/cache/route-
+  access/collision/physics poison before refresh, replaces the H0 Actor,
+  observes the H1 Actor poison-clear, preserves only the three allowed scalars,
+  and produces byte-identical H1 authoritative-derived representation facts;
 - W6 A-succeeds/B-fails and B-succeeds/A-fails asymmetric refreshes;
 - W7 destruction of A and destruction of B without changing H1 or the remaining
   synchronized domain; and
@@ -94,9 +111,10 @@ The deterministic fault and rejection surfaces pass:
 
 ```yaml
 head_observation_fault_points: 9/9 fail_closed
-refresh_fault_stages: 18/18 fail_closed
-physical_observation_fault_stages: 12/12 fail_closed
-current_head_authority_cases: 37/37 rejected
+illegal_guard_transitions: 8/8 rejected
+refresh_fault_injections: 36/36 executed_at_18_before_and_after_boundaries
+physical_observation_fault_injections: 24/24 executed_at_12_H0_and_H1_boundaries
+current_head_authority_cases: 37/37 rejected_by_real_validation_paths
 canonical_R1_rollback_or_rewrite: none
 partial_current_head_authority: none
 ```
@@ -134,8 +152,8 @@ movement, navigation, networking, streaming, or successor publication.
 ```yaml
 phase_3_focused_tests: 33/33
 predecessor_regressions: 215/215
-specification_validator: 10/10
-specification_validator_adversaries: 29/29
+specification_validator: 11/11
+specification_validator_adversaries: 30/30
 ue_version: 5.8.0-55116800-++UE5+Release-5.8
 ue_editor_build: succeeded_with_DisableUnity
 live_witnesses: 11/11

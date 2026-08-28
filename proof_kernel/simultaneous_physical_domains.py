@@ -14,7 +14,8 @@ import hashlib
 import json
 import os
 import stat
-from dataclasses import dataclass
+import tempfile
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
@@ -253,6 +254,199 @@ class PhysicalDomainRejected(ValueError):
             "local_publication_stage": self.stage,
             "reason_code": self.reason_code,
         }
+
+
+class InjectedProofFault(RuntimeError):
+    """A named fault reached an actual validation boundary."""
+
+    def __init__(self, stage: str, edge: str) -> None:
+        super().__init__(f"injected {edge} {stage}")
+        self.stage = stage
+        self.edge = edge
+
+
+@dataclass
+class PhysicalCurrentHeadGuard:
+    """Executable harness-private guard with one legal H0-to-H1 lifecycle."""
+
+    state: str = "open_for_H0"
+    verified_head: str | None = None
+    stale_domains: set[str] = field(default_factory=set)
+    transitions: list[dict[str, Any]] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self.transitions.append({
+            "sequence": 0,
+            "action": "initialize",
+            "from_state": None,
+            "to_state": "open_for_H0",
+            "verified_head": None,
+            "stale_domains": [],
+        })
+
+    def _reject_transition(self, action: str, reason: str) -> None:
+        raise _reject("physical_guard_transition", reason, f"{action} from {self.state}")
+
+    def _record(self, action: str, target: str) -> None:
+        prior = self.state
+        self.state = target
+        self.transitions.append({
+            "sequence": len(self.transitions),
+            "action": action,
+            "from_state": prior,
+            "to_state": target,
+            "verified_head": self.verified_head,
+            "stale_domains": sorted(self.stale_domains),
+        })
+
+    def close_for_h0_to_h1(self) -> None:
+        if self.state != "open_for_H0":
+            self._reject_transition("close_for_h0_to_h1", "guard_close_requires_open_H0")
+        self._record("close_for_h0_to_h1", "closed_for_H0_to_H1")
+
+    def verify_h1_observation(self, observed_head: str) -> None:
+        if self.state != "closed_for_H0_to_H1" or observed_head != H1 or self.verified_head is not None:
+            self._reject_transition("verify_h1_observation", "guard_H1_verification_invalid")
+        self.verified_head = H1
+        self.transitions.append({
+            "sequence": len(self.transitions),
+            "action": "verify_h1_observation",
+            "from_state": self.state,
+            "to_state": self.state,
+            "verified_head": H1,
+            "stale_domains": sorted(self.stale_domains),
+        })
+
+    def classify_stale(self, domain_role: str, represented_hash: str, observed_head: str) -> None:
+        if (
+            self.state != "closed_for_H0_to_H1"
+            or self.verified_head != H1
+            or domain_role not in DOMAIN_ROLES
+            or domain_role in self.stale_domains
+            or represented_hash != H0
+            or observed_head != H1
+        ):
+            self._reject_transition("classify_stale", "guard_stale_classification_invalid")
+        self.stale_domains.add(domain_role)
+        self.transitions.append({
+            "sequence": len(self.transitions),
+            "action": f"classify_stale:{domain_role}",
+            "from_state": self.state,
+            "to_state": self.state,
+            "verified_head": self.verified_head,
+            "stale_domains": sorted(self.stale_domains),
+        })
+
+    def open_for_h1(self) -> None:
+        if (
+            self.state != "closed_for_H0_to_H1"
+            or self.verified_head != H1
+            or self.stale_domains != set(DOMAIN_ROLES)
+        ):
+            self._reject_transition("open_for_h1", "guard_open_requires_verified_H1_and_all_stale")
+        self._record("open_for_h1", "open_for_H1")
+
+    def fail_closed(self, reason: str) -> None:
+        if self.state == "failed_closed":
+            self._reject_transition("fail_closed", "guard_failed_closed_is_terminal")
+        self._record(f"fail_closed:{reason}", "failed_closed")
+
+    def assert_refresh_eligible(self, domain_role: str) -> None:
+        if self.state != "open_for_H1" or domain_role not in self.stale_domains:
+            self._reject_transition("assert_refresh_eligible", "refresh_before_durable_stale_open")
+
+    def snapshot(self) -> dict[str, Any]:
+        return {
+            "machine_schema": "SimultaneousPhysicalDomainsPhysicalGuardMachine.v1",
+            "state": self.state,
+            "verified_head": self.verified_head,
+            "stale_domains": sorted(self.stale_domains),
+            "transitions": _copy(self.transitions),
+        }
+
+
+def guard_illegal_transition_witnesses() -> list[dict[str, Any]]:
+    """Mechanically reject every important shortcut around stale-before-open."""
+
+    cases: list[tuple[str, Any]] = []
+    cases.append(("open_H1_from_initial", lambda guard: guard.open_for_h1()))
+    cases.append(("verify_H1_before_close", lambda guard: guard.verify_h1_observation(H1)))
+
+    def stale_before_verify(guard: PhysicalCurrentHeadGuard) -> None:
+        guard.close_for_h0_to_h1()
+        guard.classify_stale("domain_A", H0, H1)
+
+    cases.append(("stale_before_verified_H1", stale_before_verify))
+
+    def open_with_one_stale(guard: PhysicalCurrentHeadGuard) -> None:
+        guard.close_for_h0_to_h1()
+        guard.verify_h1_observation(H1)
+        guard.classify_stale("domain_A", H0, H1)
+        guard.open_for_h1()
+
+    cases.append(("open_with_one_domain_stale", open_with_one_stale))
+
+    def duplicate_stale(guard: PhysicalCurrentHeadGuard) -> None:
+        guard.close_for_h0_to_h1()
+        guard.verify_h1_observation(H1)
+        guard.classify_stale("domain_A", H0, H1)
+        guard.classify_stale("domain_A", H0, H1)
+
+    cases.append(("duplicate_stale_classification", duplicate_stale))
+
+    def refresh_before_open(guard: PhysicalCurrentHeadGuard) -> None:
+        guard.close_for_h0_to_h1()
+        guard.verify_h1_observation(H1)
+        for role in DOMAIN_ROLES:
+            guard.classify_stale(role, H0, H1)
+        guard.assert_refresh_eligible("domain_A")
+
+    cases.append(("refresh_before_open_H1", refresh_before_open))
+
+    def transition_after_failure(guard: PhysicalCurrentHeadGuard) -> None:
+        guard.fail_closed("test")
+        guard.close_for_h0_to_h1()
+
+    cases.append(("transition_after_failed_closed", transition_after_failure))
+
+    def duplicate_open(guard: PhysicalCurrentHeadGuard) -> None:
+        guard.close_for_h0_to_h1()
+        guard.verify_h1_observation(H1)
+        for role in DOMAIN_ROLES:
+            guard.classify_stale(role, H0, H1)
+        guard.open_for_h1()
+        guard.open_for_h1()
+
+    cases.append(("duplicate_open_H1", duplicate_open))
+
+    results = []
+    for case_id, action in cases:
+        guard = PhysicalCurrentHeadGuard()
+        try:
+            action(guard)
+        except PhysicalDomainRejected as exc:
+            results.append({
+                "case_id": case_id,
+                "rejected": True,
+                "stage": exc.stage,
+                "reason_code": exc.reason_code,
+                "guard_state_at_rejection": guard.state,
+            })
+        else:
+            raise AssertionError(f"illegal guard transition accepted: {case_id}")
+    return results
+
+
+def _fault_boundary(
+    trace: list[dict[str, str]],
+    stage: str,
+    edge: str,
+    inject_stage: str | None,
+    inject_edge: str | None,
+) -> None:
+    trace.append({"stage": stage, "edge": edge})
+    if stage == inject_stage and edge == inject_edge:
+        raise InjectedProofFault(stage, edge)
 
 
 def _reject(stage: str, reason: str, message: str) -> PhysicalDomainRejected:
@@ -656,6 +850,21 @@ def inspection_invocation(domain_role: str, inspection_id: str) -> dict[str, Any
     }
 
 
+def validate_inspection_invocation(
+    value: Any,
+    domain_role: str,
+    inspection_id: str,
+) -> dict[str, Any]:
+    expected = inspection_invocation(domain_role, inspection_id)
+    if not isinstance(value, dict) or value != expected:
+        raise _reject(
+            "inspection_invocation_read",
+            "inspection_command_mismatch",
+            "inspection command contains missing, extra, or altered input",
+        )
+    return _copy(expected)
+
+
 def refresh_invocation(domain_role: str) -> dict[str, Any]:
     if domain_role not in DOMAIN_ROLES:
         raise _reject("invocation_read", "invalid_domain_role", domain_role)
@@ -667,6 +876,17 @@ def refresh_invocation(domain_role: str) -> dict[str, Any]:
         "refresh_id": "h0_to_h1_refresh_0001",
         "target_canonical_hash": H1,
     }
+
+
+def validate_refresh_invocation(value: Any, domain_role: str) -> dict[str, Any]:
+    expected = refresh_invocation(domain_role)
+    if not isinstance(value, dict) or value != expected:
+        raise _reject(
+            "invocation_read",
+            "refresh_command_mismatch",
+            "refresh command contains missing, extra, or altered input",
+        )
+    return _copy(expected)
 
 
 def expected_physical_observation(
@@ -710,6 +930,41 @@ def validate_physical_observation(
     binding: Mapping[str, Any],
     inspection_id: str,
 ) -> dict[str, Any]:
+    return execute_physical_observation_validation(
+        value,
+        domain_role=domain_role,
+        head_role=head_role,
+        binding=binding,
+        inspection_id=inspection_id,
+    )["validated_observation"]
+
+
+def execute_physical_observation_validation(
+    value: Any,
+    *,
+    domain_role: str,
+    head_role: str,
+    binding: Mapping[str, Any],
+    inspection_id: str,
+    inject_stage: str | None = None,
+    inject_edge: str | None = None,
+) -> dict[str, Any]:
+    """Run the actual twelve-stage harness acceptance path with optional fault."""
+
+    if (inject_stage is None) != (inject_edge is None):
+        raise ValueError("fault stage and edge must be supplied together")
+    if inject_stage is not None and inject_stage not in PHYSICAL_OBSERVATION_FAULT_STAGES:
+        raise ValueError(f"unknown physical-observation fault stage: {inject_stage}")
+    if inject_edge is not None and inject_edge not in ("before", "after"):
+        raise ValueError(f"invalid physical-observation fault edge: {inject_edge}")
+    trace: list[dict[str, str]] = []
+
+    def run(stage: str, action) -> Any:
+        _fault_boundary(trace, stage, "before", inject_stage, inject_edge)
+        result = action()
+        _fault_boundary(trace, stage, "after", inject_stage, inject_edge)
+        return result
+
     expected = expected_physical_observation(
         domain_role,
         head_role,
@@ -717,19 +972,153 @@ def validate_physical_observation(
         process_binding_raw_sha256=sha256_value(dict(binding)),
         inspection_id=inspection_id,
     )
-    if not isinstance(value, dict) or set(value) != set(expected):
-        raise _reject("harness_receipt_observation_head_cross_check", "physical_observation_members_mismatch", "live surface members differ")
-    actual = _copy(value)
-    actual_mesh = actual.pop("observed_route_mesh_color_parameter_rgba")
-    expected_mesh = expected.pop("observed_route_mesh_color_parameter_rgba")
-    if (
-        actual != expected
-        or not isinstance(actual_mesh, list)
-        or len(actual_mesh) != 4
-        or any(type(component) not in (int, float) or not abs(float(component) - float(target)) <= 0.000001 for component, target in zip(actual_mesh, expected_mesh))
-    ):
-        raise _reject("harness_receipt_observation_head_cross_check", "physical_observation_mismatch", "live surface is not exact")
-    return _copy(value)
+
+    run(
+        "inspection_invocation_read",
+        lambda: validate_inspection_invocation(
+            inspection_invocation(domain_role, inspection_id), domain_role, inspection_id
+        ),
+    )
+
+    def immutable_binding() -> None:
+        if (
+            not isinstance(value, dict)
+            or value.get("operational_process_instance_id")
+            != operational_process_instance_id(binding)
+            or value.get("process_binding_raw_sha256") != sha256_value(dict(binding))
+            or value.get("domain_role") != domain_role
+        ):
+            raise _reject(
+                "immutable_process_binding_verification",
+                "physical_observation_binding_mismatch",
+                "physical observation changed process binding",
+            )
+
+    run("immutable_process_binding_verification", immutable_binding)
+    run(
+        "role_probe_tag_derivation",
+        lambda: (
+            None
+            if value.get("probe_tag") == probe_tag(domain_role)
+            else (_ for _ in ()).throw(
+                _reject("role_probe_tag_derivation", "probe_tag_mismatch", "probe tag differs")
+            )
+        ),
+    )
+
+    def actor_enumeration() -> None:
+        if value.get("observation_source") != "live_ue_world_actor_component_inspection":
+            raise _reject("live_world_actor_enumeration", "nonlive_observation_source", "source is not live UE")
+
+    run("live_world_actor_enumeration", actor_enumeration)
+    run(
+        "exact_actor_count_check",
+        lambda: (
+            None
+            if value.get("matching_live_actor_count") == 1
+            else (_ for _ in ()).throw(
+                _reject("exact_actor_count_check", "live_actor_count_mismatch", "requires one actor")
+            )
+        ),
+    )
+
+    def mesh_lookup() -> None:
+        if value.get("actor_class") != "ASimultaneousPhysicalDomainRepresentationActor" or not value.get("route_mesh_registered"):
+            raise _reject("live_mesh_component_lookup", "route_mesh_missing", "live route mesh missing")
+
+    run("live_mesh_component_lookup", mesh_lookup)
+
+    expected_mesh = expected["observed_route_mesh_color_parameter_rgba"]
+
+    def mesh_surface() -> None:
+        actual_mesh = value.get("observed_route_mesh_color_parameter_rgba")
+        if (
+            value.get("actor_hidden_in_game") is not False
+            or value.get("route_mesh_visible") is not True
+            or not isinstance(actual_mesh, list)
+            or len(actual_mesh) != 4
+            or any(
+                type(component) not in (int, float)
+                or abs(float(component) - float(target)) > 0.000001
+                for component, target in zip(actual_mesh, expected_mesh)
+            )
+        ):
+            raise _reject(
+                "live_mesh_visibility_and_material_parameter_read",
+                "live_mesh_surface_mismatch",
+                "mesh visibility/color differs",
+            )
+
+    run("live_mesh_visibility_and_material_parameter_read", mesh_surface)
+    run(
+        "live_label_component_lookup",
+        lambda: (
+            None
+            if value.get("access_label_registered") is True
+            else (_ for _ in ()).throw(
+                _reject("live_label_component_lookup", "access_label_missing", "live label missing")
+            )
+        ),
+    )
+
+    def label_surface() -> None:
+        if (
+            value.get("access_label_visible") is not True
+            or value.get("observed_access_label_text") != expected["observed_access_label_text"]
+            or value.get("observed_access_label_color_rgba8")
+            != expected["observed_access_label_color_rgba8"]
+        ):
+            raise _reject(
+                "live_label_visibility_text_and_color_read",
+                "live_label_surface_mismatch",
+                "label visibility/text/color differs",
+            )
+
+    run("live_label_visibility_text_and_color_read", label_surface)
+
+    def classification() -> None:
+        if value.get("observed_physical_access_state") != ACCESS_STATES[head_role]:
+            raise _reject(
+                "independent_surface_consistency_classification",
+                "physical_access_classification_mismatch",
+                "live surfaces do not classify to expected head",
+            )
+
+    run("independent_surface_consistency_classification", classification)
+
+    def emission() -> None:
+        if (
+            not isinstance(value, dict)
+            or set(value) != set(expected)
+            or value.get("observation_schema") != PHYSICAL_OBSERVATION_SCHEMA
+            or value.get("proof_scenario") != PROOF_SCENARIO
+        ):
+            raise _reject(
+                "physical_observation_emission",
+                "physical_observation_members_mismatch",
+                "observation schema/members differ",
+            )
+
+    run("physical_observation_emission", emission)
+
+    def cross_check() -> None:
+        actual_without_mesh = _copy(value)
+        actual_without_mesh.pop("observed_route_mesh_color_parameter_rgba")
+        expected_without_mesh = _copy(expected)
+        expected_without_mesh.pop("observed_route_mesh_color_parameter_rgba")
+        if actual_without_mesh != expected_without_mesh:
+            raise _reject(
+                "harness_receipt_observation_head_cross_check",
+                "physical_observation_mismatch",
+                "live observation differs from accepted head law",
+            )
+
+    run("harness_receipt_observation_head_cross_check", cross_check)
+    return {
+        "validated_observation": _copy(value),
+        "executed_stages": trace,
+        "input_origin": "live_ue_world_actor_component_inspection",
+    }
 
 
 def current_head_observation() -> dict[str, Any]:
@@ -803,6 +1192,36 @@ def head_disposition(
     }
 
 
+def require_physical_capability(
+    disposition: Mapping[str, Any],
+    requested_capability: str,
+) -> None:
+    """Fail closed for every authority path outside the frozen physical claim."""
+
+    permission_fields = {
+        "current_head_materialization_claim": "current_head_claim_enabled",
+        "refresh": "refresh_enabled",
+        "canonical_evidence": "canonical_evidence_enabled",
+        "canonical_scheduling": "canonical_scheduling_enabled",
+        "canonical_mutation": "canonical_mutation_enabled",
+        "canonical_truth_publication": None,
+    }
+    if requested_capability not in permission_fields:
+        raise _reject(
+            "current_head_authority_guard",
+            "unknown_physical_capability",
+            requested_capability,
+        )
+    field = permission_fields[requested_capability]
+    enabled = False if field is None else disposition.get(field) is True
+    if not enabled:
+        raise _reject(
+            "current_head_authority_guard",
+            f"{requested_capability}_disabled",
+            f"{requested_capability} is not enabled by this disposition",
+        )
+
+
 def process_binding(instance: Mapping[str, Any]) -> dict[str, Any]:
     keys = (
         "proof_scenario", "witness_id", "domain_role", "harness_launch_id", "pid",
@@ -847,72 +1266,582 @@ def bind_invocation(binding: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def execute_refresh_validation_path(
+    bundle_directory: Path,
+    *,
+    domain_role: str,
+    binding: Mapping[str, Any],
+    command: Mapping[str, Any],
+    retained_local_state: Mapping[str, Any],
+    discard_required_poison: Mapping[str, Any],
+    inject_stage: str | None = None,
+    inject_edge: str | None = None,
+) -> dict[str, Any]:
+    """Execute the exact eighteen-stage harness refresh-acceptance path."""
+
+    if (inject_stage is None) != (inject_edge is None):
+        raise ValueError("fault stage and edge must be supplied together")
+    if inject_stage is not None and inject_stage not in REFRESH_FAULT_STAGES:
+        raise ValueError(f"unknown refresh fault stage: {inject_stage}")
+    if inject_edge is not None and inject_edge not in ("before", "after"):
+        raise ValueError(f"invalid refresh fault edge: {inject_edge}")
+    if domain_role not in DOMAIN_ROLES:
+        raise _reject("invocation_read", "invalid_domain_role", domain_role)
+
+    trace: list[dict[str, str]] = []
+    state: dict[str, Any] = {
+        "represented_hash": H0,
+        "candidate": None,
+        "attached_retained_state": None,
+        "receipt": None,
+    }
+
+    def run(stage: str, action) -> Any:
+        _fault_boundary(trace, stage, "before", inject_stage, inject_edge)
+        result = action()
+        _fault_boundary(trace, stage, "after", inject_stage, inject_edge)
+        return result
+
+    run(
+        "invocation_read",
+        lambda: validate_refresh_invocation(dict(command), domain_role),
+    )
+
+    role_token = "A" if domain_role == "domain_A" else "B"
+    names = (
+        "canonical_topology_R1.json",
+        f"simultaneous_domain_{role_token}_H1_projection.json",
+        f"simultaneous_domain_{role_token}_H1_operation_receipt.json",
+    )
+    inventory = run(
+        "visible_input_inventory",
+        lambda: validate_exact_directory(bundle_directory, names),
+    )
+    raw_by_name = {name: (bundle_directory / name).read_bytes() for name in names}
+    payload_raw = raw_by_name[names[0]]
+    projection_raw = raw_by_name[names[1]]
+    receipt_raw = raw_by_name[names[2]]
+
+    run(
+        "payload_raw_byte_verification",
+        lambda: (
+            None
+            if sha256_bytes(payload_raw) == D1
+            else (_ for _ in ()).throw(
+                _reject("payload_raw_byte_verification", "payload_raw_sha256_mismatch", "R1 bytes differ")
+            )
+        ),
+    )
+
+    payload_box: dict[str, Any] = {}
+
+    def parse_payload() -> None:
+        try:
+            payload = phase1_strict_load_stored_json(payload_raw)
+        except ValueError as exc:
+            raise _reject(
+                "payload_parse_and_canonical_identity_verification",
+                "invalid_canonical_payload",
+                str(exc),
+            ) from exc
+        if validate_canonical_envelope(payload) != "R1" or canonical_hash(payload) != H1:
+            raise _reject(
+                "payload_parse_and_canonical_identity_verification",
+                "canonical_identity_mismatch",
+                "payload is not exact R1/H1",
+            )
+        payload_box["value"] = payload
+
+    run("payload_parse_and_canonical_identity_verification", parse_payload)
+
+    receipt_box: dict[str, Any] = {}
+
+    def verify_operation_receipt() -> None:
+        receipt = strict_load_stored_json(receipt_raw)
+        expected = operation_receipt(
+            "refresh",
+            domain_role,
+            "H1",
+            operational_process_instance_id=operational_process_instance_id(binding),
+        )
+        if receipt != expected:
+            raise _reject(
+                "operation_receipt_verification",
+                "operation_receipt_mismatch",
+                "refresh receipt differs",
+            )
+        receipt_box["value"] = receipt
+
+    run("operation_receipt_verification", verify_operation_receipt)
+
+    projection_box: dict[str, Any] = {}
+
+    def verify_projection() -> None:
+        projected = strict_load_stored_json(projection_raw)
+        projection_box["value"] = validate_projection(projected, domain_role, "H1")
+
+    run("projection_verification", verify_projection)
+
+    def cross_fields() -> None:
+        receipt = receipt_box["value"]
+        if (
+            sha256_bytes(projection_raw) != receipt["projection_raw_sha256"]
+            or receipt["canonical_payload_raw_sha256"] != D1
+            or receipt["expected_canonical_hash"] != H1
+            or receipt["expected_source_represented_hash"] != H0
+            or receipt["expected_target_represented_hash"] != H1
+        ):
+            raise _reject(
+                "visible_command_bundle_cross_field_verification",
+                "refresh_bundle_cross_field_mismatch",
+                "bundle cross-fields differ",
+            )
+
+    run("visible_command_bundle_cross_field_verification", cross_fields)
+
+    def verify_binding() -> None:
+        if (
+            command.get("domain_role") != binding.get("domain_role")
+            or receipt_box["value"].get("expected_operational_process_instance_id")
+            != operational_process_instance_id(binding)
+            or not _is_sha256(sha256_value(dict(binding)))
+        ):
+            raise _reject(
+                "process_binding_identity_verification",
+                "refresh_process_binding_mismatch",
+                "refresh changed process binding",
+            )
+
+    run("process_binding_identity_verification", verify_binding)
+    retained = run(
+        "retained_local_state_projection_extraction",
+        lambda: validate_retained_local_state(dict(retained_local_state)),
+    )
+
+    def poison_check() -> None:
+        required = {
+            "actor_ids",
+            "topology_cache",
+            "route_access_cache",
+            "collision_open",
+            "physics_diagnostic",
+        }
+        if (
+            set(discard_required_poison) != required
+            or discard_required_poison.get("route_access_cache") != "available"
+            or discard_required_poison.get("collision_open") is not True
+            or canonical_json(dict(discard_required_poison)) in canonical_json(payload_box["value"])
+        ):
+            raise _reject(
+                "discard_required_state_poison_check",
+                "discard_required_poison_invalid",
+                "poison fixture did not remain local",
+            )
+
+    run("discard_required_state_poison_check", poison_check)
+
+    def empty_candidate() -> None:
+        if state["candidate"] is not None:
+            raise _reject(
+                "empty_authoritative_candidate_construction",
+                "candidate_not_empty",
+                "candidate carried stale state",
+            )
+        state["candidate"] = {}
+
+    run("empty_authoritative_candidate_construction", empty_candidate)
+
+    def derive_h1() -> None:
+        if state["candidate"] != {}:
+            raise _reject("H1_authoritative_fact_derivation", "candidate_not_empty", "candidate is not empty")
+        state["candidate"] = authoritative_representation(
+            payload_box["value"], projection_box["value"]
+        )
+
+    run("H1_authoritative_fact_derivation", derive_h1)
+
+    def bind_slots() -> None:
+        candidate = state["candidate"]
+        expected_projection = projection(domain_role, "H1")
+        if (
+            candidate["materialized_site_representation_slot"]
+            != expected_projection["allowed_site_projection"]["representation_slot"]
+            or candidate["materialized_route_representation_slot"]
+            != expected_projection["allowed_route_projection"]["representation_slot"]
+        ):
+            raise _reject("projection_slot_binding", "projection_slot_mismatch", "slots differ")
+
+    run("projection_slot_binding", bind_slots)
+
+    def validate_candidate() -> None:
+        candidate = state["candidate"]
+        if (
+            set(candidate) != set(authoritative_representation_for_identity(candidate))
+            or candidate["accepted_canonical_hash"] != H1
+            or candidate["materialized_route_access_state"] != "blocked"
+        ):
+            raise _reject("private_candidate_validation", "private_candidate_invalid", "candidate differs")
+
+    run("private_candidate_validation", validate_candidate)
+
+    def attach_retained() -> None:
+        state["attached_retained_state"] = _copy(retained)
+        if any(key in state["candidate"] for key in retained):
+            raise _reject(
+                "retained_local_state_attachment",
+                "retained_state_entered_authoritative_candidate",
+                "retained state entered canonical-derived representation",
+            )
+
+    run("retained_local_state_attachment", attach_retained)
+
+    expected_receipt_box: dict[str, Any] = {}
+
+    def prepublication() -> None:
+        expected_receipt_box["value"] = materialization_receipt(
+            state["candidate"],
+            operational_process_instance_id=operational_process_instance_id(binding),
+            process_binding_raw_sha256=sha256_value(dict(binding)),
+        )
+        if state["represented_hash"] != H0 or state["attached_retained_state"] != retained:
+            raise _reject(
+                "prepublication_cross_field_validation",
+                "prepublication_state_mismatch",
+                "source/retained state differs",
+            )
+
+    run("prepublication_cross_field_validation", prepublication)
+
+    def publish() -> None:
+        state["represented_hash"] = H1
+
+    run("local_atomic_publication", publish)
+
+    def emit_receipt() -> None:
+        state["receipt"] = expected_receipt_box["value"]
+        validate_materialization_receipt(state["receipt"], binding)
+
+    run("materialization_receipt_emission", emit_receipt)
+    return {
+        "inventory": inventory,
+        "executed_stages": trace,
+        "represented_hash": state["represented_hash"],
+        "retained_local_state": state["attached_retained_state"],
+        "materialization_receipt": state["receipt"],
+        "authoritative_derived_representation": state["candidate"],
+        "discard_required_poison_entered_candidate": False,
+    }
+
+
+def _refresh_fault_case(
+    bundle_directory: Path,
+    *,
+    domain_role: str,
+    binding: Mapping[str, Any],
+    retained_local_state: Mapping[str, Any],
+    discard_required_poison: Mapping[str, Any],
+    stage: str,
+    edge: str,
+    input_origin: str,
+) -> dict[str, Any]:
+    publication_index = REFRESH_FAULT_STAGES.index("local_atomic_publication")
+    stage_index = REFRESH_FAULT_STAGES.index(stage)
+    publication_uncertain = stage_index > publication_index or (
+        stage_index == publication_index and edge == "after"
+    )
+    try:
+        execute_refresh_validation_path(
+            bundle_directory,
+            domain_role=domain_role,
+            binding=binding,
+            command=refresh_invocation(domain_role),
+            retained_local_state=retained_local_state,
+            discard_required_poison=discard_required_poison,
+            inject_stage=stage,
+            inject_edge=edge,
+        )
+    except InjectedProofFault as exc:
+        return {
+            "fault_stage": stage,
+            "fault_edge": edge,
+            "injection_observed_at_exact_boundary": exc.stage == stage and exc.edge == edge,
+            "validation_path": "execute_refresh_validation_path",
+            "input_origin": input_origin,
+            "resulting_head_state": "invalid" if publication_uncertain else "stale",
+            "accepted_represented_hash": None if publication_uncertain else H0,
+            "H1_materialization_receipt_accepted": False,
+            "canonical_H1_unchanged": True,
+            "retry_permitted": False,
+        }
+    raise AssertionError(f"refresh fault was not injected: {stage}/{edge}")
+
+
+def _head_observation_fault_case(point: str) -> dict[str, Any]:
+    if point not in HEAD_OBSERVATION_FAULT_POINTS:
+        raise ValueError(f"unknown head-observation fault point: {point}")
+    guard = PhysicalCurrentHeadGuard()
+    trace: list[str] = []
+    guard.close_for_h0_to_h1()
+    trace.append("physical_guard_closed")
+    injected = False
+
+    def inject(candidate: str) -> None:
+        nonlocal injected
+        trace.append(candidate)
+        if point == candidate:
+            injected = True
+            raise InjectedProofFault(candidate, "at")
+
+    precommit_fault: InjectedProofFault | None = None
+    try:
+        inject("after_physical_guard_close_before_canonical_invocation")
+    except InjectedProofFault as exc:
+        # The guard is canonically inert.  Even this fault cannot suppress the
+        # exact sealed canonical invocation below.
+        precommit_fault = exc
+
+    r0, boundary, r1 = canonical_records()
+    committed_raw = phase1_stored_json_bytes(r1)
+    if sha256_bytes(committed_raw) != D1 or canonical_hash(r0) != H0 or canonical_hash(r1) != H1:
+        raise AssertionError("head-fault canonical commit identity drift")
+    trace.append("canonical_R1_H1_committed_and_verified")
+
+    if precommit_fault is not None:
+        guard.fail_closed(point)
+    else:
+        try:
+            inject("after_R1_H1_commit_verification_before_observation_construction")
+            candidate = current_head_observation()
+            inject("after_observation_construction_before_temporary_write")
+            with tempfile.TemporaryDirectory(prefix="spd-head-fault-") as temporary:
+                root = Path(temporary)
+                target = root / "current_head_observation.json"
+                staging = root / ".current_head_observation.json.tmp"
+                fd = os.open(staging, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+                try:
+                    raw = stored_json_bytes(candidate)
+                    offset = 0
+                    while offset < len(raw):
+                        offset += os.write(fd, raw[offset:])
+                    inject("after_temporary_write_before_file_fsync")
+                    os.fsync(fd)
+                    inject("after_file_fsync_before_atomic_replace")
+                finally:
+                    os.close(fd)
+                os.replace(staging, target)
+                inject("after_atomic_replace_before_directory_fsync")
+                directory_fd = os.open(root, os.O_RDONLY)
+                try:
+                    os.fsync(directory_fd)
+                finally:
+                    os.close(directory_fd)
+                inject("after_directory_fsync_before_independent_reread")
+                reread = strict_load_stored_json(target.read_bytes())
+                inject("after_independent_reread_before_identity_reverification")
+                verify_current_head_observation(reread, committed_raw)
+                inject("after_identity_reverification_before_refresh_eligibility")
+            raise AssertionError(f"head fault was not injected: {point}")
+        except InjectedProofFault:
+            guard.fail_closed(point)
+
+    return {
+        "fault_point": point,
+        "injection_executed": injected,
+        "execution_trace": trace,
+        "canonical_boundary": _copy(boundary),
+        "canonical_R1_raw_sha256": D1,
+        "canonical_H1": H1,
+        "canonical_commit_completed": True,
+        "guard_terminal_state": guard.state,
+        "guard_machine": guard.snapshot(),
+        "domain_A_head_state": "head_unconfirmed",
+        "domain_B_head_state": "head_unconfirmed",
+        "refresh_enabled": False,
+        "current_head_claim_enabled": False,
+        "canonical_unchanged": True,
+    }
+
+
 def head_observation_fault_atomicity() -> dict[str, Any]:
-    cases = []
-    for point in HEAD_OBSERVATION_FAULT_POINTS:
-        cases.append({
-            "fault_point": point,
-            "canonical_R1_raw_sha256": D1,
-            "canonical_H1": H1,
-            "canonical_commit_completed": True,
-            "guard_terminal_state": "failed_closed",
-            "domain_A_head_state": "head_unconfirmed",
-            "domain_B_head_state": "head_unconfirmed",
-            "refresh_enabled": False,
-            "current_head_claim_enabled": False,
-            "canonical_unchanged": True,
-        })
+    cases = [_head_observation_fault_case(point) for point in HEAD_OBSERVATION_FAULT_POINTS]
     return {
         "oracle_schema": "SimultaneousPhysicalDomainsHeadObservationFaultAtomicity.v1",
         "proof_scenario": PROOF_SCENARIO,
         "fault_points": list(HEAD_OBSERVATION_FAULT_POINTS),
         "cases": cases,
-        "all_fail_closed_without_canonical_effect": True,
+        "guard_illegal_transition_cases": guard_illegal_transition_witnesses(),
+        "all_faults_executed": all(case["injection_executed"] for case in cases),
+        "all_fail_closed_without_canonical_effect": all(
+            case["guard_terminal_state"] == "failed_closed"
+            and case["canonical_R1_raw_sha256"] == D1
+            and case["canonical_unchanged"]
+            for case in cases
+        ),
     }
 
 
-def refresh_fault_atomicity() -> dict[str, Any]:
-    cases = []
-    publication_index = REFRESH_FAULT_STAGES.index("local_atomic_publication")
-    for index, stage in enumerate(REFRESH_FAULT_STAGES):
-        for edge in ("before", "after"):
-            publication_uncertain = index > publication_index or (index == publication_index and edge == "after")
-            cases.append({
-                "fault_stage": stage,
-                "fault_edge": edge,
-                "resulting_head_state": "invalid" if publication_uncertain else "stale",
-                "accepted_represented_hash": None if publication_uncertain else H0,
-                "H1_materialization_receipt_accepted": False,
-                "canonical_H1_unchanged": True,
-                "retry_permitted": False,
-            })
+def refresh_fault_atomicity(
+    *,
+    bundle_directory: Path | None = None,
+    binding: Mapping[str, Any] | None = None,
+    domain_role: str = "domain_A",
+    input_origin: str = "isolated_exact_H1_refresh_fixture",
+) -> dict[str, Any]:
+    owned_temporary: Any = None
+    fixture_directory: Path
+    actual_binding = dict(binding) if binding is not None else {
+        "domain_role": domain_role,
+        "fixture_binding": "refresh_fault_validation",
+    }
+    if bundle_directory is None:
+        owned_temporary = tempfile.TemporaryDirectory(prefix="spd-refresh-fault-")
+        fixture_directory = Path(owned_temporary.name) / "refresh_0001"
+        fixture_directory.mkdir()
+        role_token = "A" if domain_role == "domain_A" else "B"
+        _, _, r1 = canonical_records()
+        (fixture_directory / "canonical_topology_R1.json").write_bytes(
+            phase1_stored_json_bytes(r1)
+        )
+        (fixture_directory / f"simultaneous_domain_{role_token}_H1_projection.json").write_bytes(
+            stored_json_bytes(projection(domain_role, "H1"))
+        )
+        (fixture_directory / f"simultaneous_domain_{role_token}_H1_operation_receipt.json").write_bytes(
+            stored_json_bytes(operation_receipt(
+                "refresh",
+                domain_role,
+                "H1",
+                operational_process_instance_id=operational_process_instance_id(actual_binding),
+            ))
+        )
+        for path in fixture_directory.iterdir():
+            os.chmod(path, 0o400)
+        os.chmod(fixture_directory, 0o500)
+    else:
+        fixture_directory = bundle_directory
+
+    retained = {
+        "retained_schema": RETAINED_SCHEMA,
+        "nonconsequential_tick_counter": 7,
+        "cosmetic_phase_token": "cosmetic_phase_0",
+        "diagnostic_counter": 1,
+    }
+    poison = {
+        "actor_ids": ["observed_live_H0_actor"],
+        "topology_cache": "observed_stale_H0_topology",
+        "route_access_cache": "available",
+        "collision_open": True,
+        "physics_diagnostic": "observed_stale_H0_physics",
+    }
+    try:
+        cases = [
+            _refresh_fault_case(
+                fixture_directory,
+                domain_role=domain_role,
+                binding=actual_binding,
+                retained_local_state=retained,
+                discard_required_poison=poison,
+                stage=stage,
+                edge=edge,
+                input_origin=input_origin,
+            )
+            for stage in REFRESH_FAULT_STAGES
+            for edge in ("before", "after")
+        ]
+    finally:
+        if owned_temporary is not None:
+            os.chmod(fixture_directory, 0o700)
+            for path in fixture_directory.iterdir():
+                os.chmod(path, 0o600)
+            owned_temporary.cleanup()
     return {
         "oracle_schema": "SimultaneousPhysicalDomainsRefreshFaultAtomicity.v1",
         "proof_scenario": PROOF_SCENARIO,
         "fault_stages": list(REFRESH_FAULT_STAGES),
         "pre_post_case_count": len(cases),
         "cases": cases,
-        "all_fail_closed_without_canonical_effect": True,
+        "all_faults_executed": all(
+            case["injection_observed_at_exact_boundary"] for case in cases
+        ),
+        "all_fail_closed_without_canonical_effect": all(
+            not case["H1_materialization_receipt_accepted"]
+            and case["canonical_H1_unchanged"]
+            and not case["retry_permitted"]
+            for case in cases
+        ),
     }
 
 
-def physical_observation_fault_atomicity() -> dict[str, Any]:
-    cases = []
+def physical_observation_fault_atomicity(
+    *,
+    observations: Mapping[str, Mapping[str, Any]] | None = None,
+    binding: Mapping[str, Any] | None = None,
+    domain_role: str = "domain_A",
+    input_origin: str = "isolated_exact_physical_observation_fixture",
+) -> dict[str, Any]:
+    actual_binding = dict(binding) if binding is not None else {
+        "domain_role": domain_role,
+        "fixture_binding": "physical_observation_fault_validation",
+    }
+    actual_observations = dict(observations) if observations is not None else {
+        head_role: expected_physical_observation(
+            domain_role,
+            head_role,
+            operational_process_instance_id=operational_process_instance_id(actual_binding),
+            process_binding_raw_sha256=sha256_value(actual_binding),
+            inspection_id=(
+                "launch_physical_0001" if head_role == "H0" else "refresh_physical_0001"
+            ),
+        )
+        for head_role in HEAD_ROLES
+    }
+    cases: list[dict[str, Any]] = []
     for stage in PHYSICAL_OBSERVATION_FAULT_STAGES:
-        cases.append({
-            "fault_stage": stage,
-            "H0_result": "initial_synchronized_acceptance_prohibited",
-            "H1_result": "invalid_and_halted",
-            "current_head_claim_enabled": False,
-            "canonical_H1_unchanged": True,
-        })
+        for head_role in HEAD_ROLES:
+            inspection_id = (
+                "launch_physical_0001" if head_role == "H0" else "refresh_physical_0001"
+            )
+            try:
+                execute_physical_observation_validation(
+                    actual_observations[head_role],
+                    domain_role=domain_role,
+                    head_role=head_role,
+                    binding=actual_binding,
+                    inspection_id=inspection_id,
+                    inject_stage=stage,
+                    inject_edge="before",
+                )
+            except InjectedProofFault as exc:
+                cases.append({
+                    "fault_stage": stage,
+                    "head_role": head_role,
+                    "fault_edge": "before",
+                    "injection_observed_at_exact_boundary": exc.stage == stage,
+                    "validation_path": "execute_physical_observation_validation",
+                    "input_origin": input_origin,
+                    "result": (
+                        "initial_synchronized_acceptance_prohibited"
+                        if head_role == "H0"
+                        else "invalid_and_halted"
+                    ),
+                    "current_head_claim_enabled": False,
+                    "canonical_H1_unchanged": True,
+                })
+            else:
+                raise AssertionError(f"physical-observation fault not injected: {stage}/{head_role}")
     return {
         "oracle_schema": "SimultaneousPhysicalDomainsPhysicalObservationFaultAtomicity.v1",
         "proof_scenario": PROOF_SCENARIO,
         "fault_stages": list(PHYSICAL_OBSERVATION_FAULT_STAGES),
         "cases": cases,
         "probe_expected_state_input": False,
-        "all_fail_closed_without_canonical_effect": True,
+        "head_role_case_count": len(cases),
+        "all_faults_executed": all(
+            case["injection_observed_at_exact_boundary"] for case in cases
+        ),
+        "all_fail_closed_without_canonical_effect": all(
+            not case["current_head_claim_enabled"] and case["canonical_H1_unchanged"]
+            for case in cases
+        ),
     }
 
 
@@ -932,21 +1861,184 @@ def current_head_authority_failures() -> dict[str, Any]:
         "inspection command carries expected outcome", "synchronized disposition lacks prerequisites", "non-synchronized claim enabled",
         "undeclared process-visible context affects semantics",
     )
-    return {
-        "oracle_schema": "SimultaneousPhysicalDomainsCurrentHeadAuthorityFailures.v1",
-        "proof_scenario": PROOF_SCENARIO,
-        "cases": [
-            {
+    r0, _, r1 = canonical_records()
+    binding = {"domain_role": "domain_A", "fixture_binding": "authority_attack_validation"}
+    instance_id = operational_process_instance_id(binding)
+    binding_digest = sha256_value(binding)
+    representation_h0 = authoritative_representation(r0, projection("domain_A", "H0"))
+    representation_h1 = authoritative_representation(r1, projection("domain_A", "H1"))
+    receipt_h0 = materialization_receipt(
+        representation_h0,
+        operational_process_instance_id=instance_id,
+        process_binding_raw_sha256=binding_digest,
+    )
+    receipt_h1 = materialization_receipt(
+        representation_h1,
+        operational_process_instance_id=instance_id,
+        process_binding_raw_sha256=binding_digest,
+    )
+    observation_h0 = expected_physical_observation(
+        "domain_A",
+        "H0",
+        operational_process_instance_id=instance_id,
+        process_binding_raw_sha256=binding_digest,
+        inspection_id="launch_physical_0001",
+    )
+    observation_h1 = expected_physical_observation(
+        "domain_A",
+        "H1",
+        operational_process_instance_id=instance_id,
+        process_binding_raw_sha256=binding_digest,
+        inspection_id="refresh_physical_0001",
+    )
+    stale_disposition = head_disposition(
+        domain_role="domain_A",
+        binding=binding,
+        receipt=None,
+        physical_observation=None,
+        represented_hash=H0,
+        observed_head=H1,
+        guard_state="open_for_H1",
+        head_state="stale",
+    )
+
+    def changed(value: Any, key: str, replacement: Any) -> Any:
+        result = _copy(value)
+        result[key] = replacement
+        return result
+
+    with tempfile.TemporaryDirectory(prefix="spd-authority-attacks-") as temporary:
+        bundle = Path(temporary) / "refresh_0001"
+        bundle.mkdir()
+        (bundle / "canonical_topology_R1.json").write_bytes(phase1_stored_json_bytes(r1))
+        (bundle / "simultaneous_domain_A_H1_projection.json").write_bytes(
+            stored_json_bytes(projection("domain_A", "H1"))
+        )
+        (bundle / "simultaneous_domain_A_H1_operation_receipt.json").write_bytes(
+            stored_json_bytes(operation_receipt(
+                "refresh", "domain_A", "H1", operational_process_instance_id=instance_id
+            ))
+        )
+        expected_bundle_names = (
+            "canonical_topology_R1.json",
+            "simultaneous_domain_A_H1_projection.json",
+            "simultaneous_domain_A_H1_operation_receipt.json",
+        )
+
+        def altered_projection(**updates: Any) -> dict[str, Any]:
+            value = projection("domain_A", "H1")
+            value.update(updates)
+            return value
+
+        def altered_route_projection(**updates: Any) -> dict[str, Any]:
+            value = projection("domain_A", "H1")
+            value["allowed_route_projection"].update(updates)
+            return value
+
+        def altered_site_projection(**updates: Any) -> dict[str, Any]:
+            value = projection("domain_A", "H1")
+            value["allowed_site_projection"].update(updates)
+            return value
+
+        def canonical_with_guard() -> None:
+            canonical_transition_run(physical_guard="open_for_H0")  # type: ignore[call-arg]
+
+        def canonical_with_domain() -> None:
+            canonical_records(domain_state="domain_A")  # type: ignore[call-arg]
+
+        def failed_guard_refresh() -> None:
+            guard = PhysicalCurrentHeadGuard()
+            guard.fail_closed("publication_failure")
+            guard.assert_refresh_eligible("domain_A")
+
+        def unconfirmed_guard_refresh() -> None:
+            guard = PhysicalCurrentHeadGuard()
+            guard.close_for_h0_to_h1()
+            guard.assert_refresh_eligible("domain_A")
+
+        def extra_bundle_member() -> None:
+            extra = bundle / "undeclared_context.json"
+            extra.write_bytes(b"{}\n")
+            try:
+                validate_exact_directory(bundle, expected_bundle_names)
+            finally:
+                extra.unlink()
+
+        actions: list[tuple[str, Any]] = [
+            ("validate_materialization_receipt", lambda: validate_materialization_receipt(changed(receipt_h1, "accepted_canonical_payload_raw_sha256", D0), binding)),
+            ("validate_projection", lambda: validate_projection(altered_projection(source_canonical_hash=H0), "domain_A", "H1")),
+            ("head_disposition", lambda: head_disposition(domain_role="domain_A", binding=binding, receipt=receipt_h0, physical_observation=observation_h0, represented_hash=H0, observed_head=H1, guard_state="open_for_H1", head_state="synchronized")),
+            ("require_physical_capability", lambda: require_physical_capability(stale_disposition, "canonical_scheduling")),
+            ("require_physical_capability", lambda: require_physical_capability(stale_disposition, "canonical_mutation")),
+            ("head_disposition", lambda: head_disposition(domain_role="domain_A", binding=binding, receipt=receipt_h0, physical_observation=observation_h0, represented_hash=H0, observed_head=H1, guard_state="open_for_H1", head_state="synchronized")),
+            ("validate_physical_observation", lambda: validate_physical_observation(observation_h0, domain_role="domain_A", head_role="H1", binding=binding, inspection_id="refresh_physical_0001")),
+            ("authoritative_representation", lambda: authoritative_representation(changed(r1, "future_causal_state", {"poison": "available"}), projection("domain_A", "H1"))),
+            ("authoritative_representation", lambda: authoritative_representation(changed(r1, "causal_provenance", {"competing_successor": True}), projection("domain_A", "H1"))),
+            ("validate_physical_observation", lambda: validate_physical_observation(changed(observation_h1, "domain_role", "domain_B"), domain_role="domain_A", head_role="H1", binding=binding, inspection_id="refresh_physical_0001")),
+            ("validate_projection", lambda: validate_projection(altered_site_projection(canonical_site_id=SITE_B), "domain_A", "H1")),
+            ("validate_projection", lambda: validate_projection(altered_route_projection(canonical_route_id="competing_route"), "domain_A", "H1")),
+            ("validate_projection", lambda: validate_projection(changed(projection("domain_A", "H1"), "allowed_route_projection", {}), "domain_A", "H1")),
+            ("validate_projection", lambda: validate_projection(altered_route_projection(access_state="available"), "domain_A", "H1")),
+            ("validate_materialization_receipt", lambda: validate_materialization_receipt(changed(receipt_h1, "operational_process_instance_id", "0" * 64), binding)),
+            ("validate_materialization_receipt", lambda: validate_materialization_receipt(changed(receipt_h1, "authoritative_derived_representation_raw_sha256", "0" * 64), binding)),
+            ("require_physical_capability", lambda: require_physical_capability(stale_disposition, "canonical_truth_publication")),
+            ("require_physical_capability", lambda: require_physical_capability(stale_disposition, "canonical_evidence")),
+            ("canonical_transition_run_signature", canonical_with_guard),
+            ("verify_current_head_observation", lambda: verify_current_head_observation(changed(current_head_observation(), "observed_canonical_hash", H0), phase1_stored_json_bytes(r1))),
+            ("PhysicalCurrentHeadGuard", failed_guard_refresh),
+            ("PhysicalCurrentHeadGuard", unconfirmed_guard_refresh),
+            ("validate_physical_observation", lambda: validate_physical_observation(changed(observation_h1, "observation_source", "domain_local_state"), domain_role="domain_A", head_role="H1", binding=binding, inspection_id="refresh_physical_0001")),
+            ("validate_projection", lambda: validate_projection(altered_projection(retained_local_state={"diagnostic_counter": 47}), "domain_A", "H1")),
+            ("authoritative_representation", lambda: authoritative_representation(r0, projection("domain_A", "H1"))),
+            ("validate_materialization_receipt", lambda: validate_materialization_receipt(receipt_h1, changed(binding, "fixture_binding", "replacement_process"))),
+            ("validate_refresh_invocation", lambda: validate_refresh_invocation(changed(refresh_invocation("domain_A"), "alternate_channel", "directory_poll"), "domain_A")),
+            ("validate_exact_directory", extra_bundle_member),
+            ("validate_refresh_invocation", lambda: validate_refresh_invocation(changed(refresh_invocation("domain_A"), "current_head_observation", current_head_observation()), "domain_A")),
+            ("canonical_records_signature", canonical_with_domain),
+            ("head_disposition", lambda: head_disposition(domain_role="domain_A", binding=binding, receipt=receipt_h1, physical_observation=None, represented_hash=H1, observed_head=H1, guard_state="open_for_H1", head_state="synchronized")),
+            ("validate_physical_observation", lambda: validate_physical_observation(changed(observation_h1, "observation_source", "adapter_authoritative_derived_JSON"), domain_role="domain_A", head_role="H1", binding=binding, inspection_id="refresh_physical_0001")),
+            ("validate_physical_observation", lambda: validate_physical_observation(changed(observation_h1, "route_mesh_visible", False), domain_role="domain_A", head_role="H1", binding=binding, inspection_id="refresh_physical_0001")),
+            ("validate_inspection_invocation", lambda: validate_inspection_invocation(changed(inspection_invocation("domain_A", "launch_physical_0001"), "expected_access_state", "available"), "domain_A", "launch_physical_0001")),
+            ("head_disposition", lambda: head_disposition(domain_role="domain_A", binding=binding, receipt=None, physical_observation=observation_h1, represented_hash=H1, observed_head=H1, guard_state="open_for_H1", head_state="synchronized")),
+            ("require_physical_capability", lambda: require_physical_capability(stale_disposition, "current_head_materialization_claim")),
+            ("validate_refresh_invocation", lambda: validate_refresh_invocation(changed(refresh_invocation("domain_A"), "environment_selector", "undeclared"), "domain_A")),
+        ]
+        if len(actions) != len(descriptions):
+            raise AssertionError("authority attack action/description count drift")
+        cases: list[dict[str, Any]] = []
+        for index, (description, (validation_path, action)) in enumerate(
+            zip(descriptions, actions), start=1
+        ):
+            try:
+                action()
+            except PhysicalDomainRejected as exc:
+                rejection_stage = exc.stage
+                reason_code = exc.reason_code
+            except TypeError:
+                rejection_stage = "sealed_canonical_invocation_signature"
+                reason_code = "undeclared_authority_input_rejected_by_signature"
+            except ValueError as exc:
+                rejection_stage = "sealed_canonical_payload_validation"
+                reason_code = type(exc).__name__
+            else:
+                raise AssertionError(f"authority attack accepted: {index} {description}")
+            cases.append({
                 "case_id": index,
                 "description": description,
+                "actual_validation_path": validation_path,
+                "rejection_stage": rejection_stage,
+                "reason_code": reason_code,
                 "rejected": True,
                 "canonical_H1_unchanged": True,
                 "canonical_authority_acquired": False,
-            }
-            for index, description in enumerate(descriptions, start=1)
-        ],
-        "case_count": 37,
-        "all_rejected": True,
+            })
+    return {
+        "oracle_schema": "SimultaneousPhysicalDomainsCurrentHeadAuthorityFailures.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "cases": cases,
+        "case_count": len(cases),
+        "all_real_validation_paths_executed": len(cases) == 37,
+        "all_rejected": all(case["rejected"] for case in cases),
     }
 
 

@@ -103,7 +103,10 @@ bool ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch(
     {
         return false;
     }
-    if (Binding.WitnessId == TEXT("w5_retention_perturbed"))
+    bRetentionWitness = Binding.WitnessId == TEXT("w5_retention_baseline") ||
+        Binding.WitnessId == TEXT("w5_retention_perturbed");
+    bPerturbedRetentionWitness = Binding.WitnessId == TEXT("w5_retention_perturbed");
+    if (bPerturbedRetentionWitness)
     {
         NonconsequentialTickCounter = 991;
         CosmeticPhaseToken = TEXT("cosmetic_phase_3");
@@ -115,7 +118,16 @@ bool ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch(
         CosmeticPhaseToken = TEXT("cosmetic_phase_0");
         DiagnosticCounter = 1;
     }
-    return PublishCandidate(Candidate, Binding, OutReceipt, OutReason);
+    if (!PublishCandidate(Candidate, Binding, OutReceipt, OutReason))
+    {
+        return false;
+    }
+    if (bRetentionWitness && !PublishedRepresentation->InstallDiscardRequiredH0Poison(bPerturbedRetentionWitness))
+    {
+        OutReason = TEXT("discard_required_H0_poison_installation_failed");
+        return false;
+    }
+    return true;
 }
 
 bool ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(
@@ -129,6 +141,17 @@ bool ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(
         return false;
     }
     bRefreshConsumed = true;
+    ASimultaneousPhysicalDomainRepresentationActor* PriorH0Representation = PublishedRepresentation;
+    if (bRetentionWitness)
+    {
+        bPoisonObservedBeforeRefresh = PriorH0Representation->HasExactDiscardRequiredH0Poison(
+            bPerturbedRetentionWitness);
+        if (!bPoisonObservedBeforeRefresh)
+        {
+            OutReason = TEXT("discard_required_H0_poison_not_observed");
+            return false;
+        }
+    }
     FSPDAuthoritativeRepresentation Candidate;
     if (!LoadVisibleTuple(Binding, true, Candidate, OutReason))
     {
@@ -147,7 +170,49 @@ bool ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(
     NonconsequentialTickCounter = RetainedTick;
     CosmeticPhaseToken = RetainedCosmetic;
     DiagnosticCounter = RetainedDiagnostic;
+    if (bRetentionWitness)
+    {
+        bPriorH0ActorReplaced = PublishedRepresentation != PriorH0Representation;
+        bPublishedH1PoisonClear = PublishedRepresentation != nullptr &&
+            PublishedRepresentation->IsDiscardRequiredPoisonClear();
+        if (!bPriorH0ActorReplaced || !bPublishedH1PoisonClear)
+        {
+            OutReason = TEXT("discard_required_state_survived_H1_publication");
+            return false;
+        }
+    }
     return true;
+}
+
+TSharedPtr<FJsonObject> ASimultaneousPhysicalDomainProofAdapter::BuildRetentionExecutionObservation(
+    const FSPDImmutableProcessBinding& Binding) const
+{
+    if (!bRetentionWitness || RepresentedCanonicalHash != H1 || !bPoisonObservedBeforeRefresh ||
+        !bPublishedH1PoisonClear || !bPriorH0ActorReplaced || PublishedRepresentation == nullptr)
+    {
+        return nullptr;
+    }
+    TSharedPtr<FJsonObject> Observation = MakeShared<FJsonObject>();
+    Observation->SetStringField(TEXT("observation_schema"), TEXT("SimultaneousPhysicalDomainRetentionExecutionObservation.v1"));
+    Observation->SetStringField(TEXT("proof_scenario"), Scenario);
+    Observation->SetStringField(TEXT("domain_role"), Binding.DomainRole);
+    Observation->SetStringField(TEXT("operational_process_instance_id"), Binding.OperationalProcessInstanceId);
+    Observation->SetStringField(TEXT("process_binding_raw_sha256"), Binding.ProcessBindingRawSha256);
+    Observation->SetStringField(TEXT("branch"), bPerturbedRetentionWitness ? TEXT("perturbed") : TEXT("baseline"));
+    Observation->SetNumberField(TEXT("retained_nonconsequential_tick_counter"), static_cast<double>(NonconsequentialTickCounter));
+    Observation->SetStringField(TEXT("retained_cosmetic_phase_token"), CosmeticPhaseToken);
+    Observation->SetNumberField(TEXT("retained_diagnostic_counter"), static_cast<double>(DiagnosticCounter));
+    Observation->SetBoolField(TEXT("discard_required_H0_poison_observed_before_refresh"), bPoisonObservedBeforeRefresh);
+    Observation->SetBoolField(TEXT("prior_H0_actor_replaced"), bPriorH0ActorReplaced);
+    Observation->SetBoolField(TEXT("published_H1_actor_poison_clear"), bPublishedH1PoisonClear);
+    Observation->SetBoolField(TEXT("poisoned_actor_ids_discarded"), true);
+    Observation->SetBoolField(TEXT("poisoned_topology_cache_discarded"), true);
+    Observation->SetBoolField(TEXT("poisoned_route_access_cache_discarded"), true);
+    Observation->SetBoolField(TEXT("poisoned_collision_state_discarded"), true);
+    Observation->SetBoolField(TEXT("poisoned_physics_diagnostics_discarded"), true);
+    Observation->SetStringField(TEXT("represented_canonical_hash"), H1);
+    Observation->SetStringField(TEXT("observation_source"), TEXT("live_ue_adapter_postpublication_state_inspection"));
+    return Observation;
 }
 
 bool ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple(

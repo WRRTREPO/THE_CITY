@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.75
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains the latest sealed proof under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) remains frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. Its exact bounded implementation and 44/110 release candidate are complete: 33/33 focused tests, 215/215 predecessor regressions, UE 5.8 build, 11/11 live-process witnesses, source/dataflow audit, canonical equivalence, and replay pass. Evidence remains unsealed pending independent review. Capacity and every frozen contract boundary remain unchanged; Phase 4 remains closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.76
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains the latest sealed proof under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) remains frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. Its forward-corrected bounded implementation and 44/110 release candidate are complete: 11/11 validator checks, 30/30 validator adversaries, 33/33 focused tests, 215/215 predecessor regressions, UE 5.8 build, 11/11 live-process witnesses, executable guard and fault surfaces, source/dataflow audit, canonical equivalence, and replay pass. Evidence remains unsealed pending independent review. Capacity and every frozen contract boundary remain unchanged; Phase 4 remains closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -99,8 +99,9 @@ the exact guard close/reopen/failed states and guard-open terminal disposition,
 aligns synchronized representation-only claims, audits the exact proof-semantic
 process inputs, requires independent live-UE component observation after each
 materialization, and preserves the exact release boundary. Its review-only
-validator structurally binds those active blocks and rejects 29 declared
-in-memory adversarial mutations. The exact bounded implementation is complete,
+validator structurally binds the complete frozen specification bytes, passes
+11/11 exact checks, and rejects 30/30 declared in-memory adversarial mutations.
+The forward-corrected exact bounded implementation is complete,
 its live runtime evidence has been acquired, and its 44/110 release candidate
 passes verification. Evidence remains unsealed pending independent review;
 capacity remains unchanged.
@@ -183,6 +184,30 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.76 — 2026-08-28
+
+- Preserved pushed history at `f19576457bc9f2f838d6a94a70258434829ebe4e`
+  and produced a forward corrective Phase-3 evidence candidate under the
+  operator-authorized independent STOP remediation. This record does not accept
+  or seal the prior candidate.
+- Bound the non-release validator to the complete frozen specification bytes,
+  added the inserted-before-decision authority adversary, and passed 11/11
+  positive checks plus 30/30 adversarial rejections.
+- Prevented Phase 3 from creating or possessing any Pawn, proved zero reachable
+  Phase-3 Actor input paths, and expanded the source/dataflow audit across every
+  reachable frozen dispatch, stdin, router, adapter, representation, probe, and
+  harness path. UE's required `-game` bootstrap controller remains inert and
+  unpossessed.
+- Executed the actual four-state guard machine with 8/8 illegal-transition
+  rejections, all 9/9 head-observation faults, 36/36 before/after refresh fault
+  injections, 24/24 H0/H1 physical-observation fault injections, and all 37/37
+  authority attacks through real validation paths.
+- Replaced W3 and W5 asserted fields with observed live-UE process execution,
+  retention, poison-clear, and representation-replacement evidence; rebuilt UE
+  5.8 and reacquired all 11 frozen live-process witnesses.
+- Regenerated the exact 44/110 release candidate. Evidence remains unsealed,
+  Development Capacity remains v0.1.11, and Phase 4 remains closed.
 
 ### 0.7.0-draft.75 — 2026-08-28
 

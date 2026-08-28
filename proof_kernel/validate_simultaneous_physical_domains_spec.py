@@ -21,6 +21,9 @@ SPEC = ROOT / "Simultaneous Physical Domains Proof - Draft.md"
 ARTIFACT_ROOT = "proof_kernel/SimultaneousPhysicalDomainsProofRecords"
 MANIFEST = "Simultaneous Physical Domains Proof - v0.1.0 SHA256SUMS.txt"
 THIS_VALIDATOR = "proof_kernel/validate_simultaneous_physical_domains_spec.py"
+EXPECTED_COMPLETE_SPEC_SHA256 = (
+    "1297cdaa039d692534f2a3d133de5ad1c90d59c28578b78f6bf119750ae6be4e"
+)
 EXPECTED_VERSION_HEADER = "**Version:** 0.1.0"
 EXPECTED_STATUS_HEADER = (
     "**Status:** Frozen specification; exact bounded Phase-3 implementation, "
@@ -332,6 +335,14 @@ def normalized_prose_after_fenced_block(
 
 def validate_text(text: str) -> list[str]:
     checks: list[str] = []
+
+    complete_digest = sha256_text(text)
+    if complete_digest != EXPECTED_COMPLETE_SPEC_SHA256:
+        raise ValidationError(
+            "complete frozen specification digest "
+            f"{complete_digest} != {EXPECTED_COMPLETE_SPEC_SHA256}"
+        )
+    checks.append("complete frozen specification bytes: exact SHA-256 bound")
 
     selection_block = fenced_block_after(text, "## Selection and authority state")
     selection = parse_flat_mapping(selection_block, "selection authority", root="selection")
@@ -645,6 +656,20 @@ def self_test_mutations(text: str) -> list[tuple[str, str]]:
             + "implementation_authority: unbounded_production_runtime\n"
             + "evidence_status: sealed\n"
             + "capacity_advancement: authorized\n",
+        )
+    )
+    mutations.append(
+        (
+            "inserted_authority_override_before_decision",
+            replace_once(
+                text,
+                "## Current decision record",
+                "## Inserted active authority override\n\n"
+                "implementation_authority: unbounded_production_runtime\n"
+                "evidence_status: sealed\n"
+                "capacity_advancement: authorized\n\n"
+                "## Current decision record",
+            ),
         )
     )
     mutations.append(

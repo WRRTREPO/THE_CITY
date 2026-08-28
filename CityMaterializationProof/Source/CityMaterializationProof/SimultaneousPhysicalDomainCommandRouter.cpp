@@ -568,6 +568,19 @@ void ASimultaneousPhysicalDomainCommandRouter::HandleLine(const FString& Canonic
         }
         bRefreshAccepted = true;
         EmitStructuredObject(Result);
+        if (ImmutableBinding.WitnessId == TEXT("w5_retention_baseline") ||
+            ImmutableBinding.WitnessId == TEXT("w5_retention_perturbed"))
+        {
+            const TSharedPtr<FJsonObject> RetentionObservation =
+                Adapter->BuildRetentionExecutionObservation(ImmutableBinding);
+            if (!RetentionObservation.IsValid())
+            {
+                bProtocolFailed = true;
+                EmitFailure(TEXT("retained_local_state_attachment"), TEXT("retention_execution_observation_failed"));
+                return;
+            }
+            EmitStructuredObject(RetentionObservation);
+        }
         return;
     }
     bProtocolFailed = true;

@@ -5,6 +5,8 @@
 #include "Components/TextRenderComponent.h"
 #include "Dom/JsonObject.h"
 #include "EngineUtils.h"
+#include "GameFramework/Pawn.h"
+#include "GameFramework/PlayerController.h"
 #include "Materials/MaterialInstanceDynamic.h"
 
 namespace
@@ -46,6 +48,40 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
     if (!bBound || (InspectionId != TEXT("launch_physical_0001") && InspectionId != TEXT("refresh_physical_0001")))
     {
         OutReason = TEXT("immutable_binding_or_inspection_id_invalid");
+        return false;
+    }
+
+    int32 PlayerControllerCount = 0;
+    int32 PlayerControllerWithPawnCount = 0;
+    int32 PawnCount = 0;
+    int32 Phase3InputPathCount = 0;
+    for (TActorIterator<APlayerController> It(GetWorld()); It; ++It)
+    {
+        ++PlayerControllerCount;
+        if (It->GetPawn() != nullptr)
+        {
+            ++PlayerControllerWithPawnCount;
+        }
+    }
+    for (TActorIterator<APawn> It(GetWorld()); It; ++It)
+    {
+        ++PawnCount;
+    }
+    for (TActorIterator<AActor> It(GetWorld()); It; ++It)
+    {
+        AActor* Candidate = *It;
+        if (Candidate != nullptr && Candidate->GetClass()->GetName().StartsWith(TEXT("SimultaneousPhysical")) &&
+            (Candidate->AutoReceiveInput != EAutoReceiveInput::Disabled || Candidate->InputComponent != nullptr))
+        {
+            ++Phase3InputPathCount;
+        }
+    }
+    if (PlayerControllerCount != 1 || PlayerControllerWithPawnCount != 0 ||
+        PawnCount != 0 || Phase3InputPathCount != 0)
+    {
+        OutReason = FString::Printf(
+            TEXT("phase3_player_input_isolation_failed_pc_%d_possessed_%d_pawn_%d_input_%d"),
+            PlayerControllerCount, PlayerControllerWithPawnCount, PawnCount, Phase3InputPathCount);
         return false;
     }
 

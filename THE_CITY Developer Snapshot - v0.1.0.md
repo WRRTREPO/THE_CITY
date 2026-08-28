@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.75`
+**Governing continuation:** `0.7.0-draft.76`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -159,7 +159,8 @@ named bounded implementation surface:
 - the release DAG, 44 artifact members, complete 110-entry release set, and
   self-excluding manifest contract pass the exact structural non-release
   document validator;
-- the validator's in-memory self-test rejects 29 extra, missing, duplicate,
+- the validator passes 11/11 exact checks and its in-memory self-test rejects
+  30/30 extra, missing, duplicate,
   reordered, contradictory, unbounded, altered, lifecycle-invalid,
   source-surface, or self-included mutations; and
 - only the exact four Python paths, eight Unreal paths, bounded dispatch branch,
@@ -221,11 +222,13 @@ Its specification is frozen under `SimultaneousPhysicalDomainsProof.v1` /
 `0.7.0-draft.72`; evidence is unsealed. Authority is limited to the four named
 Python paths, eight named Unreal paths, bounded `CityProofGameMode.cpp`
 dispatch branch, evidence path, 44-member artifact directory, and
-self-excluding 110-member manifest. The corrected validator rejects all 29
-declared adversarial mutations. The implementation candidate passes 33/33
-focused tests, 215/215 predecessor regressions, the UE 5.8 build, all 11 live
-witnesses, and release verification. Evidence remains unsealed and no capacity
-advancement follows before separate review.
+self-excluding 110-member manifest. The corrected validator binds the complete
+frozen specification bytes, passes 11/11 exact checks, and rejects all 30
+declared adversarial mutations. The forward-corrected implementation candidate
+passes 33/33 focused tests, 215/215 predecessor regressions, the UE 5.8 build,
+all 11 live witnesses, every frozen fault and authority surface, and release
+verification. Evidence remains unsealed and no capacity advancement follows
+before separate review.
 
 Current authority:
 

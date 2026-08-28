@@ -359,21 +359,28 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
         oracle = head_observation_fault_atomicity()
         self.assertEqual(tuple(oracle["fault_points"]), HEAD_OBSERVATION_FAULT_POINTS)
         self.assertEqual(len(oracle["cases"]), 9)
+        self.assertTrue(oracle["all_faults_executed"])
         self.assertTrue(all(case["guard_terminal_state"] == "failed_closed" for case in oracle["cases"]))
         self.assertTrue(all(case["canonical_H1"] == H1 for case in oracle["cases"]))
+        self.assertEqual(len(oracle["guard_illegal_transition_cases"]), 8)
+        self.assertTrue(all(case["rejected"] for case in oracle["guard_illegal_transition_cases"]))
 
     def test_26_refresh_fault_matrix_has_exact_pre_post_surface(self) -> None:
         oracle = refresh_fault_atomicity()
         self.assertEqual(tuple(oracle["fault_stages"]), REFRESH_FAULT_STAGES)
         self.assertEqual(len(oracle["cases"]), 2 * len(REFRESH_FAULT_STAGES))
+        self.assertTrue(oracle["all_faults_executed"])
+        self.assertTrue(all(case["validation_path"] == "execute_refresh_validation_path" for case in oracle["cases"]))
         self.assertTrue(all(not case["H1_materialization_receipt_accepted"] for case in oracle["cases"]))
         self.assertTrue(all(case["canonical_H1_unchanged"] for case in oracle["cases"]))
 
     def test_27_physical_observation_fault_matrix_is_exact(self) -> None:
         oracle = physical_observation_fault_atomicity()
         self.assertEqual(tuple(oracle["fault_stages"]), PHYSICAL_OBSERVATION_FAULT_STAGES)
-        self.assertEqual(len(oracle["cases"]), len(PHYSICAL_OBSERVATION_FAULT_STAGES))
-        self.assertTrue(all(case["H1_result"] == "invalid_and_halted" for case in oracle["cases"]))
+        self.assertEqual(len(oracle["cases"]), 2 * len(PHYSICAL_OBSERVATION_FAULT_STAGES))
+        self.assertEqual({case["head_role"] for case in oracle["cases"]}, {"H0", "H1"})
+        self.assertTrue(oracle["all_faults_executed"])
+        self.assertTrue(all(case["validation_path"] == "execute_physical_observation_validation" for case in oracle["cases"]))
 
     def test_28_stale_and_head_failure_witnesses_keep_H1(self) -> None:
         stale = stale_quarantine_witness()
@@ -386,6 +393,8 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
         oracle = current_head_authority_failures()
         self.assertEqual(oracle["case_count"], 37)
         self.assertEqual([case["case_id"] for case in oracle["cases"]], list(range(1, 38)))
+        self.assertTrue(oracle["all_real_validation_paths_executed"])
+        self.assertTrue(all(case["actual_validation_path"] and case["reason_code"] for case in oracle["cases"]))
         self.assertTrue(all(case["rejected"] and not case["canonical_authority_acquired"] for case in oracle["cases"]))
 
     def test_30_exact_directory_inventory_rejects_links_extras_and_hardlinks(self) -> None:

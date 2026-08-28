@@ -116,3 +116,36 @@ bool ASimultaneousPhysicalDomainRepresentationActor::PublishRepresentation(
     AccessLabel->SetVisibility(true, true);
     return true;
 }
+
+bool ASimultaneousPhysicalDomainRepresentationActor::InstallDiscardRequiredH0Poison(bool bPerturbed)
+{
+    if (AccessStateDiagnostic != TEXT("available") || !IsDiscardRequiredPoisonClear())
+    {
+        return false;
+    }
+    LocalActorIdentityPoison = bPerturbed ? TEXT("poison_actor_991") : TEXT("baseline_actor_7");
+    TopologyCachePoison = bPerturbed ? TEXT("poisoned_topology") : TEXT("baseline_topology");
+    RouteAccessCachePoison = TEXT("available");
+    PhysicsDiagnosticPoison = bPerturbed ? TEXT("poisoned_47") : TEXT("baseline_1");
+    bCollisionOpenPoison = true;
+    RouteMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+    return HasExactDiscardRequiredH0Poison(bPerturbed);
+}
+
+bool ASimultaneousPhysicalDomainRepresentationActor::HasExactDiscardRequiredH0Poison(bool bPerturbed) const
+{
+    return LocalActorIdentityPoison == (bPerturbed ? TEXT("poison_actor_991") : TEXT("baseline_actor_7")) &&
+        TopologyCachePoison == (bPerturbed ? TEXT("poisoned_topology") : TEXT("baseline_topology")) &&
+        RouteAccessCachePoison == TEXT("available") &&
+        PhysicsDiagnosticPoison == (bPerturbed ? TEXT("poisoned_47") : TEXT("baseline_1")) &&
+        bCollisionOpenPoison && RouteMesh != nullptr &&
+        RouteMesh->GetCollisionEnabled() == ECollisionEnabled::QueryOnly;
+}
+
+bool ASimultaneousPhysicalDomainRepresentationActor::IsDiscardRequiredPoisonClear() const
+{
+    return LocalActorIdentityPoison.IsEmpty() && TopologyCachePoison.IsEmpty() &&
+        RouteAccessCachePoison.IsEmpty() && PhysicsDiagnosticPoison.IsEmpty() &&
+        !bCollisionOpenPoison && RouteMesh != nullptr &&
+        RouteMesh->GetCollisionEnabled() == ECollisionEnabled::NoCollision;
+}

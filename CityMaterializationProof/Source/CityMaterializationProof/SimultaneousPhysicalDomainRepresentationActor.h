@@ -33,6 +33,9 @@ public:
     const UMaterialInstanceDynamic* GetPublishedRouteMaterial() const { return RouteMaterial; }
     const FString& GetPublishedDomainRole() const { return DomainRole; }
     const FString& GetPublishedAccessStateDiagnostic() const { return AccessStateDiagnostic; }
+    bool InstallDiscardRequiredH0Poison(bool bPerturbed);
+    bool HasExactDiscardRequiredH0Poison(bool bPerturbed) const;
+    bool IsDiscardRequiredPoisonClear() const;
 
 private:
     UPROPERTY(VisibleAnywhere)
@@ -58,4 +61,9 @@ private:
 
     FString DomainRole;
     FString AccessStateDiagnostic;
+    FString LocalActorIdentityPoison;
+    FString TopologyCachePoison;
+    FString RouteAccessCachePoison;
+    FString PhysicsDiagnosticPoison;
+    bool bCollisionOpenPoison = false;
 };
