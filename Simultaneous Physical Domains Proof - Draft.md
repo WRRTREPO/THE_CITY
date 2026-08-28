@@ -1,13 +1,14 @@
 # Simultaneous Physical Domains Proof
 
-**Version:** 0.1.0-draft.4
-**Status:** Final freeze review; not frozen; implementation prohibited
+**Version:** 0.1.0
+**Status:** Frozen specification; exact bounded Phase-3 implementation, evidence, and release verification authorized; evidence unsealed
 **Selected:** 2026-08-28
 **Advanced to freeze review:** 2026-08-28
+**Frozen:** 2026-08-28
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 **Latest sealed predecessor:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md)
 **Canonical source payload:** `CanonicalSpatialTopologyIdentityPayload.v1` / `0.7.0-draft.61`, reused byte-for-byte
-**Candidate proof-harness identity:** `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72` — not frozen
+**Frozen proof-harness identity:** `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`
 
 ## Question
 
@@ -59,23 +60,25 @@ sealed Phase-1 H0/H1 transition with a new physical-lifecycle question.
 selection:
   phase: 3
   proof: Simultaneous Physical Domains Proof
-  version: 0.1.0-draft.4
-  status: final_freeze_review
-  implementation_authority: none
-  unreal_source_change_authority: none
+  version: 0.1.0
+  status: frozen_specification
+  implementation_authority: bounded_phase_3_proof_only
+  unreal_source_change_authority: exact_frozen_phase_3_paths_only
   capacity_advancement: none
-  freeze_status: not_frozen
+  freeze_status: frozen
+  evidence_status: unsealed
 ```
 
-Opening this draft selects one risk for review. It does not authorize Python,
-Unreal, adapter, harness, test, evidence, artifact, release-manifest, README
-capacity, or production-architecture implementation.
+This reviewed freeze authorizes only the exact bounded Phase-3 proof,
+Unreal-adapter, harness, test, evidence, artifact, and release-verification
+surface declared below. It authorizes no capacity advancement, production
+architecture, or adjacent scope.
 
 ## Governing predecessor boundary
 
 ### Exercised predecessor evidence
 
-The candidate directly composes these exact sealed records:
+The frozen proof directly composes these exact sealed records:
 
 1. [Canonical Spatial Topology Identity Proof — v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md), for the exact two-site/one-route R0/H0 and R1/H1 payloads, the one access-only canonical mutation, detached mapping identity, raw-byte and canonical-hash verification, and representation/canonical identity separation.
 2. [Integrated Unreal Promotion-Unload-Repromotion Proof — v0.1.0](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md), only for receipt-verified Unreal materialization, process-root isolation, and canonical/operational identity separation.
@@ -139,7 +142,7 @@ proof_scope:
   external_inputs: none
   occupancy_materializations: none
   authoritative_random_draws: none
-  implementation_authority: none
+  implementation_authority: bounded_phase_3_proof_only
 ```
 
 `physical_domain` means one proof-local Unreal process, one disjoint process
@@ -188,7 +191,7 @@ successor_record: R1
 successor_record_hash: H1
 ```
 
-The implementation proof, if later authorized, must reproduce R1 byte-for-byte
+The authorized implementation proof must reproduce R1 byte-for-byte
 through the existing canonical resolver while both physical domains remain
 alive. Neither domain process, projection, local state, refresh state, Actor,
 receipt, timing, ordering, or diagnostic may enter boundary discovery, gate
@@ -1877,18 +1880,18 @@ The eventual source audit must establish:
 
 ## Exact release artifact DAG and self-excluding manifest
 
-This final-freeze candidate fixes the later release boundary now. The names
-below are reserved contract members, not authority to create or edit them while
-implementation authority remains `none`.
+This frozen specification fixes the implementation, evidence, and later
+release boundary. The names below are exact contract members; authority extends
+only to the mutable paths and bounded existing-source branch declared below.
 
 The review-time document validator is exactly
 `proof_kernel/validate_simultaneous_physical_domains_spec.py`. It checks this
-draft's state/disposition alignment, guard laws, proof-semantic input closure,
+specification's state/disposition alignment, guard laws, proof-semantic input closure,
 44 artifact names, and 110 unique self-excluding manifest members. It is
 specification QA only: it does not import or execute a Phase-3 runtime, produce
-proof evidence, grant implementation authority, or belong to the 44-member
-artifact directory, 110-member release manifest, or release DAG. The eventual
-prospective release verifier remains the separately frozen
+proof evidence, or belong to the 44-member
+artifact directory, 110-member release manifest, or release DAG. The authorized
+prospective release verifier is the frozen
 `proof_kernel/verify_simultaneous_physical_domains_release.py` member.
 
 Its default mode validates the active document. Its `--self-test` mode operates
@@ -1898,8 +1901,7 @@ contract mutations are rejected without writing a file.
 
 ### Exact evidence artifact members
 
-The implementation, if separately authorized, must populate exactly one
-directory:
+The authorized implementation must populate exactly one directory:
 
 `proof_kernel/SimultaneousPhysicalDomainsProofRecords/`
 
@@ -2090,19 +2092,47 @@ unreal_project_members:
   - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalRebindProbe.h
 ```
 
-The eight `SimultaneousPhysical*` Unreal source paths, four Phase-3 Python
-implementation/test/verifier paths, evidence document, artifact directory, and
-manifest are prospective members only. They do not exist by authority of this
-draft. If implementation is later authorized, only those new source paths plus
-the bounded Phase-3 dispatch branch in
-`CityMaterializationProof/Source/CityMaterializationProof/CityProofGameMode.cpp`
-may change. Every other existing source/project/config member above is a
-hash-bound dependency and must remain unchanged. Governing documents may change
-only to record the eventual reviewed freeze, evidence, seal, and capacity
-decision. The review-time document validator declared above is the sole
-non-release exception and may change only while this specification remains
-under review. Any other created or modified source path requires a return to
-specification review and a revised exact member set.
+The exact bounded implementation surface is:
+
+```yaml
+frozen_implementation_authority:
+  new_python_paths:
+    - proof_kernel/simultaneous_physical_domains.py
+    - proof_kernel/simultaneous_physical_domains_harness.py
+    - proof_kernel/test_simultaneous_physical_domains.py
+    - proof_kernel/verify_simultaneous_physical_domains_release.py
+  new_unreal_paths:
+    - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainCommandRouter.cpp
+    - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainCommandRouter.h
+    - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainProofAdapter.cpp
+    - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainProofAdapter.h
+    - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainRepresentationActor.cpp
+    - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainRepresentationActor.h
+    - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalRebindProbe.cpp
+    - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalRebindProbe.h
+  bounded_existing_source_change:
+    path: CityMaterializationProof/Source/CityMaterializationProof/CityProofGameMode.cpp
+    scope: phase_3_dispatch_branch_only
+  evidence_path: Simultaneous Physical Domains Proof Evidence - v0.1.0.md
+  artifact_directory: proof_kernel/SimultaneousPhysicalDomainsProofRecords/
+  artifact_member_count: 44
+  manifest_path: Simultaneous Physical Domains Proof - v0.1.0 SHA256SUMS.txt
+  manifest_member_count_excluding_manifest: 110
+  governing_document_changes: implementation_evidence_and_seal_records_only
+  all_other_existing_source_project_config_paths: hash_bound_unchanged
+  capacity_advancement: none
+```
+
+Only those four new Python paths, eight new `SimultaneousPhysical*` Unreal
+paths, the bounded Phase-3 dispatch branch in `CityProofGameMode.cpp`, the one
+evidence document, exact 44-member artifact directory, and self-excluding
+manifest are authorized. Every other existing source/project/config member
+above is a hash-bound dependency and must remain unchanged. Governing documents
+may change only to record implementation, evidence, and seal; any capacity
+decision requires separate review. The non-release document validator is
+frozen QA code and is not implementation authority. Any other created or
+modified source path requires a return to specification review and a revised
+exact member set.
 
 ### Self-excluding manifest contract
 
@@ -2163,12 +2193,12 @@ This proof does not authorize or prove:
 - randomness, stochastic identity, generalized planning, or Phase 4–6; or
 - production architecture of any kind.
 
-## Review gates before freeze
+## Frozen acceptance contract
 
-This draft may freeze only after review establishes:
+Freeze review accepted the following exact contract:
 
 ```yaml
-final_freeze_review:
+freeze_acceptance:
   proof_question: exact
   canonical_R0_R1_artifacts: exact_and_byte_bound
   phase_1_physical_lifecycle_noninheritance: explicit
@@ -2227,26 +2257,24 @@ final_freeze_review:
   exclusions: exact
 ```
 
-Draft.4 hardens the non-release document validator so its authority blocks,
-guard/state/disposition structures, permission matrix, proof-semantic closure,
-launch surface, artifact set, and manifest member set are exact rather than
-presence-only. Its in-memory self-test must reject every declared forbidden
-mutation. Draft.4 also names that validator as the sole pre-freeze QA-code
-exception. It retains draft.3's resolved physical guard, claim, input-closure,
-live-UE oracle, and exact 44/110 release contract without freezing the proof.
+Freeze review accepted the exact non-release document validator, including its
+structural authority blocks, guard/state/disposition structures, permission
+matrix, proof-semantic closure, launch surface, lifecycle wording, artifact
+set, manifest member set, and adversarial in-memory rejection tests. The frozen
+contract retains draft.3's physical guard, claim, input-closure, live-UE oracle,
+and exact 44/110 release boundary without claiming runtime evidence.
 
-Final freeze review must reject any hidden head-observation input, canonical
-dependency on the physical guard, receipt-only physical acceptance,
-non-independent probe, optional release member, alternate projection or refresh
-channel, ambiguous head-unconfirmed/stale/invalid/protocol-invalid disposition,
-misaligned synchronized claim permission, hidden proof-semantic process input,
-retained authoritative-derived H0 state, replaceable process identity, or unspecified
-local publication boundary. Passing review is not itself implementation
-authority.
+The authorized implementation must fail review for any hidden head-observation
+input, canonical dependency on the physical guard, receipt-only physical
+acceptance, non-independent probe, optional release member, alternate
+projection or refresh channel, ambiguous head-unconfirmed/stale/invalid/
+protocol-invalid disposition, misaligned synchronized claim permission, hidden
+proof-semantic process input, retained authoritative-derived H0 state,
+replaceable process identity, or unspecified local publication boundary.
 
-## Candidate acceptance statement
+## Frozen acceptance statement
 
-If a later frozen implementation passes every required gate, it may establish
+If the authorized implementation passes every required gate, it may establish
 only:
 
 > **Two process-isolated Unreal representation domains can remain
@@ -2267,7 +2295,19 @@ only:
 It may not establish multiplayer, networking, occupancy materialization,
 movement, streaming, or production physical-domain architecture.
 
-## Draft review history
+## Specification and draft review history
+
+### 0.1.0 — 2026-08-28
+
+- Accepted the corrected refresh-fault lifecycle wording and the validator's
+  rejection of old or equivalent pre-freeze runtime obligations.
+- Froze `Simultaneous Physical Domains Proof v0.1.0` under
+  `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`.
+- Authorized only the exact four Python paths, eight Unreal paths, bounded
+  `CityProofGameMode.cpp` dispatch branch, evidence path, 44-member artifact
+  directory, and self-excluding 110-member manifest declared above.
+- Kept evidence unsealed, capacity at v0.1.11, and every production or adjacent
+  scope unauthorized.
 
 ### 0.1.0-draft.4 — 2026-08-28
 
@@ -2349,17 +2389,18 @@ movement, streaming, or production physical-domain architecture.
 ## Current decision record
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.4
+working_unit: Simultaneous Physical Domains Proof v0.1.0 bounded implementation
 successor_selected: true
-specification_status: final_freeze_review
-freeze_status: not_frozen
-implementation_authority: none
+specification_status: frozen
+freeze_status: frozen
+implementation_authority: bounded_phase_3_proof_only
 canonical_capacity_change: none
+evidence_status: unsealed
 latest_sealed_capacity: THE_CITY Development Capacity and Progress Note v0.1.11
 ```
 
-The review-time document validator is the sole pre-freeze QA-code exception.
-No Phase-3 runtime, Unreal, adapter, harness, proof test, evidence, artifact,
-release-manifest, or production code may be written until a separately reviewed
-freeze fixes the complete contract and explicitly grants bounded implementation
-authority.
+The specification is frozen. Implementation authority is limited to the exact
+Phase-3 proof paths and bounded dispatch branch declared by this contract. It
+permits the named proof implementation, Unreal adapter, harness, tests,
+evidence, artifacts, and release verification only. It grants no capacity
+advancement, production architecture, or adjacent spatial scope.

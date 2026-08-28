@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the unfrozen Phase-3 specification's mechanical review invariants.
+"""Validate the frozen Phase-3 specification's mechanical contract invariants.
 
 This is a review-time document validator. It does not import or execute a
 Phase-3 proof implementation and is intentionally outside the prospective
@@ -25,20 +25,22 @@ THIS_VALIDATOR = "proof_kernel/validate_simultaneous_physical_domains_spec.py"
 EXPECTED_SELECTION = (
     ("phase", "3"),
     ("proof", "Simultaneous Physical Domains Proof"),
-    ("version", "0.1.0-draft.4"),
-    ("status", "final_freeze_review"),
-    ("implementation_authority", "none"),
-    ("unreal_source_change_authority", "none"),
+    ("version", "0.1.0"),
+    ("status", "frozen_specification"),
+    ("implementation_authority", "bounded_phase_3_proof_only"),
+    ("unreal_source_change_authority", "exact_frozen_phase_3_paths_only"),
     ("capacity_advancement", "none"),
-    ("freeze_status", "not_frozen"),
+    ("freeze_status", "frozen"),
+    ("evidence_status", "unsealed"),
 )
 EXPECTED_CURRENT_DECISION = (
-    ("working_unit", "Simultaneous Physical Domains Proof v0.1.0-draft.4"),
+    ("working_unit", "Simultaneous Physical Domains Proof v0.1.0 bounded implementation"),
     ("successor_selected", "true"),
-    ("specification_status", "final_freeze_review"),
-    ("freeze_status", "not_frozen"),
-    ("implementation_authority", "none"),
+    ("specification_status", "frozen"),
+    ("freeze_status", "frozen"),
+    ("implementation_authority", "bounded_phase_3_proof_only"),
     ("canonical_capacity_change", "none"),
+    ("evidence_status", "unsealed"),
     (
         "latest_sealed_capacity",
         "THE_CITY Development Capacity and Progress Note v0.1.11",
@@ -133,6 +135,7 @@ EXPECTED_BLOCK_SHA256 = {
     "launch": "5f9f1f13ec37217bc6c95fae1753f2074f00e7630c420f1f330ea0ec9e539f30",
     "artifact_block": "931105d9b0f7bfbce84a3b93eef330185f19e80724e52b6a9bf17790990b2cee",
     "member_block": "cf110b78f78c6c96df045744600435a22170f4aab4d94946fdd7fd2f84b4802b",
+    "implementation_authority": "b5434b2c4497b973c37f308c01247b1c9c8cad4dcaa12c95359478524b9ca3cc",
 }
 EXPECTED_ARTIFACT_LIST_SHA256 = "f46388d2f0842121de2a88ff6931b095f8a29eadf727833bb7f0eef4d894ac5c"
 EXPECTED_NON_ARTIFACT_MEMBER_LIST_SHA256 = (
@@ -296,9 +299,19 @@ def validate_text(text: str) -> list[str]:
     decision = parse_flat_mapping(decision_block, "current decision")
     if tuple(decision) != EXPECTED_CURRENT_DECISION:
         raise ValidationError(f"current decision {decision!r} != {EXPECTED_CURRENT_DECISION!r}")
-    if "**Version:** 0.1.0-draft.4" not in text:
-        raise ValidationError("active version header is not Draft.4")
-    checks.append("authority: exact Draft.4 selection and decision blocks; implementation none")
+    if "**Version:** 0.1.0" not in text:
+        raise ValidationError("active version header is not frozen v0.1.0")
+    checks.append("authority: frozen v0.1.0; bounded implementation; capacity none")
+
+    authority_surface = fenced_block_after(text, "The exact bounded implementation surface is:")
+    if top_level_keys(authority_surface) != ["frozen_implementation_authority"]:
+        raise ValidationError("frozen implementation authority root is not exact")
+    require_exact_digest(
+        authority_surface,
+        "implementation_authority",
+        "frozen implementation authority block",
+    )
+    checks.append("implementation surface: exact bounded paths and no capacity advancement")
 
     state_block = fenced_block_after(text, "The only admitted head states are:")
     actual_states = tuple(top_level_keys(state_block))
@@ -406,14 +419,20 @@ def validate_text(text: str) -> list[str]:
         )
     checks.append("release manifest: exact 44 + 66 = 110 set; self-exclusions enforced")
 
-    required_exception = (
-        "The review-time document validator is the sole pre-freeze QA-code exception."
+    required_frozen_authority = (
+        "The specification is frozen. Implementation authority is limited to the exact "
+        "Phase-3 proof paths and bounded dispatch branch declared by this contract."
     )
-    if text.count(required_exception) != 1:
-        raise ValidationError("validator QA-code exception must occur exactly once")
+    if normalized_text.count(required_frozen_authority) != 1:
+        raise ValidationError("frozen bounded-authority sentence must occur exactly once")
+    if (
+        "The review-time document validator is the sole pre-freeze QA-code exception."
+        in normalized_text
+    ):
+        raise ValidationError("obsolete pre-freeze validator exception remains active")
     if "No code may be written for this proof until" in text:
-        raise ValidationError("unqualified no-code sentence conflicts with validator exception")
-    checks.append("authority prose: sole QA-code exception and runtime prohibition aligned")
+        raise ValidationError("obsolete pre-freeze no-code sentence remains")
+    checks.append("authority prose: frozen bounded implementation and unsealed evidence aligned")
 
     return checks
 
@@ -463,6 +482,7 @@ def swap_first_two_list_members(block: str) -> str:
 
 def self_test_mutations(text: str) -> list[tuple[str, str]]:
     selection_marker = "## Selection and authority state"
+    authority_surface_marker = "The exact bounded implementation surface is:"
     guard_marker = "Its exact states are:"
     semantic_marker = "The exact proof-semantic closure is:"
     artifact_marker = "That directory must contain exactly these 44 regular files"
@@ -492,30 +512,42 @@ def self_test_mutations(text: str) -> list[tuple[str, str]]:
             mutate_block_replace(
                 text,
                 selection_marker,
-                "  implementation_authority: none\n",
-                "  implementation_authority: none\n  implementation_authority: phase_3_runtime\n",
+                "  implementation_authority: bounded_phase_3_proof_only\n",
+                "  implementation_authority: bounded_phase_3_proof_only\n"
+                "  implementation_authority: unbounded_production_runtime\n",
             ),
         )
     )
     mutations.append(
         (
-            "granted_implementation_authority",
+            "unbounded_implementation_authority",
             mutate_block_replace(
                 text,
                 selection_marker,
-                "  implementation_authority: none",
-                "  implementation_authority: phase_3_runtime",
+                "  implementation_authority: bounded_phase_3_proof_only",
+                "  implementation_authority: unbounded_production_runtime",
             ),
         )
     )
     mutations.append(
         (
-            "frozen_phase_3_authority_state",
+            "unfrozen_phase_3_authority_state",
             mutate_block_replace(
                 text,
                 selection_marker,
-                "  freeze_status: not_frozen",
                 "  freeze_status: frozen",
+                "  freeze_status: not_frozen",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "additional_authorized_source_path",
+            mutate_block_replace(
+                text,
+                authority_surface_marker,
+                "  new_python_paths:\n",
+                "  new_python_paths:\n    - proof_kernel/forbidden_extra_runtime.py\n",
             ),
         )
     )

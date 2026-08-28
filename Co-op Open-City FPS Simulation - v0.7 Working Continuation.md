@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.72
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and remains in final freeze review under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. Draft.4 structurally closes the non-release document validator, adds 24 adversarial in-memory rejection tests, and names that validator as the sole pre-freeze QA-code exception. The proof is not frozen. No Phase-3 runtime, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.73
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. Only its exact four Python paths, eight Unreal paths, bounded `CityProofGameMode.cpp` dispatch branch, evidence path, 44-member artifact directory, and self-excluding 110-member manifest are authorized for implementation, evidence, and release verification. Evidence remains unsealed; no Phase-3 behavior or capacity advancement is claimed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -85,23 +85,24 @@ production topology, World Partition, streaming, networking, city expansion,
 and adjacent scope remain unauthorized.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the
-sole active successor and is in final freeze review. It asks
+v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is frozen under
+`SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. It asks
 whether two process-isolated Unreal representation domains can remain alive
 across the exact sealed Phase-1 H0-to-H1 access transition, then independently
 rebind to H1 while an H0 representation is mechanically stale and incapable of
 current-head authority. Both exact detached domain projections include one
 distinct canonical site scope and the shared `topology_route_0001` access fact.
-The candidate explicitly does not inherit Phase 1's source-destruction
+The frozen proof explicitly does not inherit Phase 1's source-destruction
 lifecycle, create a new canonical payload or mutation, materialize occupancy,
-or exercise Q/BQ/BEXT. Draft.4 keeps the head observer harness-private, defines
+or exercise Q/BQ/BEXT. The frozen contract keeps the head observer harness-private, defines
 the exact guard close/reopen/failed states and guard-open terminal disposition,
 aligns synchronized representation-only claims, audits the exact proof-semantic
 process inputs, requires independent live-UE component observation after each
 materialization, and preserves the exact release boundary. Its review-only
-validator structurally binds those active blocks and rejects its declared
-in-memory adversarial mutations. It remains unfrozen; no Phase-3 runtime or
-Unreal source change is authorized.
+validator structurally binds those active blocks and rejects 25 declared
+in-memory adversarial mutations. Only the exact bounded implementation surface
+named by the frozen contract is authorized. Evidence is unsealed, Phase-3
+runtime behavior is not yet proven, and capacity remains unchanged.
 
 ## Product framing
 
@@ -181,6 +182,24 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.73 — 2026-08-28
+
+- Accepted the final Draft.4 lifecycle correction after the Draft.4 document
+  validator passed 9/9, rejected 24/24 adversarial mutations, and the complete
+  predecessor regression suite passed 215/215 while implementation authority
+  remained `none`.
+- Froze [Simultaneous Physical Domains Proof —
+  v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) under
+  `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`.
+- Granted exact bounded implementation authority only for the four named
+  Python paths, eight named Unreal paths, bounded `CityProofGameMode.cpp`
+  dispatch branch, evidence path, 44-member artifact directory, and
+  self-excluding 110-member manifest. The frozen validator now rejects 25/25
+  adversarial mutations, including an extra authorized source path.
+- Kept evidence unsealed, Development Capacity v0.1.11 governing, and Phase-3
+  capacity, production architecture, multiplayer, networking, movement,
+  streaming, and adjacent scope unchanged.
 
 ### 0.7.0-draft.72 — 2026-08-28
 
@@ -970,24 +989,21 @@ predecessor evidence.
 Canonical Occupancy Transition Proof v0.1.0 is complete and sealed in its exact
 bounded canonical scope.
 
-Simultaneous Physical Domains Proof v0.1.0-draft.4 is the sole current working
-unit. It is in final freeze review and is not frozen. Review must verify the exact sealed
-Phase-1 H0/H1 reuse, noninheritance of Phase 1's physical lifecycle, two live
-process-isolated domain projections, shared-route representation, operational
-head-state machine, harness-private current-head observer, canonically inert
-head-qualified physical guard, terminal guard-open control, aligned
-representation-only claim law, H1-only refresh reconstruction and retained-local whitelist,
-independent live-UE available/blocked oracle, uninterrupted L0–L4B process-
-birth evidence, exact proof-semantic input closure and stdin/three-file refresh
-mechanism, exact release DAG/member set/manifest, quarantined stale execution,
-atomic refresh boundary, asymmetric failure, isolation, current-head rejection
-surface, replay, provenance, source audit, structurally exact validator, and
-adversarial self-tests before freeze or implementation may be considered.
+Simultaneous Physical Domains Proof v0.1.0 bounded implementation is the sole
+current working unit. The specification is frozen; evidence remains unsealed.
+Implementation must stay within its exact four Python paths, eight Unreal
+paths, bounded `CityProofGameMode.cpp` dispatch branch, evidence path,
+44-member artifact directory, and self-excluding 110-member manifest. It must
+realize the frozen Phase-1 H0/H1 reuse, physical-lifecycle noninheritance,
+two-live-process projections, head-state/guard laws, H1-only refresh,
+independent live-UE oracle, continuous process-birth evidence, exact
+proof-semantic closure, fault witnesses, isolation, replay, provenance, source
+audit, and release verification without changing any hash-bound dependency.
 
-Do not implement the candidate or begin stochastic identity, 2+2 player
-topology, networking, live input collection, transport semantics, physical
+Do not advance capacity or begin stochastic identity, 2+2 player topology,
+networking, live input collection, transport semantics, physical
 movement, derived travel time, navigation, pathfinding, production topology,
 World Partition, streaming, autonomous batch members, retry/re-admission,
 randomness, generalized resolver behavior, additional input classes,
 production Bridge topology, or city-scale architecture without a separate
-reviewed freeze and explicit authority.
+reviewed specification and explicit authority.

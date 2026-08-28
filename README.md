@@ -7,9 +7,9 @@ strategic authority.
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
 **Current sealed proof record:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md).
-The governing continuation is [v0.7.0-draft.72](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
-[Simultaneous Physical Domains Proof v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md)
-is the sole active successor and is in final freeze review. It
+The governing continuation is [v0.7.0-draft.73](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+[Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md)
+is frozen under `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. It
 reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
 process-isolated Unreal representations to remain alive across the commit and
 obey one fail-closed harness-private current-head observer and
@@ -19,10 +19,11 @@ guard-open control ends failed-closed after canonical H1 still commits. Refresh
 rebuilds canonical-derived representation facts only from exact H1 plus the exact projection, while a
 separate live-UE probe must observe `available` at H0 and `blocked` after H1.
 The exact process-liveness, proof-semantic-input, release-DAG, member-set, and
-manifest contracts are fixed for final review and pass the exact structural
-document validator plus its 24 adversarial self-tests. That review-only
-validator is the sole pre-freeze QA-code exception. The proof is not frozen. No
-Phase-3 runtime or capacity advancement is authorized.
+manifest contracts are frozen and pass the exact structural document validator
+plus its 25 adversarial self-tests. Implementation authority is limited to the
+exact named Phase-3 paths and bounded dispatch branch. Evidence remains
+unsealed, no Phase-3 runtime behavior is yet proven, and Development Capacity
+v0.1.11 is unchanged.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -88,7 +89,7 @@ The current capacity record is [THE_CITY Development Capacity and Progress Note 
 
 ## Verification
 
-Validate the active Phase-3 specification contract without executing a Phase-3
+Validate the frozen Phase-3 specification contract without executing a Phase-3
 runtime:
 
 ```sh

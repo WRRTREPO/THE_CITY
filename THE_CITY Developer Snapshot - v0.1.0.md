@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.72`
+**Governing continuation:** `0.7.0-draft.73`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -112,29 +112,32 @@ phase_2_canonical_occupancy_transition:
 
 phase_3_simultaneous_physical_domains:
   selected: true
-  specification: v0.1.0-draft.4_final_freeze_review
-  frozen: false
-  implementation: prohibited
+  specification: v0.1.0_frozen
+  frozen: true
+  frozen_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1/0.7.0-draft.72
+  implementation: bounded_phase_3_proof_only
+  evidence: unsealed
+  capacity_advancement: none
 ```
 
 Phase 1 established what canonical places and their relation are. Phase 2
 established how one subject's settled occupancy can lawfully change between
-them. Phase 3 is now selected and in final freeze review, but is not frozen. It asks
-whether
+them. Phase 3 is frozen for exact bounded implementation, with evidence still
+unsealed. It asks whether
 two process-isolated Unreal representation domains can remain simultaneously
 alive against one canonical head, survive the exact sealed Phase-1 H0-to-H1
 access transition without participating in it, and independently rebind while
 an H0 representation is mechanically stale against H1.
 
-The candidate explicitly does not inherit Phase 1's physical lifecycle. Phase
+The frozen contract explicitly does not inherit Phase 1's physical lifecycle. Phase
 1 destroyed its source representation before H1; Phase 3 requires the same two
 operational process instances to remain alive across the commit. Domain A is
 detached-representation-scoped to `topology_site_0001`, domain B to
 `topology_site_0002`, and both projections include
 `topology_route_0001`. Site scope is not canonical occupancy.
 
-Draft.4 preserves the resolved contract and hardens review QA without granting
-implementation:
+The frozen v0.1.0 contract preserves the resolved semantics and grants only its
+named bounded implementation surface:
 
 - the exact H1 observer is harness-private and no derived head input reaches
   Unreal;
@@ -156,9 +159,12 @@ implementation:
 - the release DAG, 44 artifact members, complete 110-entry release set, and
   self-excluding manifest contract pass the exact structural non-release
   document validator;
-- the validator's in-memory self-test rejects 21 extra, missing, duplicate,
-  reordered, contradictory, granted, altered, or self-included mutations. It is
-  the sole pre-freeze QA-code exception and implements no Phase-3 runtime.
+- the validator's in-memory self-test rejects 25 extra, missing, duplicate,
+  reordered, contradictory, unbounded, altered, lifecycle-invalid,
+  source-surface, or self-included mutations; and
+- only the exact four Python paths, eight Unreal paths, bounded dispatch branch,
+  evidence path, artifact directory, and manifest are authorized. Capacity and
+  adjacent scope remain closed.
 
 ## Exact current proof envelope
 
@@ -209,26 +215,25 @@ The current corpus does not establish:
 
 ## Development frontier
 
-The active working unit is [Simultaneous Physical Domains Proof —
-v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
-final freeze review but not frozen. Review must verify its exact detached
-projections, harness-private current-head observation, canonically inert
-physical guard, H1-only reconstruction and retention whitelist, independent
-live-UE rebind oracle, uninterrupted process-birth witness, exact
-proof-semantic-input and refresh mechanism, exact release DAG/member/manifest contract, physical
-head-state machine, stale local execution quarantine, refresh publication
-boundary, asymmetric failure, isolation, provenance, replay, and current-head
-rejection surface before freeze may be considered.
-The exact document validator and all 24 adversarial self-tests must also pass.
+The active working unit is the bounded implementation of [Simultaneous Physical
+Domains Proof — v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md).
+Its specification is frozen under `SimultaneousPhysicalDomainsProof.v1` /
+`0.7.0-draft.72`; evidence is unsealed. Authority is limited to the four named
+Python paths, eight named Unreal paths, bounded `CityProofGameMode.cpp`
+dispatch branch, evidence path, 44-member artifact directory, and
+self-excluding 110-member manifest. The frozen validator rejects all 25
+declared adversarial mutations. No runtime behavior or capacity advancement is
+yet proven.
 
 Current authority:
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.4
+working_unit: Simultaneous Physical Domains Proof v0.1.0 bounded implementation
 successor_selected: true
-specification_status: final_freeze_review
-freeze_status: not_frozen
-implementation_authority: none
+specification_status: frozen
+freeze_status: frozen
+implementation_authority: bounded_phase_3_proof_only
+evidence_status: unsealed
 governing_record_change_from_this_note: none
 capacity_change_from_this_note: none
 ```
