@@ -159,7 +159,7 @@ named bounded implementation surface:
 - the release DAG, 44 artifact members, complete 110-entry release set, and
   self-excluding manifest contract pass the exact structural non-release
   document validator;
-- the validator's in-memory self-test rejects 25 extra, missing, duplicate,
+- the validator's in-memory self-test rejects 29 extra, missing, duplicate,
   reordered, contradictory, unbounded, altered, lifecycle-invalid,
   source-surface, or self-included mutations; and
 - only the exact four Python paths, eight Unreal paths, bounded dispatch branch,
