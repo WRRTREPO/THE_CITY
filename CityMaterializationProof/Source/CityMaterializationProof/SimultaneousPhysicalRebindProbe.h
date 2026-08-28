@@ -20,6 +20,7 @@ public:
     bool BindProcessIdentity(const FSPDImmutableProcessBinding& Binding);
     bool InspectPublishedRoute(
         const FString& InspectionId,
+        FSPDInjectedFaultPlan* FaultPlan,
         TSharedPtr<FJsonObject>& OutObservation,
         FString& OutReason) const;
 

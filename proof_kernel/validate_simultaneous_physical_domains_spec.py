@@ -17,23 +17,25 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SPEC = ROOT / "Simultaneous Physical Domains Proof - Draft.md"
+SPEC = ROOT / "Simultaneous Physical Domains Proof - v0.1.1.md"
 ARTIFACT_ROOT = "proof_kernel/SimultaneousPhysicalDomainsProofRecords"
-MANIFEST = "Simultaneous Physical Domains Proof - v0.1.0 SHA256SUMS.txt"
+MANIFEST = "Simultaneous Physical Domains Proof - v0.1.1 SHA256SUMS.txt"
 THIS_VALIDATOR = "proof_kernel/validate_simultaneous_physical_domains_spec.py"
 EXPECTED_COMPLETE_SPEC_SHA256 = (
-    "1297cdaa039d692534f2a3d133de5ad1c90d59c28578b78f6bf119750ae6be4e"
+    "d543ca99a248a0df03216b795911cf0c5d9f44d17d68f9b974717fc3263cd31e"
 )
-EXPECTED_VERSION_HEADER = "**Version:** 0.1.0"
+EXPECTED_VERSION_HEADER = "**Version:** 0.1.1"
 EXPECTED_STATUS_HEADER = (
-    "**Status:** Frozen specification; exact bounded Phase-3 implementation, "
-    "evidence, and release verification authorized; evidence unsealed"
+    "**Status:** Frozen corrective specification; exact bounded Phase-3 v0.1.1 "
+    "implementation, evidence reacquisition, and release verification authorized; "
+    "evidence unsealed"
 )
 EXPECTED_OPENING_AUTHORITY_PROSE = (
-    "This reviewed freeze authorizes only the exact bounded Phase-3 proof, "
-    "Unreal-adapter, harness, test, evidence, artifact, and release-verification "
-    "surface declared below. It authorizes no capacity advancement, production "
-    "architecture, or adjacent scope."
+    "This operator-authorized corrective freeze supersedes v0.1.0 only for the "
+    "proof-local execution and evidence channels declared by this document. It "
+    "authorizes only the exact bounded Phase-3 proof, Unreal-adapter, harness, "
+    "test, evidence, artifact, and release-verification surface declared below. "
+    "It authorizes no capacity advancement, production architecture, or adjacent scope."
 )
 EXPECTED_TERMINAL_AUTHORITY_PROSE = (
     "The specification is frozen. Implementation authority is limited to the exact "
@@ -46,7 +48,7 @@ EXPECTED_TERMINAL_AUTHORITY_PROSE = (
 EXPECTED_SELECTION = (
     ("phase", "3"),
     ("proof", "Simultaneous Physical Domains Proof"),
-    ("version", "0.1.0"),
+    ("version", "0.1.1"),
     ("status", "frozen_specification"),
     ("implementation_authority", "bounded_phase_3_proof_only"),
     ("unreal_source_change_authority", "exact_frozen_phase_3_paths_only"),
@@ -55,7 +57,7 @@ EXPECTED_SELECTION = (
     ("evidence_status", "unsealed"),
 )
 EXPECTED_CURRENT_DECISION = (
-    ("working_unit", "Simultaneous Physical Domains Proof v0.1.0 bounded implementation"),
+    ("working_unit", "Simultaneous Physical Domains Proof v0.1.1 corrective bounded implementation"),
     ("successor_selected", "true"),
     ("specification_status", "frozen"),
     ("freeze_status", "frozen"),
@@ -84,7 +86,7 @@ EXPECTED_GUARD_STATES = (
 EXPECTED_SEMANTIC_GROUPS = (
     "immutable_process_binding",
     "adapter_launch_tuple",
-    "stdin_commands_in_exact_order",
+    "stdin_command_sequences",
     "adapter_refresh_tuple",
     "probe_live_state",
     "executable_and_project_dependencies",
@@ -151,16 +153,21 @@ OBLIGATION_TERMS = re.compile(
 EXPECTED_BLOCK_SHA256 = {
     "head_state": "40e676d86da83ea8de39c88e6507663a01c0f382d4e3337e2fe9d4ef9b91b9f8",
     "guard": "802007f0e1a21d56b98e071a66bed25dea43410b324f2e1b5902b296382d3730",
-    "disposition": "87a3fa65127cfbd4bae85a2f5fb5c86ed62011917219a937c0e68b6f784d1b3a",
-    "semantic": "c02b3d39c7e7c290d48e68a0aa5ea1d6794197e2a521990d86cb8dafaaaf5bbc",
+    "disposition": "31545989f13864e346fdea9fed9c127268276f017f07176236e7281c3c827969",
+    "semantic": "b5415221c80bcabb0ee93f0c5dcb5740096e3e0b074ffd40d9a0849f16d1c01a",
     "launch": "5f9f1f13ec37217bc6c95fae1753f2074f00e7630c420f1f330ea0ec9e539f30",
     "artifact_block": "931105d9b0f7bfbce84a3b93eef330185f19e80724e52b6a9bf17790990b2cee",
-    "member_block": "cf110b78f78c6c96df045744600435a22170f4aab4d94946fdd7fd2f84b4802b",
-    "implementation_authority": "b5434b2c4497b973c37f308c01247b1c9c8cad4dcaa12c95359478524b9ca3cc",
+    "member_block": "0e1b797dea66bee3279f1f036863b8ef755bb6289a23b6007b3fac08a7ad7a82",
+    "implementation_authority": "123927918207b0701938c90a7980d1aea9ee6c6bdccd00f2386c572a96bf4443",
+    "w3_command": "8c833fa0d4c2087edb3f91f344e7d4fe1f3ba97951aa5baeed41b8e8268d2039",
+    "w3_observation": "6f062680bf1ffa4ce0b085513289d2194edbfc3799ed574a57827296f57828e9",
+    "fault_arm": "3133bbe471b85a14351634ff5386e60c998d58fdb9787f64f75a55b3704c19fa",
+    "authority_actions": "d9a06ab236bbd80a5b2cbdce3827786d16bdba9810500f832bbe4126755b45c2",
+    "canonical_measurement": "0c2aa02146f4c25867436a3dd47021de60feb448c7c411551ba65c6fc477d20f",
 }
 EXPECTED_ARTIFACT_LIST_SHA256 = "f46388d2f0842121de2a88ff6931b095f8a29eadf727833bb7f0eef4d894ac5c"
 EXPECTED_NON_ARTIFACT_MEMBER_LIST_SHA256 = (
-    "a2422bee7f6bf1d0ea70531452b640fe1b02fdd0c879894c57c172ceaa1773ef"
+    "d1f5c142a2bde633e13dc2354d26ec15a8d12ac380234e6e55f97a25307766a4"
 )
 
 
@@ -412,6 +419,8 @@ def validate_text(text: str) -> list[str]:
             f"proof-semantic groups {semantic_groups!r} != {EXPECTED_SEMANTIC_GROUPS!r}"
         )
     require_exact_digest(semantic_block, "semantic", "proof-semantic input block")
+    if "  semantic_command_line_selectors: []" not in semantic_block:
+        raise ValidationError("command-line semantic selector closure is not empty")
     launch_block = fenced_block_after(text, "The complete launch-surface audit is exact:")
     require_exact_digest(launch_block, "launch", "launch-surface block")
     for impossible_literal in (
@@ -422,6 +431,56 @@ def validate_text(text: str) -> list[str]:
         if impossible_literal in text:
             raise ValidationError(f"impossible process-visibility claim remains: {impossible_literal}")
     checks.append("proof-semantic and launch surfaces: exact ordered structures")
+
+    corrective_blocks = (
+        (
+            "w3_command", "one local-step command to each original W3 process:",
+            ("command_schema", "proof_scenario", "domain_role", "operation", "step_id"),
+        ),
+        (
+            "w3_observation", "increments it by\nexactly one, and emits:",
+            (
+                "observation_schema", "proof_scenario", "domain_role",
+                "operational_process_instance_id", "process_binding_raw_sha256",
+                "step_id", "step_name", "counter_before", "counter_after",
+                "represented_hash_before", "represented_hash_after",
+                "published_actor_identity_unchanged", "materialization_receipt_count_delta",
+                "canonical_evidence_count_delta", "canonical_scheduling_count_delta",
+                "canonical_mutation_count_delta", "canonical_truth_claim_count_delta",
+                "observation_source",
+            ),
+        ),
+        (
+            "fault_arm", "the harness sends one fault-arm command:",
+            (
+                "command_schema", "proof_scenario", "domain_role", "operation",
+                "fault_run_id", "fault_surface", "fault_stage", "fault_edge",
+                "target_head_role",
+            ),
+        ),
+        (
+            "canonical_measurement", "its history surfaces into this snapshot:",
+            (
+                "snapshot_schema", "record_raw_sha256", "record_canonical_hash",
+                "authoritative_ledger_raw_sha256", "authoritative_ledger_entry_count",
+                "canonical_ancestry_raw_sha256", "future_schedule_raw_sha256",
+                "future_schedule_entry_count", "canonical_mutation_count",
+            ),
+        ),
+    )
+    for digest_key, marker, expected_fields in corrective_blocks:
+        block = fenced_block_after(text, marker)
+        require_exact_digest(block, digest_key, digest_key.replace("_", " "))
+        parsed = parse_flat_mapping(block, digest_key.replace("_", " "))
+        if tuple(key for key, _ in parsed) != expected_fields:
+            raise ValidationError(f"{digest_key} exact field structure drift")
+    authority_actions = fenced_block_after(text, "exact case-ID-to-action table:")
+    require_exact_digest(authority_actions, "authority_actions", "authority action table")
+    action_rows = re.findall(r"^  ([0-9]+): ([a-zA-Z0-9_]+)$", authority_actions, re.MULTILINE)
+    if [int(case_id) for case_id, _ in action_rows] != list(range(1, 38)):
+        raise ValidationError("authority action table must contain exact ordered IDs 1 through 37")
+    require_unique([action for _, action in action_rows], "authority action IDs")
+    checks.append("corrective channels: exact W3, fault-arm, 37 actions, and canonical measurement")
 
     normalized_text = re.sub(r"\s+", " ", text)
     if normalized_text.count(REQUIRED_REFRESH_FAULT_LIFECYCLE) != 1:
@@ -456,13 +515,13 @@ def validate_text(text: str) -> list[str]:
     )
     governing_members = list_members(member_block)
     require_exact_digest(member_block, "member_block", "non-artifact member block")
-    if len(governing_members) != 66:
-        raise ValidationError(f"non-artifact manifest count {len(governing_members)} != 66")
+    if len(governing_members) != 67:
+        raise ValidationError(f"non-artifact manifest count {len(governing_members)} != 67")
     require_unique(governing_members, "non-artifact manifest members")
     artifact_paths = [f"{ARTIFACT_ROOT}/{name}" for name in artifacts]
     manifest_members = artifact_paths + governing_members
-    if len(manifest_members) != 110:
-        raise ValidationError(f"manifest count {len(manifest_members)} != 110")
+    if len(manifest_members) != 111:
+        raise ValidationError(f"manifest count {len(manifest_members)} != 111")
     require_unique(manifest_members, "complete manifest members")
     if MANIFEST in manifest_members:
         raise ValidationError("self-excluding manifest includes itself")
@@ -474,7 +533,7 @@ def validate_text(text: str) -> list[str]:
             "ordered non-artifact member list digest "
             f"{member_digest} != {EXPECTED_NON_ARTIFACT_MEMBER_LIST_SHA256}"
         )
-    checks.append("release manifest: exact 44 + 66 = 110 set; self-exclusions enforced")
+    checks.append("release manifest: exact 44 + 67 = 111 set; self-exclusions enforced")
 
     opening_authority = normalized_prose_after_fenced_block(
         text,
@@ -530,7 +589,7 @@ def guard_reordered(block: str) -> str:
 def semantic_reordered(block: str) -> str:
     first = block.find("  immutable_process_binding:\n")
     second = block.find("  adapter_launch_tuple:\n")
-    third = block.find("  stdin_commands_in_exact_order:\n")
+    third = block.find("  stdin_command_sequences:\n")
     if min(first, second, third) < 0 or not first < second < third:
         raise AssertionError("semantic self-test could not isolate first two groups")
     return block[:first] + block[second:third] + block[first:second] + block[third:]
@@ -632,8 +691,8 @@ def self_test_mutations(text: str) -> list[tuple[str, str]]:
             "unbounded_opening_authority_prose",
             replace_once(
                 text,
-                "This reviewed freeze authorizes only the exact bounded Phase-3 proof,",
-                "This reviewed freeze authorizes unbounded Phase-3 production runtime,",
+                "authorizes only the exact bounded Phase-3 proof,",
+                "authorizes unbounded Phase-3 production runtime,",
             ),
         )
     )
@@ -756,6 +815,63 @@ def self_test_mutations(text: str) -> list[tuple[str, str]]:
         (
             "reordered_positive_semantic_groups",
             rewrite_fenced_block(text, semantic_marker, semantic_reordered),
+        )
+    )
+    mutations.append(
+        (
+            "hidden_command_line_fault_selector",
+            mutate_block_replace(
+                text,
+                semantic_marker,
+                "  semantic_command_line_selectors: []",
+                "  semantic_command_line_selectors:\n    - hidden_fault_stage_selector",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "missing_W3_counter_after",
+            mutate_block_replace(
+                text,
+                "increments it by\nexactly one, and emits:",
+                "counter_after: counter_before_plus_1\n",
+                "",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "fault_arm_targets_domain_B",
+            mutate_block_replace(
+                text,
+                "the harness sends one fault-arm command:",
+                "domain_role: domain_A",
+                "domain_role: domain_B",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "swapped_authority_actions",
+            mutate_block_replace(
+                text,
+                "exact case-ID-to-action table:",
+                "  11: attempt_physical_refresh_order_argument_on_canonical_resolver_and_compare_normal_orders\n"
+                "  12: submit_redirected_site_and_route_projection",
+                "  11: submit_redirected_site_and_route_projection\n"
+                "  12: attempt_physical_refresh_order_argument_on_canonical_resolver_and_compare_normal_orders",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "missing_canonical_history_measurement",
+            mutate_block_replace(
+                text,
+                "its history surfaces into this snapshot:",
+                "authoritative_ledger_raw_sha256: SHA256_of_canonical_ledger_JSON\n",
+                "",
+            ),
         )
     )
     permission_row = EXPECTED_PERMISSION_TABLE[2]

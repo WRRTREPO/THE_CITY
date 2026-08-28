@@ -15,6 +15,7 @@ from typing import Any, Mapping
 
 from simultaneous_physical_domains import (
     ARTIFACT_NAMES,
+    AUTHORITY_CASE_ACTIONS,
     D0,
     D1,
     DOMAIN_ROLES,
@@ -25,17 +26,15 @@ from simultaneous_physical_domains import (
     REFRESH_FAULT_STAGES,
     WITNESS_IDS,
     artifact_role_set_valid,
+    canonical_records,
     canonical_json,
     canonical_transition_run,
-    current_head_authority_failures,
     current_head_observation,
     guard_open_control,
     head_observation_failure_witness,
     head_observation_fault_atomicity,
     operation_receipt_matrix,
-    physical_observation_fault_atomicity,
     projection_matrix,
-    refresh_fault_atomicity,
     retention_equivalence_oracle,
     retention_witness,
     sha256_value,
@@ -43,6 +42,9 @@ from simultaneous_physical_domains import (
     stored_json_bytes,
     strict_load_stored_json,
     validate_materialization_receipt,
+    validate_fault_arm_receipt,
+    validate_local_step_observation,
+    validate_measured_canonical_relation,
     validate_physical_observation,
     write_json,
 )
@@ -51,8 +53,8 @@ from simultaneous_physical_domains_harness import _source_audit
 
 ROOT = Path(__file__).resolve().parents[1]
 RECORDS = Path(__file__).resolve().parent / "SimultaneousPhysicalDomainsProofRecords"
-MANIFEST = ROOT / "Simultaneous Physical Domains Proof - v0.1.0 SHA256SUMS.txt"
-EVIDENCE = ROOT / "Simultaneous Physical Domains Proof Evidence - v0.1.0.md"
+MANIFEST = ROOT / "Simultaneous Physical Domains Proof - v0.1.1 SHA256SUMS.txt"
+EVIDENCE = ROOT / "Simultaneous Physical Domains Proof Evidence - v0.1.1.md"
 
 GOVERNING_AND_PREDECESSOR_MEMBERS = (
     "README.md",
@@ -65,7 +67,8 @@ GOVERNING_AND_PREDECESSOR_MEMBERS = (
     "Canonical Spatial Topology Identity Proof - v0.1.0 SHA256SUMS.txt",
     "Canonical Occupancy Transition Proof Evidence - v0.1.0.md",
     "Simultaneous Physical Domains Proof - Draft.md",
-    "Simultaneous Physical Domains Proof Evidence - v0.1.0.md",
+    "Simultaneous Physical Domains Proof - v0.1.1.md",
+    "Simultaneous Physical Domains Proof Evidence - v0.1.1.md",
     "Co-op Open-City FPS Simulation - v0.7 Working Continuation.md",
     "THE_CITY Development Capacity and Progress Note - v0.1.11.md",
     "THE_CITY Developer Snapshot - v0.1.0.md",
@@ -149,8 +152,8 @@ def artifact_paths() -> tuple[str, ...]:
 
 def release_paths() -> tuple[str, ...]:
     paths = NON_ARTIFACT_MEMBERS + artifact_paths()
-    if len(NON_ARTIFACT_MEMBERS) != 66 or len(paths) != 110 or len(set(paths)) != 110:
-        raise AssertionError("frozen 44 + 66 = 110 member contract drift")
+    if len(NON_ARTIFACT_MEMBERS) != 67 or len(paths) != 111 or len(set(paths)) != 111:
+        raise AssertionError("frozen 44 + 67 = 111 member contract drift")
     return tuple(sorted(paths, key=lambda value: value.encode("utf-8")))
 
 
@@ -244,20 +247,197 @@ def _verify_primary(order: str) -> dict[str, Any]:
     return witness
 
 
-def _verify_other_witnesses() -> None:
-    w3 = _load("physical_W3_stale_quarantine_witness.json")
-    w3_samples = w3["observed_domain_samples"]
+def _verify_canonical_relation(value: Any, expected_relation: str) -> None:
+    r0, _, r1 = canonical_records()
+    before_record = r0 if expected_relation in ("unchanged_H0", "exact_H0_to_H1") else r1
+    after_record = r1 if expected_relation in ("unchanged_H1", "exact_H0_to_H1") else r0
+    validate_measured_canonical_relation(
+        value,
+        before_record=before_record,
+        after_record=after_record,
+        expected_relation=expected_relation,
+    )
+
+
+def _verify_w3_payload(w3: Mapping[str, Any]) -> None:
+    samples = w3.get("observed_domain_samples")
+    if not isinstance(samples, dict) or set(samples) != set(DOMAIN_ROLES):
+        raise ValueError("W3 exact domain sample set drift")
+    for role in DOMAIN_ROLES:
+        sample = samples[role]
+        binding = sample.get("process_binding")
+        observation = sample.get("exact_local_step_observation")
+        if not isinstance(binding, dict) or not isinstance(observation, dict):
+            raise ValueError("W3 lacks a process-bound exact local-step observation")
+        validate_local_step_observation(observation, binding=binding)
+        if (
+            sample.get("exact_local_step_command", {}).get("operation")
+            != "execute_nonconsequential_step_once"
+            or sample.get("stdin_command_count_delta") != 1
+            or sample.get("structured_local_step_observation_count_delta") != 1
+            or sample.get("structured_authority_object_count_delta") != 0
+            or sample.get("accepted_represented_hash_before_after") != [H0, H0]
+        ):
+            raise ValueError("W3 exact local-step execution law drift")
+    _verify_canonical_relation(w3.get("canonical_before_after_measurement"), "unchanged_H1")
     if not all((
-        w3["canonical_R1_raw_sha256_before_after"] == [D1, D1],
-        w3["current_head_receipt_count_delta"] == 0,
-        w3["canonical_evidence_count_delta"] == 0,
-        w3["canonical_scheduling_count_delta"] == 0,
-        w3["canonical_mutation_count_delta"] == 0,
-        w3["observed_live_UE_execution_in_both_original_processes"],
-        all(w3_samples[role]["total_cpu_nanoseconds_delta"] > 0 for role in DOMAIN_ROLES),
-        all(w3_samples[role]["accepted_represented_hash_before_after"] == [H0, H0] for role in DOMAIN_ROLES),
+        w3.get("canonical_R1_raw_sha256_before_after") == [D1, D1],
+        w3.get("current_head_receipt_count_delta") == 0,
+        w3.get("canonical_evidence_count_delta") == 0,
+        w3.get("canonical_scheduling_count_delta") == 0,
+        w3.get("canonical_mutation_count_delta") == 0,
+        w3.get("observed_live_UE_execution_in_both_original_processes") is True,
+        w3.get("cpu_evidence_role") == "supplemental_only",
     )):
         raise ValueError("W3 stale quarantine drift")
+
+
+def _verify_fault_result(
+    result: Mapping[str, Any],
+    command: Mapping[str, Any],
+    binding: Mapping[str, Any],
+) -> None:
+    required = {
+        "result_schema", "proof_scenario", "domain_role",
+        "operational_process_instance_id", "process_binding_raw_sha256",
+        "executable_raw_sha256", "fault_run_id", "fault_surface",
+        "fault_stage", "fault_edge", "target_head_role", "boundary_entered",
+        "boundary_completed", "local_publication_state", "represented_hash_if_known",
+        "materialization_receipt_outcome", "physical_observation_outcome", "reason_code",
+    }
+    if set(result) != required:
+        raise ValueError("live fault result exact member set drift")
+    if (
+        result.get("result_schema") != "SimultaneousPhysicalDomainInjectedFaultResult.v1"
+        or result.get("fault_run_id") != command.get("fault_run_id")
+        or result.get("fault_surface") != command.get("fault_surface")
+        or result.get("fault_stage") != command.get("fault_stage")
+        or result.get("fault_edge") != command.get("fault_edge")
+        or result.get("target_head_role") != command.get("target_head_role")
+        or result.get("domain_role") != binding.get("domain_role")
+        or result.get("executable_raw_sha256") != binding.get("executable_raw_sha256")
+        or result.get("process_binding_raw_sha256") != sha256_value(dict(binding))
+        or result.get("boundary_entered") is not True
+        or result.get("boundary_completed") is not (command.get("fault_edge") in ("after", "at"))
+        or result.get("reason_code") != (
+            f"injected_fault/{command.get('fault_surface')}/"
+            f"{command.get('fault_stage')}/{command.get('fault_edge')}"
+        )
+    ):
+        raise ValueError("live fault result is not bound to its command/process/boundary")
+
+
+def _verify_refresh_fault_payload(value: Mapping[str, Any]) -> None:
+    cases = value.get("cases")
+    expected_pairs = [(stage, edge) for stage in REFRESH_FAULT_STAGES for edge in ("before", "after")]
+    actual_pairs = [(case.get("fault_stage"), case.get("fault_edge")) for case in cases or []]
+    if (
+        value.get("fault_stages") != list(REFRESH_FAULT_STAGES)
+        or value.get("fault_edges") != ["before", "after"]
+        or value.get("case_count") != 36
+        or value.get("execution_surface") != "36_fresh_compiled_UE_adapter_or_router_boundaries"
+        or actual_pairs != expected_pairs
+        or value.get("all_faults_executed") is not True
+        or value.get("all_fail_closed_without_canonical_effect") is not True
+    ):
+        raise ValueError("exact live refresh fault matrix drift")
+    for case in cases:
+        binding = case.get("target_process_binding")
+        command = case.get("fault_arm_command")
+        arm_receipt = case.get("fault_arm_receipt")
+        result = case.get("compiled_boundary_result")
+        if not all(isinstance(member, dict) for member in (binding, command, arm_receipt, result)):
+            raise ValueError("Python-only refresh fault row lacks compiled UE binding evidence")
+        if case.get("target_executable_raw_sha256") != binding.get("executable_raw_sha256"):
+            raise ValueError("refresh fault executable identity drift")
+        validate_fault_arm_receipt(arm_receipt, command=command, binding=binding)
+        _verify_fault_result(result, command, binding)
+        _verify_canonical_relation(case.get("canonical_before_after_measurement"), "unchanged_H1")
+        if case.get("canonical_H1_unchanged") is not True:
+            raise ValueError("refresh fault hard-coded/false canonical relation")
+
+
+def _verify_physical_fault_payload(value: Mapping[str, Any]) -> None:
+    cases = value.get("cases")
+    expected_pairs = [(stage, head) for stage in PHYSICAL_OBSERVATION_FAULT_STAGES for head in ("H0", "H1")]
+    actual_pairs = [(case.get("fault_stage"), case.get("head_role")) for case in cases or []]
+    if (
+        value.get("fault_stages") != list(PHYSICAL_OBSERVATION_FAULT_STAGES)
+        or value.get("head_roles") != ["H0", "H1"]
+        or value.get("head_role_case_count") != 24
+        or value.get("execution_surface")
+        != "24_fresh_live_UE_probe_router_or_exact_harness_crosscheck_boundaries"
+        or actual_pairs != expected_pairs
+        or value.get("all_faults_executed") is not True
+        or value.get("all_fail_closed_without_canonical_effect") is not True
+    ):
+        raise ValueError("exact live physical-observation fault matrix drift")
+    for case in cases:
+        binding = case.get("target_process_binding")
+        command = case.get("fault_arm_command")
+        arm_receipt = case.get("fault_arm_receipt")
+        result = case.get("boundary_result")
+        if not all(isinstance(member, dict) for member in (binding, command, arm_receipt, result)):
+            raise ValueError("Python-only observation fault row lacks original UE binding evidence")
+        if case.get("target_executable_raw_sha256") != binding.get("executable_raw_sha256"):
+            raise ValueError("observation fault executable identity drift")
+        validate_fault_arm_receipt(arm_receipt, command=command, binding=binding)
+        _verify_fault_result(result, command, binding)
+        _verify_canonical_relation(
+            case.get("canonical_before_after_measurement"),
+            "unchanged_H0" if case["head_role"] == "H0" else "unchanged_H1",
+        )
+        if case.get("accepted_physical_observation") is not None:
+            raise ValueError("faulted physical observation was accepted")
+
+
+def _verify_authority_payload(value: Mapping[str, Any]) -> None:
+    exact_table = {
+        str(index): action for index, action in enumerate(AUTHORITY_CASE_ACTIONS, start=1)
+    }
+    cases = value.get("cases")
+    if (
+        value.get("authority_case_actions") != exact_table
+        or value.get("case_count") != 37
+        or [case.get("case_id") for case in cases or []] != list(range(1, 38))
+        or [case.get("action_id") for case in cases or []] != list(AUTHORITY_CASE_ACTIONS)
+        or value.get("all_real_validation_paths_executed") is not True
+        or value.get("all_rejected_or_protocol_invalid_as_frozen") is not True
+        or value.get("all_canonical_measurements_recomputed") is not True
+    ):
+        raise ValueError("37-row authority case/action table drift")
+    for case in cases:
+        case_id = case["case_id"]
+        expected_relation = "exact_H0_to_H1" if case_id == 19 else "unchanged_H1"
+        _verify_canonical_relation(case.get("canonical_before_after_measurement"), expected_relation)
+        if (
+            not case.get("actual_validation_path")
+            or "concrete_input_and_bound_execution" not in case
+            or not case.get("reason_code")
+            or case.get("canonical_authority_acquired") is not False
+            or case.get("rejected_or_protocol_invalid_as_frozen") is not True
+        ):
+            raise ValueError(f"authority case execution evidence drift: {case_id}")
+        if case_id == 19:
+            concrete = case["concrete_input_and_bound_execution"]
+            control = concrete["canonical_control"]
+            physical = concrete["live_physical_control"]
+            if (
+                case.get("canonical_H1_unchanged") is not False
+                or case.get("exact_H0_to_H1_committed") is not True
+                or control.get("canonical_R1_byte_identical") is not True
+                or control.get("guard_after_commit_verification") != "failed_closed"
+                or set(physical.get("terminal_dispositions", {}).values())
+                != {"protocol_invalid(H0/H1)"}
+            ):
+                raise ValueError("authority case 19 exact canonical commit/protocol failure drift")
+        elif case.get("canonical_H1_unchanged") is not True:
+            raise ValueError(f"authority case {case_id} unchanged summary not derived")
+
+
+def _verify_other_witnesses() -> None:
+    w3 = _load("physical_W3_stale_quarantine_witness.json")
+    _verify_w3_payload(w3)
     w4 = _load("physical_W4_head_observation_failure_witness.json")
     physical_w4 = w4["physical_witness"]
     if (
@@ -339,38 +519,11 @@ def _verify_oracles(w1: Mapping[str, Any], w2: Mapping[str, Any]) -> None:
     ):
         raise ValueError("guard-open live canonical control drift")
     authority = _load("simultaneous_physical_domains_current_head_authority_failures.json")
-    if (
-        authority != current_head_authority_failures()
-        or authority["case_count"] != 37
-        or not authority["all_real_validation_paths_executed"]
-        or not all(case["actual_validation_path"] and case["reason_code"] for case in authority["cases"])
-    ):
-        raise ValueError("37 current-head authority rejection cases drift")
+    _verify_authority_payload(authority)
     refresh_faults = _load("simultaneous_physical_domains_refresh_fault_atomicity.json")
-    if (
-        refresh_faults["fault_stages"] != list(REFRESH_FAULT_STAGES)
-        or refresh_faults["pre_post_case_count"] != 36
-        or len(refresh_faults["cases"]) != 36
-        or not refresh_faults["all_faults_executed"]
-        or not refresh_faults["all_fail_closed_without_canonical_effect"]
-        or {case["input_origin"] for case in refresh_faults["cases"]}
-        != {"W1_original_live_UE_exact_H1_refresh_bundle"}
-        or any(case["validation_path"] != "execute_refresh_validation_path" for case in refresh_faults["cases"])
-    ):
-        raise ValueError("exact refresh pre/post fault surface drift")
+    _verify_refresh_fault_payload(refresh_faults)
     physical_faults = _load("simultaneous_physical_domains_physical_observation_fault_atomicity.json")
-    if (
-        physical_faults["fault_stages"] != list(PHYSICAL_OBSERVATION_FAULT_STAGES)
-        or physical_faults["head_role_case_count"] != 24
-        or len(physical_faults["cases"]) != 24
-        or {case["head_role"] for case in physical_faults["cases"]} != {"H0", "H1"}
-        or not physical_faults["all_faults_executed"]
-        or not physical_faults["all_fail_closed_without_canonical_effect"]
-        or {case["input_origin"] for case in physical_faults["cases"]}
-        != {"W1_original_live_UE_component_observations"}
-        or any(case["validation_path"] != "execute_physical_observation_validation" for case in physical_faults["cases"])
-    ):
-        raise ValueError("exact physical observation fault surface drift")
+    _verify_physical_fault_payload(physical_faults)
     head_faults = _load("simultaneous_physical_domains_head_observation_fault_atomicity.json")
     if head_faults["fault_points"] != list(HEAD_OBSERVATION_FAULT_POINTS):
         raise ValueError("exact head observation fault surface drift")
@@ -416,8 +569,12 @@ def _verify_oracles(w1: Mapping[str, Any], w2: Mapping[str, Any]) -> None:
     if (
         proof_run["result"] != "PASS"
         or proof_run["witness_ids"] != list(WITNESS_IDS)
-        or proof_run["witness_count"] != 11
+        or proof_run["primary_witness_count"] != 11
+        or proof_run["refresh_fault_case_count"] != 36
+        or proof_run["physical_observation_fault_case_count"] != 24
         or proof_run["artifact_member_count"] != 44
+        or proof_run["proof_version"] != "0.1.1"
+        or proof_run["harness_version"] != "0.7.0-draft.77"
         or proof_run["evidence_status"] != "unsealed"
         or proof_run["capacity_advancement"] != "none"
     ):
@@ -436,7 +593,6 @@ def _isolated_role_regeneration() -> None:
             ARTIFACT_NAMES[2]: operation_receipt_matrix(),
             ARTIFACT_NAMES[3]: current_head_observation(),
             ARTIFACT_NAMES[4]: head_observation_fault_atomicity(),
-            ARTIFACT_NAMES[35]: current_head_authority_failures(),
         }
         for name in ARTIFACT_NAMES:
             payload = deterministic.get(name, _load(name))
@@ -446,6 +602,68 @@ def _isolated_role_regeneration() -> None:
         for name, expected in deterministic.items():
             if (regenerated / name).read_bytes() != stored_json_bytes(expected):
                 raise ValueError(f"isolated deterministic regeneration mismatch: {name}")
+
+
+def _run_verifier_negative_tests() -> int:
+    rejected = 0
+
+    cpu_only_w3 = copy.deepcopy(_load("physical_W3_stale_quarantine_witness.json"))
+    for sample in cpu_only_w3["observed_domain_samples"].values():
+        sample.pop("exact_local_step_command", None)
+        sample.pop("exact_local_step_observation", None)
+        sample["supplemental_total_cpu_nanoseconds_delta"] = 1
+    try:
+        _verify_w3_payload(cpu_only_w3)
+    except (ValueError, KeyError, TypeError):
+        rejected += 1
+    else:
+        raise ValueError("negative verifier accepted CPU-only W3 evidence")
+
+    python_only_faults = copy.deepcopy(
+        _load("simultaneous_physical_domains_refresh_fault_atomicity.json")
+    )
+    python_only_faults["execution_surface"] = "python_validator_replay_only"
+    python_only_faults["cases"][0].pop("target_process_binding", None)
+    python_only_faults["cases"][0].pop("fault_arm_receipt", None)
+    python_only_faults["cases"][0].pop("compiled_boundary_result", None)
+    try:
+        _verify_refresh_fault_payload(python_only_faults)
+    except (ValueError, KeyError, TypeError):
+        rejected += 1
+    else:
+        raise ValueError("negative verifier accepted Python-only live fault matrix")
+
+    swapped_authority = copy.deepcopy(
+        _load("simultaneous_physical_domains_current_head_authority_failures.json")
+    )
+    swapped_authority["cases"][10]["action_id"], swapped_authority["cases"][16]["action_id"] = (
+        swapped_authority["cases"][16]["action_id"],
+        swapped_authority["cases"][10]["action_id"],
+    )
+    try:
+        _verify_authority_payload(swapped_authority)
+    except (ValueError, KeyError, TypeError):
+        rejected += 1
+    else:
+        raise ValueError("negative verifier accepted swapped authority labels/actions")
+
+    hard_coded_unchanged = copy.deepcopy(
+        _load("simultaneous_physical_domains_refresh_fault_atomicity.json")
+    )
+    relation = hard_coded_unchanged["cases"][0]["canonical_before_after_measurement"]
+    relation["after"]["authoritative_ledger_entry_count"] += 1
+    relation["relation_verified"] = True
+    hard_coded_unchanged["cases"][0]["canonical_H1_unchanged"] = True
+    try:
+        _verify_refresh_fault_payload(hard_coded_unchanged)
+    except (ValueError, KeyError, TypeError):
+        rejected += 1
+    else:
+        raise ValueError("negative verifier accepted hard-coded unchanged canonical history")
+
+    if rejected != 4:
+        raise ValueError(f"negative verifier rejection count drift: {rejected}")
+    return rejected
 
 
 def _run_focused_tests() -> None:
@@ -471,6 +689,7 @@ def verify_artifacts() -> None:
     _verify_other_witnesses()
     _verify_oracles(w1, w2)
     _isolated_role_regeneration()
+    _run_verifier_negative_tests()
     _run_focused_tests()
 
 
@@ -527,7 +746,7 @@ def main() -> int:
     arguments = parser.parse_args()
     if arguments.command == "artifacts":
         verify_artifacts()
-        print("verified exact 44/44 Phase-3 artifacts; evidence remains unsealed")
+        print("verified exact 44/44 Phase-3 artifacts; verifier adversaries 4/4 rejected; evidence remains unsealed")
         return 0
     if arguments.command == "write-release":
         count = write_release()
@@ -535,7 +754,7 @@ def main() -> int:
         if not EVIDENCE.is_file() or not MANIFEST.is_file():
             raise SystemExit("release verification unavailable: evidence document or manifest missing")
         count = verify_release()
-    print(f"verified {count}/{count} release members; manifest excludes itself; evidence remains unsealed")
+    print(f"verified {count}/{count} release members; verifier adversaries 4/4 rejected; manifest excludes itself; evidence remains unsealed")
     return 0
 
 

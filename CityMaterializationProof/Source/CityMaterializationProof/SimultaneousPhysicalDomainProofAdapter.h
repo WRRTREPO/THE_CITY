@@ -26,6 +26,17 @@ struct FSPDAuthoritativeRepresentation
     FString RawStoredSha256;
 };
 
+struct FSPDValidatedVisibleTuple
+{
+    TSharedPtr<FJsonObject> Payload;
+    TSharedPtr<FJsonObject> Projection;
+    TSharedPtr<FJsonObject> OperationReceipt;
+    FString RawPayloadHash;
+    FString CanonicalHash;
+    FString RawProjectionHash;
+    FString HeadRole;
+};
+
 // Exact two-input disposable representation constructor and atomic local
 // publisher.  It receives no harness observation, guard, stale classification,
 // current-head flag, other-domain state, or expected physical result.
@@ -44,19 +55,33 @@ public:
 
     bool RefreshOnce(
         const FSPDImmutableProcessBinding& Binding,
+        FSPDInjectedFaultPlan* FaultPlan,
         TSharedPtr<FJsonObject>& OutReceipt,
+        FString& OutReason);
+
+    bool ExecuteNonconsequentialStepOnce(
+        const FSPDImmutableProcessBinding& Binding,
+        TSharedPtr<FJsonObject>& OutObservation,
         FString& OutReason);
 
     TSharedPtr<FJsonObject> BuildRetentionExecutionObservation(
         const FSPDImmutableProcessBinding& Binding) const;
 
     const FString& GetRepresentedCanonicalHash() const { return RepresentedCanonicalHash; }
+    FString GetPublicationState() const;
 
 private:
     bool LoadVisibleTuple(
         const FSPDImmutableProcessBinding& Binding,
         bool bRefresh,
+        FSPDValidatedVisibleTuple& OutTuple,
+        FSPDInjectedFaultPlan* FaultPlan,
+        FString& OutReason) const;
+    bool BuildAuthoritativeCandidate(
+        const FSPDImmutableProcessBinding& Binding,
+        const FSPDValidatedVisibleTuple& Tuple,
         FSPDAuthoritativeRepresentation& OutRepresentation,
+        FSPDInjectedFaultPlan* FaultPlan,
         FString& OutReason) const;
     bool PublishCandidate(
         const FSPDAuthoritativeRepresentation& Candidate,
@@ -80,4 +105,5 @@ private:
     bool bPoisonObservedBeforeRefresh = false;
     bool bPublishedH1PoisonClear = false;
     bool bPriorH0ActorReplaced = false;
+    bool bLocalStepConsumed = false;
 };

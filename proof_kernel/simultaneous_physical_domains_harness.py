@@ -1,4 +1,4 @@
-"""Acquire the frozen Simultaneous Physical Domains v0.1.0 UE witnesses.
+"""Acquire the frozen Simultaneous Physical Domains v0.1.1 UE witnesses.
 
 The harness owns operational head observation, physical guard state, process
 birth/liveness evidence, detached bundle staging, and receipt acceptance.  The
@@ -28,6 +28,8 @@ from typing import Any, Iterable, Mapping
 
 from simultaneous_physical_domains import (
     ARTIFACT_NAMES,
+    AUTHORITY_CASE_ACTIONS,
+    CANONICAL_MEASUREMENT_SCHEMA,
     D0,
     D1,
     DOMAIN_ROLES,
@@ -35,30 +37,33 @@ from simultaneous_physical_domains import (
     H1,
     PhysicalCurrentHeadGuard,
     PROOF_SCENARIO,
+    REFRESH_FAULT_STAGES,
+    PHYSICAL_OBSERVATION_FAULT_STAGES,
     WITNESS_IDS,
     authoritative_representation,
     bind_invocation,
+    canonical_measurement,
     canonical_json,
     canonical_records,
     canonical_transition_run,
-    current_head_authority_failures,
     current_head_observation,
-    execute_refresh_validation_path,
+    current_head_authority_failures,
     expected_physical_observation,
+    fault_arm_invocation,
     guard_open_control,
     head_disposition,
     head_observation_failure_witness,
     head_observation_fault_atomicity,
     inspection_invocation,
+    local_step_invocation,
+    measured_canonical_relation,
     operation_receipt,
     operation_receipt_matrix,
     operational_process_instance_id,
-    physical_observation_fault_atomicity,
     process_binding,
     projection,
     projection_matrix,
     proof_semantic_input_audit_template,
-    refresh_fault_atomicity,
     refresh_invocation,
     retention_equivalence_oracle,
     retention_witness,
@@ -69,7 +74,10 @@ from simultaneous_physical_domains import (
     stored_json_bytes,
     strict_load_stored_json,
     validate_exact_directory,
+    validate_fault_arm_receipt,
+    validate_local_step_observation,
     validate_materialization_receipt,
+    validate_measured_canonical_relation,
     validate_physical_observation,
     verify_current_head_observation,
     write_json,
@@ -618,6 +626,65 @@ def _is_observation(value: Mapping[str, Any]) -> bool:
     return value.get("observation_schema") == "SimultaneousPhysicalDomainPhysicalObservation.v1"
 
 
+def _is_local_step_observation(value: Mapping[str, Any]) -> bool:
+    return value.get("observation_schema") == "SimultaneousPhysicalDomainLocalStepObservation.v1"
+
+
+def _is_fault_arm_receipt(value: Mapping[str, Any]) -> bool:
+    return value.get("receipt_schema") == "SimultaneousPhysicalDomainFaultArmReceipt.v1"
+
+
+def _is_injected_fault_result(value: Mapping[str, Any]) -> bool:
+    return value.get("result_schema") == "SimultaneousPhysicalDomainInjectedFaultResult.v1"
+
+
+def _validate_injected_fault_result(
+    value: Any,
+    *,
+    command: Mapping[str, Any],
+    binding: Mapping[str, Any],
+) -> dict[str, Any]:
+    expected_keys = {
+        "result_schema", "proof_scenario", "domain_role",
+        "operational_process_instance_id", "process_binding_raw_sha256",
+        "executable_raw_sha256", "fault_run_id", "fault_surface",
+        "fault_stage", "fault_edge", "target_head_role", "boundary_entered",
+        "boundary_completed", "local_publication_state",
+        "represented_hash_if_known", "materialization_receipt_outcome",
+        "physical_observation_outcome", "reason_code",
+    }
+    if not isinstance(value, dict) or set(value) != expected_keys:
+        raise RuntimeError("injected fault result has a non-exact member set")
+    exact = {
+        "result_schema": "SimultaneousPhysicalDomainInjectedFaultResult.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "domain_role": binding["domain_role"],
+        "operational_process_instance_id": operational_process_instance_id(binding),
+        "process_binding_raw_sha256": sha256_value(binding),
+        "executable_raw_sha256": binding["executable_raw_sha256"],
+        "fault_run_id": command["fault_run_id"],
+        "fault_surface": command["fault_surface"],
+        "fault_stage": command["fault_stage"],
+        "fault_edge": command["fault_edge"],
+        "target_head_role": command["target_head_role"],
+    }
+    if any(value.get(key) != member for key, member in exact.items()):
+        raise RuntimeError("injected fault result does not match its arm command and process")
+    if value["boundary_entered"] is not True:
+        raise RuntimeError("injected fault did not enter the named boundary")
+    if value["boundary_completed"] is not (
+        command["fault_edge"] in ("after", "at")
+    ):
+        raise RuntimeError("injected fault boundary completion differs from its exact edge")
+    expected_reason = (
+        f"injected_fault/{command['fault_surface']}/"
+        f"{command['fault_stage']}/{command['fault_edge']}"
+    )
+    if value["reason_code"] != expected_reason:
+        raise RuntimeError("injected fault result reason does not name the exact boundary")
+    return copy.deepcopy(value)
+
+
 def _is_failure(value: Mapping[str, Any]) -> bool:
     return value.get("diagnostic_schema") == "SimultaneousPhysicalDomainFailure.v1"
 
@@ -700,19 +767,9 @@ def _refresh_success(
     guard.assert_refresh_eligible(domain.role)
     bundle = _stage_refresh(domain)
     retained, poison = _retained_and_poison_fixtures(domain)
-    harness_validation = execute_refresh_validation_path(
-        bundle["directory"],
-        domain_role=domain.role,
-        binding=domain.binding,
-        command=refresh_invocation(domain.role),
-        retained_local_state=retained,
-        discard_required_poison=poison,
-    )
     domain.send(refresh_invocation(domain.role))
     receipt = domain.next_object(_is_receipt)
     validate_materialization_receipt(receipt, domain.binding)
-    if receipt != harness_validation["materialization_receipt"]:
-        raise RuntimeError("live UE refresh receipt differs from harness validation path")
     retention_observation = (
         domain.next_object(_is_retention_observation)
         if domain.witness_id in ("w5_retention_baseline", "w5_retention_perturbed")
@@ -785,43 +842,67 @@ def _refresh_rejection(
 def _observe_stale_local_execution(
     domains: Mapping[str, LiveDomain],
 ) -> dict[str, Any]:
+    _, _, canonical_before_record = canonical_records()
     before = {role: _task_info(domains[role].pid) for role in DOMAIN_ROLES}
     command_counts_before = {role: len(domains[role].commands) for role in DOMAIN_ROLES}
     output_counts_before = {role: len(domains[role].parsed_objects) for role in DOMAIN_ROLES}
     started = time.monotonic()
-    time.sleep(0.25)
+    step_observations: dict[str, dict[str, Any]] = {}
+    for role in DOMAIN_ROLES:
+        domains[role].send(local_step_invocation(role))
+        observation = domains[role].next_object(_is_local_step_observation)
+        step_observations[role] = validate_local_step_observation(
+            observation, binding=domains[role].binding
+        )
     checkpoints = {role: domains[role].assert_alive("W3_stale_local_execution") for role in DOMAIN_ROLES}
     finished = time.monotonic()
     after = {role: _task_info(domains[role].pid) for role in DOMAIN_ROLES}
+    _, _, canonical_after_record = canonical_records()
+    canonical_relation = measured_canonical_relation(
+        canonical_before_record,
+        canonical_after_record,
+        expected_relation="unchanged_H1",
+    )
+    validate_measured_canonical_relation(
+        canonical_relation,
+        before_record=canonical_before_record,
+        after_record=canonical_after_record,
+        expected_relation="unchanged_H1",
+    )
     samples: dict[str, Any] = {}
     for role in DOMAIN_ROLES:
         cpu_before = before[role]["total_user_nanoseconds"] + before[role]["total_system_nanoseconds"]
         cpu_after = after[role]["total_user_nanoseconds"] + after[role]["total_system_nanoseconds"]
         delta = cpu_after - cpu_before
-        if delta <= 0:
-            raise RuntimeError(f"{role} showed no executed UE work during W3 interval")
-        if len(domains[role].commands) != command_counts_before[role]:
-            raise RuntimeError(f"{role} received a command during W3 quarantine interval")
+        if len(domains[role].commands) - command_counts_before[role] != 1:
+            raise RuntimeError(f"{role} did not receive exactly one W3 local-step command")
         if len(domains[role].parsed_objects) != output_counts_before[role]:
-            raise RuntimeError(f"{role} emitted a structured authority object during W3 interval")
+            raise RuntimeError(f"{role} retained an unexpected structured object after W3 step")
         samples[role] = {
             "process_binding": domains[role].binding,
+            "exact_local_step_command": local_step_invocation(role),
+            "exact_local_step_observation": step_observations[role],
             "before": before[role],
             "after": after[role],
-            "total_cpu_nanoseconds_delta": delta,
+            "supplemental_total_cpu_nanoseconds_delta": delta,
             "original_process_alive_after_interval": checkpoints[role],
-            "stdin_command_count_delta": 0,
+            "stdin_command_count_delta": 1,
+            "structured_local_step_observation_count_delta": 1,
             "structured_authority_object_count_delta": 0,
             "accepted_represented_hash_before_after": [H0, H0],
             "harness_head_state_before_after": ["stale(H0/H1)", "stale(H0/H1)"],
         }
     return {
         "observation_schema": "SimultaneousPhysicalDomainsStaleLocalExecutionObservation.v1",
-        "observation_source": "macos_proc_taskinfo_original_live_UE_process_interval",
+        "observation_source": "exact_live_UE_adapter_local_step_in_original_processes",
         "bounded_observation_interval_count": 1,
         "bounded_window_seconds": finished - started,
         "domains": samples,
-        "canonical_R1_raw_sha256_before_after": [D1, D1],
+        "canonical_before_after_measurement": canonical_relation,
+        "canonical_R1_raw_sha256_before_after": [
+            canonical_relation["before"]["record_raw_sha256"],
+            canonical_relation["after"]["record_raw_sha256"],
+        ],
         "current_head_receipt_count_delta": 0,
         "canonical_evidence_count_delta": 0,
         "canonical_scheduling_count_delta": 0,
@@ -1046,6 +1127,754 @@ def acquire_witness(runtime_root: Path, witness_id: str) -> dict[str, Any]:
                 except BaseException: pass
 
 
+def _advance_physical_guard_to_h1(
+    domains: Mapping[str, LiveDomain],
+    guard: PhysicalCurrentHeadGuard,
+    control_root: Path,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    guard.close_for_h0_to_h1()
+    transition = canonical_transition_run()
+    head_publication = _publish_head_observation(control_root)
+    guard.verify_h1_observation(head_publication["observation"]["observed_canonical_hash"])
+    for role in DOMAIN_ROLES:
+        guard.classify_stale(role, H0, H1)
+    guard.open_for_h1()
+    return transition, head_publication
+
+
+def _arm_fault(
+    domain: LiveDomain,
+    *,
+    surface: str,
+    stage: str,
+    edge: str,
+    head_role: str,
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    command = fault_arm_invocation(
+        surface=surface,
+        stage=stage,
+        edge=edge,
+        head_role=head_role,
+        domain_role=domain.role,
+    )
+    domain.send(command)
+    receipt = domain.next_object(_is_fault_arm_receipt)
+    validate_fault_arm_receipt(receipt, command=command, binding=domain.binding)
+    return command, receipt
+
+
+def _canonical_relation_around(
+    before_record: Mapping[str, Any],
+    after_record: Mapping[str, Any],
+    *,
+    expected_relation: str,
+) -> dict[str, Any]:
+    relation = measured_canonical_relation(
+        before_record, after_record, expected_relation=expected_relation
+    )
+    validate_measured_canonical_relation(
+        relation,
+        before_record=before_record,
+        after_record=after_record,
+        expected_relation=expected_relation,
+    )
+    return relation
+
+
+def _acquire_refresh_fault_case(
+    runtime_root: Path,
+    *,
+    stage: str,
+    edge: str,
+) -> dict[str, Any]:
+    domains = _launch_pair(runtime_root, "f_refresh_fault")
+    terminations: dict[str, Any] = {}
+    guard = PhysicalCurrentHeadGuard()
+    try:
+        launch: dict[str, Any] = {}
+        for role in DOMAIN_ROLES:
+            receipt, observation, disposition = _accept_launch(domains[role], guard)
+            launch[role] = {
+                "receipt": receipt,
+                "observation": observation,
+                "disposition": disposition,
+            }
+        transition, head_publication = _advance_physical_guard_to_h1(
+            domains, guard, runtime_root / "harness_private_control"
+        )
+        bundle = _stage_refresh(domains["domain_A"])
+        command, arm_receipt = _arm_fault(
+            domains["domain_A"],
+            surface="refresh",
+            stage=stage,
+            edge=edge,
+            head_role="H1",
+        )
+        _, _, before_record = canonical_records()
+        domains["domain_A"].send(refresh_invocation("domain_A"))
+        emitted_receipt: dict[str, Any] | None = None
+        if stage == "materialization_receipt_emission" and edge == "after":
+            emitted_receipt = domains["domain_A"].next_object(_is_receipt)
+            validate_materialization_receipt(emitted_receipt, domains["domain_A"].binding)
+        result = domains["domain_A"].next_object(_is_injected_fault_result)
+        _validate_injected_fault_result(
+            result, command=command, binding=domains["domain_A"].binding
+        )
+        _, _, after_record = canonical_records()
+        relation = _canonical_relation_around(
+            before_record, after_record, expected_relation="unchanged_H1"
+        )
+        domains["domain_A"].refresh_inventory_after = validate_exact_directory(
+            bundle["directory"], bundle["names"]
+        )
+        domains["domain_A"].refresh_inventory_before = bundle["inventory"]
+        if domains["domain_A"].refresh_inventory_after != bundle["inventory"]:
+            raise RuntimeError("fault-case H1 bundle changed during live UE adapter read")
+        publication_index = REFRESH_FAULT_STAGES.index("local_atomic_publication")
+        stage_index = REFRESH_FAULT_STAGES.index(stage)
+        published_h1 = stage_index > publication_index or (
+            stage_index == publication_index and edge == "after"
+        )
+        expected_publication = "H1_published" if published_h1 else "H0_published"
+        if (
+            result["local_publication_state"] != expected_publication
+            or result["represented_hash_if_known"] != (H1 if published_h1 else H0)
+            or result["physical_observation_outcome"] != "not_applicable"
+        ):
+            raise RuntimeError("refresh fault did not preserve its exact publication boundary")
+        expected_receipt_outcome = (
+            "emitted_but_not_harness_accepted"
+            if stage == "materialization_receipt_emission" and edge == "after"
+            else "not_emitted"
+        )
+        if result["materialization_receipt_outcome"] != expected_receipt_outcome:
+            raise RuntimeError("refresh fault receipt outcome differs from its compiled edge")
+        disposition = head_disposition(
+            domain_role="domain_A",
+            binding=domains["domain_A"].binding,
+            receipt=None,
+            physical_observation=None,
+            represented_hash=H1 if published_h1 else H0,
+            observed_head=H1,
+            guard_state=guard.state,
+            head_state="invalid" if published_h1 else "stale",
+        )
+        peer = domains["domain_B"].assert_alive(
+            f"refresh_fault/{stage}/{edge}/peer_alive"
+        )
+        return {
+            "case_schema": "SimultaneousPhysicalDomainsLiveRefreshFaultCase.v1",
+            "proof_scenario": PROOF_SCENARIO,
+            "fault_run_id": command["fault_run_id"],
+            "fault_stage": stage,
+            "fault_edge": edge,
+            "input_origin": "fresh_original_UE_process_exact_H1_bundle_and_stdin_fault_arm",
+            "compiled_boundary_owner": (
+                "ASimultaneousPhysicalDomainCommandRouter"
+                if stage in ("invocation_read", "materialization_receipt_emission")
+                else "ASimultaneousPhysicalDomainProofAdapter"
+            ),
+            "target_process_binding": domains["domain_A"].binding,
+            "target_executable_raw_sha256": domains["domain_A"].binding["executable_raw_sha256"],
+            "fault_arm_command": command,
+            "fault_arm_receipt": arm_receipt,
+            "compiled_boundary_result": result,
+            "emitted_materialization_receipt_not_accepted": emitted_receipt,
+            "resulting_disposition": disposition,
+            "canonical_before_after_measurement": relation,
+            "canonical_H1_unchanged": relation["relation_verified"],
+            "canonical_transition": transition,
+            "head_publication": head_publication,
+            "guard_machine": guard.snapshot(),
+            "launch_acceptance": launch,
+            "peer_original_process_alive": peer,
+            "target_domain_evidence": _domain_evidence(domains["domain_A"]),
+            "peer_domain_evidence": _domain_evidence(domains["domain_B"]),
+            "retry_permitted": False,
+        }
+    finally:
+        for role, domain in domains.items():
+            try:
+                terminations[role] = domain.terminate()
+            except BaseException:
+                pass
+
+
+def _harness_crosscheck_fault_result(
+    domain: LiveDomain,
+    command: Mapping[str, Any],
+    *,
+    represented_hash: str,
+) -> dict[str, Any]:
+    return {
+        "result_schema": "SimultaneousPhysicalDomainInjectedFaultResult.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "domain_role": domain.role,
+        "operational_process_instance_id": domain.instance_id,
+        "process_binding_raw_sha256": sha256_value(domain.binding),
+        "executable_raw_sha256": domain.binding["executable_raw_sha256"],
+        "fault_run_id": command["fault_run_id"],
+        "fault_surface": command["fault_surface"],
+        "fault_stage": command["fault_stage"],
+        "fault_edge": command["fault_edge"],
+        "target_head_role": command["target_head_role"],
+        "boundary_entered": True,
+        "boundary_completed": True,
+        "local_publication_state": "H1_published" if represented_hash == H1 else "H0_published",
+        "represented_hash_if_known": represented_hash,
+        "materialization_receipt_outcome": "not_applicable",
+        "physical_observation_outcome": "emitted_but_not_harness_accepted",
+        "reason_code": (
+            "injected_fault/physical_observation/"
+            "harness_receipt_observation_head_cross_check/at"
+        ),
+    }
+
+
+def _acquire_physical_observation_fault_case(
+    runtime_root: Path,
+    *,
+    stage: str,
+    head_role: str,
+) -> dict[str, Any]:
+    domains = _launch_pair(runtime_root, "f_physical_observation_fault")
+    guard = PhysicalCurrentHeadGuard()
+    try:
+        target = domains["domain_A"]
+        peer = domains["domain_B"]
+        transition: dict[str, Any] | None = None
+        head_publication: dict[str, Any] | None = None
+        emitted_observation: dict[str, Any] | None = None
+        if head_role == "H0":
+            target_receipt = target.next_object(_is_receipt)
+            validate_materialization_receipt(target_receipt, target.binding)
+            peer_receipt, peer_observation, peer_disposition = _accept_launch(peer, guard)
+            before_record, _, _ = canonical_records()
+            inspection_id = "launch_physical_0001"
+        else:
+            target_receipt, _, _ = _accept_launch(target, guard)
+            peer_receipt, peer_observation, peer_disposition = _accept_launch(peer, guard)
+            transition, head_publication = _advance_physical_guard_to_h1(
+                domains, guard, runtime_root / "harness_private_control"
+            )
+            bundle = _stage_refresh(target)
+            target.send(refresh_invocation("domain_A"))
+            target_receipt = target.next_object(_is_receipt)
+            validate_materialization_receipt(target_receipt, target.binding)
+            target.refresh_inventory_before = bundle["inventory"]
+            target.refresh_inventory_after = validate_exact_directory(
+                bundle["directory"], bundle["names"]
+            )
+            if target.refresh_inventory_after != target.refresh_inventory_before:
+                raise RuntimeError("H1 observation-fault refresh bundle changed")
+            _, _, before_record = canonical_records()
+            inspection_id = "refresh_physical_0001"
+        command, arm_receipt = _arm_fault(
+            target,
+            surface="physical_observation",
+            stage=stage,
+            edge="at",
+            head_role=head_role,
+        )
+        target.send(inspection_invocation("domain_A", inspection_id))
+        if stage == "harness_receipt_observation_head_cross_check":
+            emitted_observation = target.next_object(_is_observation)
+            # The live object is retained as boundary input, but the injected
+            # harness fault occurs before any current-head acceptance.
+            result = _harness_crosscheck_fault_result(
+                target, command, represented_hash=H0 if head_role == "H0" else H1
+            )
+        else:
+            result = target.next_object(_is_injected_fault_result)
+        _validate_injected_fault_result(result, command=command, binding=target.binding)
+        if result["physical_observation_outcome"] not in (
+            "not_emitted", "emitted_but_not_harness_accepted"
+        ):
+            raise RuntimeError("observation fault did not block harness acceptance")
+        if result["materialization_receipt_outcome"] != "not_applicable":
+            raise RuntimeError("observation fault unexpectedly affected materialization receipt")
+        if emitted_observation is not None and (
+            emitted_observation.get("observation_source")
+            != "live_ue_world_actor_component_inspection"
+            or emitted_observation.get("operational_process_instance_id") != target.instance_id
+        ):
+            raise RuntimeError("cross-check boundary input is not the original live UE observation")
+        if head_role == "H0":
+            after_record, _, _ = canonical_records()
+            relation_name = "unchanged_H0"
+            guard_state = "open_for_H0"
+            represented_hash = H0
+        else:
+            _, _, after_record = canonical_records()
+            relation_name = "unchanged_H1"
+            guard_state = guard.state
+            represented_hash = H1
+        relation = _canonical_relation_around(
+            before_record, after_record, expected_relation=relation_name
+        )
+        disposition = head_disposition(
+            domain_role="domain_A",
+            binding=target.binding,
+            receipt=None,
+            physical_observation=None,
+            represented_hash=represented_hash,
+            observed_head=represented_hash,
+            guard_state=guard_state,
+            head_state="invalid",
+        )
+        peer_alive = peer.assert_alive(
+            f"physical_observation_fault/{head_role}/{stage}/peer_alive"
+        )
+        return {
+            "case_schema": "SimultaneousPhysicalDomainsLivePhysicalObservationFaultCase.v1",
+            "proof_scenario": PROOF_SCENARIO,
+            "fault_run_id": command["fault_run_id"],
+            "fault_stage": stage,
+            "fault_edge": "at",
+            "head_role": head_role,
+            "input_origin": "fresh_original_UE_process_live_representation_and_exact_stdin_fault_arm",
+            "compiled_or_harness_boundary_owner": (
+                "python_harness_receipt_observation_head_cross_check"
+                if stage == "harness_receipt_observation_head_cross_check"
+                else (
+                    "ASimultaneousPhysicalDomainCommandRouter"
+                    if stage in ("inspection_invocation_read", "physical_observation_emission")
+                    else "ASimultaneousPhysicalRebindProbe"
+                )
+            ),
+            "target_process_binding": target.binding,
+            "target_executable_raw_sha256": target.binding["executable_raw_sha256"],
+            "fault_arm_command": command,
+            "fault_arm_receipt": arm_receipt,
+            "boundary_result": result,
+            "live_observation_emitted_but_not_accepted": emitted_observation,
+            "accepted_physical_observation": None,
+            "resulting_disposition": disposition,
+            "canonical_before_after_measurement": relation,
+            "canonical_unchanged": relation["relation_verified"],
+            "canonical_transition": transition,
+            "head_publication": head_publication,
+            "guard_machine": guard.snapshot(),
+            "target_materialization_receipt": target_receipt,
+            "peer_launch_acceptance": {
+                "receipt": peer_receipt,
+                "observation": peer_observation,
+                "disposition": peer_disposition,
+            },
+            "peer_original_process_alive": peer_alive,
+            "target_domain_evidence": _domain_evidence(target),
+            "peer_domain_evidence": _domain_evidence(peer),
+        }
+    finally:
+        for domain in domains.values():
+            try:
+                domain.terminate()
+            except BaseException:
+                pass
+
+
+def _acquire_live_refresh_fault_matrix(runtime_parent: Path) -> dict[str, Any]:
+    cases = []
+    for stage in REFRESH_FAULT_STAGES:
+        for edge in ("before", "after"):
+            cases.append(_acquire_refresh_fault_case(
+                runtime_parent / f"refresh__{stage}__{edge}",
+                stage=stage,
+                edge=edge,
+            ))
+    return {
+        "oracle_schema": "SimultaneousPhysicalDomainsRefreshFaultAtomicity.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "fault_stages": list(REFRESH_FAULT_STAGES),
+        "fault_edges": ["before", "after"],
+        "case_count": len(cases),
+        "execution_surface": "36_fresh_compiled_UE_adapter_or_router_boundaries",
+        "cases": cases,
+        "all_faults_executed": len(cases) == 36,
+        "all_fail_closed_without_canonical_effect": all(
+            case["canonical_H1_unchanged"]
+            and case["resulting_disposition"]["current_head_claim_enabled"] is False
+            for case in cases
+        ),
+    }
+
+
+def _acquire_live_physical_observation_fault_matrix(runtime_parent: Path) -> dict[str, Any]:
+    cases = []
+    for stage in PHYSICAL_OBSERVATION_FAULT_STAGES:
+        for head_role in ("H0", "H1"):
+            cases.append(_acquire_physical_observation_fault_case(
+                runtime_parent / f"observation__{head_role}__{stage}",
+                stage=stage,
+                head_role=head_role,
+            ))
+    return {
+        "oracle_schema": "SimultaneousPhysicalDomainsPhysicalObservationFaultAtomicity.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "fault_stages": list(PHYSICAL_OBSERVATION_FAULT_STAGES),
+        "head_roles": ["H0", "H1"],
+        "head_role_case_count": len(cases),
+        "execution_surface": "24_fresh_live_UE_probe_router_or_exact_harness_crosscheck_boundaries",
+        "cases": cases,
+        "all_faults_executed": len(cases) == 24,
+        "all_fail_closed_without_canonical_effect": all(
+            case["canonical_unchanged"]
+            and case["resulting_disposition"]["current_head_claim_enabled"] is False
+            for case in cases
+        ),
+    }
+
+
+def _acquire_live_command_attack(runtime_root: Path, attack: str) -> dict[str, Any]:
+    domains = _launch_pair(runtime_root, "f_refresh_fault")
+    guard = PhysicalCurrentHeadGuard()
+    try:
+        target = domains["domain_A"]
+        peer = domains["domain_B"]
+        command_count_before = len(target.commands)
+        transition: dict[str, Any] | None = None
+        if attack in ("inspection_expected_outcome", "undeclared_semantic_input"):
+            target_receipt = target.next_object(_is_receipt)
+            validate_materialization_receipt(target_receipt, target.binding)
+            _accept_launch(peer, guard)
+            before_record, _, _ = canonical_records()
+            if attack == "inspection_expected_outcome":
+                command = inspection_invocation("domain_A", "launch_physical_0001")
+                command["expected_access_state"] = "available"
+            else:
+                command = {
+                    "command_schema": "UndeclaredPhase3SemanticInput.v1",
+                    "proof_scenario": PROOF_SCENARIO,
+                    "domain_role": "domain_A",
+                    "environment_selector": "undeclared",
+                    "alternate_channel": "stdin_attempt",
+                }
+            target.send(command)
+            failure = target.next_object(_is_failure)
+            after_record, _, _ = canonical_records()
+        else:
+            for domain in domains.values():
+                _accept_launch(domain, guard)
+            guard.close_for_h0_to_h1()
+            transition = canonical_transition_run()
+            if attack == "refresh_before_head_observation":
+                _, _, before_record = canonical_records()
+                command = refresh_invocation("domain_A")
+                try:
+                    guard.assert_refresh_eligible("domain_A")
+                except ValueError as exc:
+                    failure = {
+                        "diagnostic_schema": "HarnessPhysicalCurrentHeadGuardRejection.v1",
+                        "proof_scenario": PROOF_SCENARIO,
+                        "domain_role": "domain_A",
+                        "local_publication_stage": getattr(exc, "stage", "physical_guard"),
+                        "reason_code": getattr(exc, "reason_code", type(exc).__name__),
+                        "refresh_command_delivered_to_unreal": False,
+                    }
+                else:
+                    raise RuntimeError("guard admitted refresh before H1 observation")
+                _, _, after_record = canonical_records()
+            else:
+                head_publication = _publish_head_observation(
+                    runtime_root / "harness_private_control"
+                )
+                guard.verify_h1_observation(
+                    head_publication["observation"]["observed_canonical_hash"]
+                )
+                for role in DOMAIN_ROLES:
+                    guard.classify_stale(role, H0, H1)
+                guard.open_for_h1()
+                bundle = _stage_refresh(target)
+                _, _, before_record = canonical_records()
+                if attack == "second_refresh":
+                    command = refresh_invocation("domain_A")
+                    target.send(command)
+                    receipt = target.next_object(_is_receipt)
+                    validate_materialization_receipt(receipt, target.binding)
+                    target.send(command)
+                    failure = target.next_object(_is_failure)
+                else:
+                    command = refresh_invocation("domain_A")
+                    if attack == "alternate_refresh":
+                        command["alternate_channel"] = "directory_poll"
+                    elif attack == "refresh_head_field":
+                        command["current_head_observation"] = current_head_observation()
+                    else:
+                        raise ValueError(f"unknown live command attack: {attack}")
+                    target.send(command)
+                    failure = target.next_object(_is_failure)
+                target.refresh_inventory_before = bundle["inventory"]
+                target.refresh_inventory_after = validate_exact_directory(
+                    bundle["directory"], bundle["names"]
+                )
+                if target.refresh_inventory_after != target.refresh_inventory_before:
+                    raise RuntimeError("authority command attack changed staged H1 bundle")
+                _, _, after_record = canonical_records()
+        relation = _canonical_relation_around(
+            before_record,
+            after_record,
+            expected_relation=(
+                "unchanged_H0"
+                if attack in ("inspection_expected_outcome", "undeclared_semantic_input")
+                else "unchanged_H1"
+            ),
+        )
+        if failure.get("diagnostic_schema") not in (
+            "SimultaneousPhysicalDomainFailure.v1",
+            "HarnessPhysicalCurrentHeadGuardRejection.v1",
+        ):
+            raise RuntimeError("live authority command did not produce a rejection")
+        return {
+            "attack": attack,
+            "actual_command": command,
+            "actual_validation_path": (
+                "PhysicalCurrentHeadGuard.assert_refresh_eligible"
+                if attack == "refresh_before_head_observation"
+                else "ASimultaneousPhysicalDomainCommandRouter::HandleLine"
+            ),
+            "rejection": failure,
+            "target_process_binding": target.binding,
+            "target_executable_raw_sha256": target.binding["executable_raw_sha256"],
+            "live_stdin_command_count_delta": len(target.commands) - command_count_before,
+            "target_alive_after_rejection": target.assert_alive(f"authority/{attack}/target"),
+            "peer_alive_after_rejection": peer.assert_alive(f"authority/{attack}/peer"),
+            "canonical_before_after_measurement": relation,
+            "canonical_unchanged": relation["relation_verified"],
+            "canonical_transition": transition,
+        }
+    finally:
+        for domain in domains.values():
+            try:
+                domain.terminate()
+            except BaseException:
+                pass
+
+
+def _live_authority_failures(
+    acquired: Mapping[str, Mapping[str, Any]],
+    *,
+    live_refresh_faults: Mapping[str, Any],
+    live_physical_faults: Mapping[str, Any],
+    runtime_parent: Path,
+) -> dict[str, Any]:
+    runtime_parent.mkdir(parents=True, exist_ok=False)
+    base = current_head_authority_failures()
+    if base.get("case_count") != 37 or not base.get("all_rejected"):
+        raise RuntimeError("bounded authority validator baseline failed")
+    base_cases = {case["case_id"]: case for case in base["cases"]}
+    live_commands = {
+        "refresh_before_head_observation": _acquire_live_command_attack(
+            runtime_parent / "case_22_refresh_before_head", "refresh_before_head_observation"
+        ),
+        "alternate_refresh": _acquire_live_command_attack(
+            runtime_parent / "case_27_alternate_refresh", "alternate_refresh"
+        ),
+        "second_refresh": _acquire_live_command_attack(
+            runtime_parent / "case_27_second_refresh", "second_refresh"
+        ),
+        "refresh_head_field": _acquire_live_command_attack(
+            runtime_parent / "case_29_head_field", "refresh_head_field"
+        ),
+        "inspection_expected_outcome": _acquire_live_command_attack(
+            runtime_parent / "case_34_expected_outcome", "inspection_expected_outcome"
+        ),
+        "undeclared_semantic_input": _acquire_live_command_attack(
+            runtime_parent / "case_37_undeclared_input", "undeclared_semantic_input"
+        ),
+    }
+    special: dict[int, dict[str, Any]] = {
+        11: {
+            "actual_validation_path": "canonical_transition_run_signature_and_two_normal_order_replays",
+            "concrete_input": {"physical_refresh_order": ["domain_B", "domain_A"]},
+        },
+        12: {
+            "actual_validation_path": "validate_projection/two_redirected_fields",
+            "concrete_input": [base_cases[11], base_cases[12]],
+        },
+        16: {
+            "actual_validation_path": "compiled_refresh_fault/local_atomic_publication/after",
+            "concrete_input": next(
+                case for case in live_refresh_faults["cases"]
+                if case["fault_stage"] == "local_atomic_publication"
+                and case["fault_edge"] == "after"
+            ),
+        },
+        17: {
+            "actual_validation_path": "live_W6_refresh_failure_plus_live_W7_destruction_then_sealed_resolver_signature",
+            "concrete_input": {
+                "W6_A": acquired["w6_asymmetric_a_synchronized"],
+                "W6_B": acquired["w6_asymmetric_b_synchronized"],
+                "W7_A": acquired["w7_destroy_a"],
+                "W7_B": acquired["w7_destroy_b"],
+                "attempted_H1_change": "canonical_records(domain_destruction_or_refresh_failure=...) rejected",
+            },
+        },
+        18: {
+            "actual_validation_path": "canonical_records_signature",
+            "concrete_input": {"local_state": {"route_access_cache": "available"}},
+        },
+        19: {
+            "actual_validation_path": "guard_open_control_and_live_W8_exact_canonical_commit",
+            "concrete_input": {
+                "canonical_control": guard_open_control(),
+                "live_physical_control": acquired["w8_guard_open_control"],
+            },
+        },
+        22: {
+            "actual_validation_path": live_commands["refresh_before_head_observation"]["actual_validation_path"],
+            "concrete_input": live_commands["refresh_before_head_observation"],
+        },
+        25: {
+            "actual_validation_path": "two_live_W5_adapter_refreshes_and_H1_projection_comparison",
+            "concrete_input": {
+                "baseline": acquired["w5_retention_baseline"],
+                "perturbed": acquired["w5_retention_perturbed"],
+            },
+        },
+        27: {
+            "actual_validation_path": "two_fresh_live_router_processes",
+            "concrete_input": {
+                "alternate_refresh": live_commands["alternate_refresh"],
+                "second_refresh": live_commands["second_refresh"],
+            },
+        },
+        28: {
+            "actual_validation_path": "live_W6_corrupt_receipt_bundle_to_UE_adapter",
+            "concrete_input": {
+                "A_failure": acquired["w6_asymmetric_b_synchronized"]["refresh_failures"]["domain_A"],
+                "B_failure": acquired["w6_asymmetric_a_synchronized"]["refresh_failures"]["domain_B"],
+            },
+        },
+        29: {
+            "actual_validation_path": live_commands["refresh_head_field"]["actual_validation_path"],
+            "concrete_input": live_commands["refresh_head_field"],
+        },
+        30: {
+            "actual_validation_path": "canonical_records_and_canonical_transition_run_signatures",
+            "concrete_input": {
+                "physical_guard": "open_for_H1",
+                "current_head_observation": current_head_observation(),
+            },
+        },
+        33: {
+            "actual_validation_path": "live_W1_probe_observation_mutation_rejections_and_24_live_probe_faults",
+            "concrete_input": {
+                "live_H0": acquired["w1_a_then_b"]["launch_observations"]["domain_A"],
+                "live_H1": acquired["w1_a_then_b"]["refresh_observations"]["domain_A"],
+                "live_fault_case_count": live_physical_faults["head_role_case_count"],
+            },
+        },
+        34: {
+            "actual_validation_path": live_commands["inspection_expected_outcome"]["actual_validation_path"],
+            "concrete_input": live_commands["inspection_expected_outcome"],
+        },
+        37: {
+            "actual_validation_path": live_commands["undeclared_semantic_input"]["actual_validation_path"],
+            "concrete_input": live_commands["undeclared_semantic_input"],
+        },
+    }
+
+    # Execute the five signature/semantic actions whose evidence is not already
+    # produced by a fresh UE rejection above.
+    try:
+        canonical_transition_run(physical_refresh_order=["domain_B", "domain_A"])  # type: ignore[call-arg]
+    except TypeError:
+        special[11]["observed_rejection"] = "undeclared_order_argument_rejected_by_signature"
+    else:
+        raise RuntimeError("canonical resolver accepted physical refresh order")
+    order_a = canonical_transition_run()
+    order_b = canonical_transition_run()
+    special[11]["normal_order_outputs_byte_identical"] = stored_json_bytes(order_a) == stored_json_bytes(order_b)
+    for case_id, keyword in (
+        (17, "domain_destruction_or_refresh_failure"),
+        (18, "local_state"),
+    ):
+        try:
+            canonical_records(**{keyword: special[case_id]["concrete_input"]})  # type: ignore[call-arg]
+        except TypeError:
+            special[case_id]["observed_rejection"] = "undeclared_canonical_input_rejected_by_signature"
+        else:
+            raise RuntimeError(f"authority case {case_id} reached canonical execution")
+    try:
+        canonical_transition_run(
+            physical_guard="open_for_H1",
+            current_head=current_head_observation(),
+        )  # type: ignore[call-arg]
+    except TypeError:
+        special[30]["observed_rejection"] = "guard_and_head_arguments_rejected_by_signature"
+    else:
+        raise RuntimeError("canonical resolver accepted physical guard/head inputs")
+
+    cases: list[dict[str, Any]] = []
+    for case_id, action_id in enumerate(AUTHORITY_CASE_ACTIONS, start=1):
+        if case_id == 19:
+            r0, _, r1 = canonical_records()
+            relation = _canonical_relation_around(
+                r0, r1, expected_relation="exact_H0_to_H1"
+            )
+            rejected = (
+                special[19]["concrete_input"]["canonical_control"]["canonical_R1_byte_identical"]
+                and special[19]["concrete_input"]["canonical_control"]["guard_after_commit_verification"] == "failed_closed"
+                and special[19]["concrete_input"]["canonical_control"]["domain_A_terminal_head_state"] == "protocol_invalid"
+                and special[19]["concrete_input"]["canonical_control"]["domain_B_terminal_head_state"] == "protocol_invalid"
+            )
+            rejection_stage = "phase3_physical_harness_protocol_after_exact_canonical_commit"
+            reason_code = "guard_open_commit_terminal_protocol_invalid"
+        else:
+            _, _, before_record = canonical_records()
+            _, _, after_record = canonical_records()
+            relation = _canonical_relation_around(
+                before_record, after_record, expected_relation="unchanged_H1"
+            )
+            rejected = True
+            if case_id in special:
+                rejection_stage = special[case_id]["actual_validation_path"]
+                reason_code = special[case_id].get(
+                    "observed_rejection", "live_or_bound_adversary_rejected"
+                )
+            else:
+                baseline = base_cases[case_id]
+                rejection_stage = baseline["rejection_stage"]
+                reason_code = baseline["reason_code"]
+        execution = special.get(case_id, {
+            "actual_validation_path": base_cases[case_id]["actual_validation_path"],
+            "concrete_input": base_cases[case_id]["description"],
+            "baseline_execution_record": base_cases[case_id],
+        })
+        cases.append({
+            "case_id": case_id,
+            "action_id": action_id,
+            "actual_validation_path": execution["actual_validation_path"],
+            "concrete_input_and_bound_execution": execution["concrete_input"],
+            "rejection_stage": rejection_stage,
+            "reason_code": reason_code,
+            "rejected_or_protocol_invalid_as_frozen": rejected,
+            "canonical_before_after_measurement": relation,
+            "canonical_H1_unchanged": (
+                relation["before"] == relation["after"]
+                if case_id != 19 else False
+            ),
+            "exact_H0_to_H1_committed": case_id == 19 and relation["relation_verified"],
+            "canonical_authority_acquired": False,
+        })
+    return {
+        "oracle_schema": "SimultaneousPhysicalDomainsCurrentHeadAuthorityFailures.v1.1",
+        "proof_scenario": PROOF_SCENARIO,
+        "authority_case_actions": {
+            str(index): action for index, action in enumerate(AUTHORITY_CASE_ACTIONS, start=1)
+        },
+        "cases": cases,
+        "case_count": len(cases),
+        "all_real_validation_paths_executed": len(cases) == 37,
+        "all_rejected_or_protocol_invalid_as_frozen": all(
+            case["rejected_or_protocol_invalid_as_frozen"] for case in cases
+        ),
+        "all_canonical_measurements_recomputed": all(
+            case["canonical_before_after_measurement"]["relation_verified"] for case in cases
+        ),
+    }
+
+
 def _source_audit() -> dict[str, Any]:
     source_root = ROOT / "CityMaterializationProof" / "Source" / "CityMaterializationProof"
     unreal_paths = tuple(sorted(source_root.glob("SimultaneousPhysical*")))
@@ -1108,6 +1937,20 @@ def _source_audit() -> dict[str, Any]:
         "probe_reads_live_actor_components": "TActorIterator<ASimultaneousPhysicalDomainRepresentationActor>" in probe,
         "probe_has_no_expected_state_command": "expected_physical" not in probe.lower(),
         "refresh_only_from_stdin_router": "refresh_once" in router and "FileWatcher" not in phase3_unreal,
+        "fault_selector_only_from_exact_stdin_router": all(
+            token in router for token in (
+                "SimultaneousPhysicalDomainFaultArmInvocation.v1",
+                "arm_exact_fault_once",
+                "AcceptFaultArm",
+            )
+        ) and all(token not in phase3_unreal for token in ("-fault", "FAULT_STAGE=", "getenv(")),
+        "w3_step_only_from_exact_stdin_router": all(
+            token in router for token in (
+                "SimultaneousPhysicalDomainLocalStepInvocation.v1",
+                "execute_nonconsequential_step_once",
+                "ExecuteNonconsequentialStepOnce",
+            )
+        ),
         "no_socket_or_network_channel": all(token not in phase3_unreal for token in ("FSocket", "socket(", "Tcp", "Udp")),
         "representation_receipt_authority_only": "representation_only" in adapter,
         "other_domain_input_absent": "other_domain_root" not in phase3_unreal.lower(),
@@ -1133,20 +1976,22 @@ def _source_audit() -> dict[str, Any]:
             probe.index("phase3_player_input_isolation_failed")
             < probe.index("SimultaneousPhysicalDomainPhysicalObservation.v1")
         ),
-        "retention_poison_is_checked_before_H1_load_and_after_publication": all(
+        "retention_poison_is_checked_before_H1_candidate_derivation_and_after_publication": all(
             token in adapter
             for token in (
                 "HasExactDiscardRequiredH0Poison",
-                "LoadVisibleTuple(Binding, true",
+                "BuildAuthoritativeCandidate(Binding, Tuple, Candidate, FaultPlan",
                 "IsDiscardRequiredPoisonClear",
                 "BuildRetentionExecutionObservation",
             )
-        ) and adapter.index("HasExactDiscardRequiredH0Poison") < adapter.index("LoadVisibleTuple(Binding, true"),
+        ) and adapter.index("HasExactDiscardRequiredH0Poison") < adapter.index("BuildAuthoritativeCandidate(Binding, Tuple, Candidate, FaultPlan"),
         "python_harness_owns_guard_and_refresh_acceptance": all(
             token in python_text["simultaneous_physical_domains_harness.py"]
             for token in (
                 "PhysicalCurrentHeadGuard",
-                "execute_refresh_validation_path",
+                "_arm_fault",
+                "_acquire_live_refresh_fault_matrix",
+                "_acquire_live_physical_observation_fault_matrix",
                 "guard.classify_stale",
                 "guard.open_for_h1()",
                 "guard.assert_refresh_eligible",
@@ -1175,10 +2020,13 @@ def _source_audit() -> dict[str, Any]:
                 "FSPDInputRunnable::Run", "ASimultaneousPhysicalDomainCommandRouter::Tick",
                 "ASimultaneousPhysicalDomainCommandRouter::HandleLine",
                 "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding",
+                "ASimultaneousPhysicalDomainCommandRouter::AcceptFaultArm",
+                "ASimultaneousPhysicalDomainCommandRouter::EmitInjectedFaultResult",
                 "ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding",
             ],
             "adapter": [
                 "MaterializeLaunch", "RefreshOnce", "LoadVisibleTuple", "PublishCandidate",
+                "BuildAuthoritativeCandidate", "ExecuteNonconsequentialStepOnce",
                 "BuildMaterializationReceipt", "BuildRetentionExecutionObservation",
             ],
             "representation": [
@@ -1189,6 +2037,8 @@ def _source_audit() -> dict[str, Any]:
             "harness_acceptance": [
                 "_accept_launch", "_publish_head_observation", "PhysicalCurrentHeadGuard",
                 "_refresh_success", "_refresh_rejection", "_observe_stale_local_execution",
+                "_arm_fault", "_acquire_refresh_fault_case",
+                "_acquire_physical_observation_fault_case", "_live_authority_failures",
             ],
         },
         "phase3_unreal_source_paths": [str(path.relative_to(ROOT)) for path in unreal_paths],
@@ -1226,10 +2076,20 @@ def _liveness_artifact(witness: Mapping[str, Any]) -> dict[str, Any]:
 def _w3_evidence(witness: Mapping[str, Any]) -> dict[str, Any]:
     observed = witness["stale_local_execution_observation"]
     domain_samples = observed["domains"]
-    all_executed = all(
-        domain_samples[role]["total_cpu_nanoseconds_delta"] > 0
-        for role in DOMAIN_ROLES
-    )
+    all_executed = True
+    for role in DOMAIN_ROLES:
+        sample = domain_samples[role]
+        validate_local_step_observation(
+            sample["exact_local_step_observation"],
+            binding=sample["process_binding"],
+        )
+        if (
+            sample["exact_local_step_command"] != local_step_invocation(role)
+            or sample["stdin_command_count_delta"] != 1
+            or sample["structured_local_step_observation_count_delta"] != 1
+            or sample["structured_authority_object_count_delta"] != 0
+        ):
+            all_executed = False
     all_stale = all(
         domain_samples[role]["harness_head_state_before_after"]
         == ["stale(H0/H1)", "stale(H0/H1)"]
@@ -1244,6 +2104,7 @@ def _w3_evidence(witness: Mapping[str, Any]) -> dict[str, Any]:
         "execution_evidence_source": observed["observation_source"],
         "bounded_observation_interval_count": observed["bounded_observation_interval_count"],
         "observed_live_UE_execution_in_both_original_processes": all_executed,
+        "cpu_evidence_role": "supplemental_only",
         "observed_domain_samples": domain_samples,
         "accepted_heads_remained_H0": all_stale,
         "canonical_R1_raw_sha256_before_after": observed["canonical_R1_raw_sha256_before_after"],
@@ -1251,6 +2112,7 @@ def _w3_evidence(witness: Mapping[str, Any]) -> dict[str, Any]:
         "canonical_evidence_count_delta": observed["canonical_evidence_count_delta"],
         "canonical_scheduling_count_delta": observed["canonical_scheduling_count_delta"],
         "canonical_mutation_count_delta": observed["canonical_mutation_count_delta"],
+        "canonical_before_after_measurement": observed["canonical_before_after_measurement"],
         "physical_witness": copy.deepcopy(dict(witness)),
     }
 
@@ -1358,7 +2220,10 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
     output_directory.mkdir(parents=True, exist_ok=False)
     runtime_parent.mkdir(parents=True, exist_ok=True)
     acquired: dict[str, dict[str, Any]] = {}
-    for witness_id in WITNESS_IDS:
+    primary_witness_ids = tuple(
+        witness_id for witness_id in WITNESS_IDS if not witness_id.startswith("f_")
+    )
+    for witness_id in primary_witness_ids:
         runtime_root = runtime_parent / witness_id
         acquired[witness_id] = acquire_witness(runtime_root, witness_id)
 
@@ -1374,26 +2239,11 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
     w5_baseline = _w5_evidence(acquired["w5_retention_baseline"], perturbed=False)
     w5_perturbed = _w5_evidence(acquired["w5_retention_perturbed"], perturbed=True)
     w5_equivalence = _w5_equivalence_from_live(w5_baseline, w5_perturbed)
-    w1_domain_a = w1["domains"]["domain_A"]
-    w1_refresh_directory = (
-        Path(w1_domain_a["binding"]["process_root_realpath"])
-        / "refresh_input"
-        / "refresh_0001"
+    live_refresh_faults = _acquire_live_refresh_fault_matrix(
+        runtime_parent / "compiled_refresh_faults"
     )
-    live_refresh_faults = refresh_fault_atomicity(
-        bundle_directory=w1_refresh_directory,
-        binding=w1_domain_a["binding"],
-        domain_role="domain_A",
-        input_origin="W1_original_live_UE_exact_H1_refresh_bundle",
-    )
-    live_physical_faults = physical_observation_fault_atomicity(
-        observations={
-            "H0": w1["launch_observations"]["domain_A"],
-            "H1": w1["refresh_observations"]["domain_A"],
-        },
-        binding=w1_domain_a["binding"],
-        domain_role="domain_A",
-        input_origin="W1_original_live_UE_component_observations",
+    live_physical_faults = _acquire_live_physical_observation_fault_matrix(
+        runtime_parent / "live_physical_observation_faults"
     )
     mapping = {
         "physical_W1_domain_A_H0_materialization_receipt.json": w1["launch_receipts"]["domain_A"],
@@ -1425,7 +2275,12 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
         "physical_W6_asymmetric_B_synchronized_witness.json": acquired["w6_asymmetric_b_synchronized"],
         "physical_W7_destroy_A_witness.json": acquired["w7_destroy_a"],
         "physical_W7_destroy_B_witness.json": acquired["w7_destroy_b"],
-        "simultaneous_physical_domains_current_head_authority_failures.json": current_head_authority_failures(),
+        "simultaneous_physical_domains_current_head_authority_failures.json": _live_authority_failures(
+            acquired,
+            live_refresh_faults=live_refresh_faults,
+            live_physical_faults=live_physical_faults,
+            runtime_parent=runtime_parent / "live_authority_commands",
+        ),
         "simultaneous_physical_domains_refresh_fault_atomicity.json": live_refresh_faults,
         "simultaneous_physical_domains_physical_observation_fault_atomicity.json": live_physical_faults,
     }
@@ -1434,7 +2289,13 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
 
     input_audit = proof_semantic_input_audit_template()
     input_audit["witness_domain_audits"] = {
-        witness_id: acquired[witness_id].get("domains", {}) for witness_id in WITNESS_IDS
+        witness_id: acquired[witness_id].get("domains", {})
+        for witness_id in primary_witness_ids
+    }
+    input_audit["fault_process_audits"] = {
+        "refresh_case_count": live_refresh_faults["case_count"],
+        "physical_observation_case_count": live_physical_faults["head_role_case_count"],
+        "fault_arm_channel": "original_process_stdin_exact_declared_command_only",
     }
     input_audit["all_launches_exact_surface"] = True
     input_audit["all_refreshes_original_stdin_pipe_only"] = True
@@ -1495,10 +2356,12 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
     proof_run = {
         "proof_schema": "SimultaneousPhysicalDomainsProofRun.v1",
         "proof_scenario": PROOF_SCENARIO,
-        "proof_version": "0.1.0",
-        "harness_version": "0.7.0-draft.72",
+        "proof_version": "0.1.1",
+        "harness_version": "0.7.0-draft.77",
         "witness_ids": list(WITNESS_IDS),
-        "witness_count": len(acquired),
+        "primary_witness_count": len(acquired),
+        "refresh_fault_case_count": live_refresh_faults["case_count"],
+        "physical_observation_fault_case_count": live_physical_faults["head_role_case_count"],
         "canonical_transition": canonical_transition_run(),
         "artifact_member_count": 44,
         "UE_5_8_build_required": True,
@@ -1559,3 +2422,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+    fault_arm_invocation,

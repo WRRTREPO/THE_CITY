@@ -85,8 +85,8 @@ production topology, World Partition, streaming, networking, city expansion,
 and adjacent scope remain unauthorized.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is frozen under
-`SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. It asks
+v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md) is frozen under
+`SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. It asks
 whether two process-isolated Unreal representation domains can remain alive
 across the exact sealed Phase-1 H0-to-H1 access transition, then independently
 rebind to H1 while an H0 representation is mechanically stale and incapable of
@@ -100,9 +100,12 @@ aligns synchronized representation-only claims, audits the exact proof-semantic
 process inputs, requires independent live-UE component observation after each
 materialization, and preserves the exact release boundary. Its review-only
 validator structurally binds the complete frozen specification bytes, passes
-11/11 exact checks, and rejects 30/30 declared in-memory adversarial mutations.
-The forward-corrected exact bounded implementation is complete,
-its live runtime evidence has been acquired, and its 44/110 release candidate
+12/12 exact checks, and rejects 35/35 declared in-memory adversarial mutations.
+The second forward-corrected exact bounded implementation is complete. W3 now
+uses exact live UE-local counter steps, all 60 adapter/probe/harness fault rows
+are process-bound, all 37 authority rows use the exact frozen action table, and
+canonical history is mechanically measured around every applicable adversary.
+Its live runtime evidence has been reacquired, and its 44/111 release candidate
 passes verification. Evidence remains unsealed pending independent review;
 capacity remains unchanged.
 
@@ -184,6 +187,29 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.77 — 2026-08-28
+
+- Preserved pushed history through `c8aeaca3b020c1ca17172464cbdb68437eb099cf`
+  and froze the operator-authorized v0.1.1 corrective proof-local command
+  amendment without changing capacity, canonical semantics, Phase 4, or
+  production scope.
+- Replaced CPU-only W3 with one exact compiled UE local-step counter observation
+  in each original process. CPU sampling is supplemental only.
+- Executed all 36 refresh and 24 physical-observation faults through fresh
+  process-bound compiled adapter/router/probe or exact harness-cross-check
+  boundaries, with exact fault-arm receipts and measured canonical history.
+- Rebuilt the exact 37-row authority case/action artifact, including the exact
+  case-19 canonical H0→H1 commit followed by `failed_closed` and two terminal
+  `protocol_invalid` dispositions.
+- Hardened the release verifier against CPU-only W3 evidence, Python-only live
+  fault matrices, swapped authority labels/actions, and hard-coded unchanged
+  history; all 4/4 in-memory adversaries are rejected.
+- Passed the 12/12 specification validator, 35/35 specification mutations,
+  33/33 focused tests, UE 5.8 build, exact 44 artifact verification, and
+  regenerated the self-excluding 111-member unsealed release candidate.
+- Evidence remains unsealed, Development Capacity remains v0.1.11, and Phase 4
+  remains closed.
 
 ### 0.7.0-draft.76 — 2026-08-28
 

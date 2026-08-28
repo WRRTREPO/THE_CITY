@@ -1,4 +1,4 @@
-"""Frozen reference machine for Simultaneous Physical Domains Proof v0.1.0.
+"""Frozen reference machine for Simultaneous Physical Domains Proof v0.1.1.
 
 This module is deliberately proof-local.  It composes the sealed Phase-1
 canonical topology transition with detached physical-domain projections.  It
@@ -33,10 +33,10 @@ from canonical_spatial_topology_identity import (
 )
 
 
-PROOF_SCHEMA = "SimultaneousPhysicalDomainsProof.v1"
-PROOF_SCENARIO = "simultaneous-physical-domains-v1"
-PROOF_VERSION = "0.1.0"
-HARNESS_VERSION = "0.7.0-draft.72"
+PROOF_SCHEMA = "SimultaneousPhysicalDomainsProof.v1.1"
+PROOF_SCENARIO = "simultaneous-physical-domains-v1.1"
+PROOF_VERSION = "0.1.1"
+HARNESS_VERSION = "0.7.0-draft.77"
 
 H0 = "666d75281d3478e586edd12464d2736169f423c2d7b128bd3d2d2b1b2b826b29"
 H1 = "78cc5ffe0c4758c296d8fee0bc2a95e230be0bec0a4aab680806eb670500804a"
@@ -58,6 +58,12 @@ PROCESS_BINDING_SCHEMA = "SimultaneousPhysicalDomainProcessBinding.v1"
 BIND_INVOCATION_SCHEMA = "SimultaneousPhysicalDomainBindInvocation.v1"
 REFRESH_INVOCATION_SCHEMA = "SimultaneousPhysicalDomainRefreshInvocation.v1"
 INSPECTION_INVOCATION_SCHEMA = "SimultaneousPhysicalDomainInspectionInvocation.v1"
+LOCAL_STEP_INVOCATION_SCHEMA = "SimultaneousPhysicalDomainLocalStepInvocation.v1"
+LOCAL_STEP_OBSERVATION_SCHEMA = "SimultaneousPhysicalDomainLocalStepObservation.v1"
+FAULT_ARM_INVOCATION_SCHEMA = "SimultaneousPhysicalDomainFaultArmInvocation.v1"
+FAULT_ARM_RECEIPT_SCHEMA = "SimultaneousPhysicalDomainFaultArmReceipt.v1"
+INJECTED_FAULT_RESULT_SCHEMA = "SimultaneousPhysicalDomainInjectedFaultResult.v1"
+CANONICAL_MEASUREMENT_SCHEMA = "SimultaneousPhysicalDomainsCanonicalMeasurement.v1"
 PHYSICAL_OBSERVATION_SCHEMA = "SimultaneousPhysicalDomainPhysicalObservation.v1"
 HEAD_OBSERVATION_SCHEMA = "SimultaneousPhysicalDomainsHeadObservation.v1"
 HEAD_DISPOSITION_SCHEMA = "SimultaneousPhysicalDomainHeadDisposition.v1"
@@ -90,6 +96,8 @@ WITNESS_IDS = (
     "w7_destroy_a",
     "w7_destroy_b",
     "w8_guard_open_control",
+    "f_refresh_fault",
+    "f_physical_observation_fault",
 )
 
 HEAD_OBSERVATION_FAULT_POINTS = (
@@ -138,6 +146,46 @@ PHYSICAL_OBSERVATION_FAULT_STAGES = (
     "independent_surface_consistency_classification",
     "physical_observation_emission",
     "harness_receipt_observation_head_cross_check",
+)
+
+AUTHORITY_CASE_ACTIONS = (
+    "submit_H0_bytes_as_H1_receipt",
+    "submit_H0_source_hash_in_H1_projection",
+    "submit_H0_receipt_to_H1_head_disposition",
+    "invoke_H0_scheduler_capability_against_H1",
+    "invoke_H0_mutation_capability_against_H1",
+    "submit_stale_disposition_as_synchronized",
+    "submit_live_available_H0_observation_as_H1",
+    "submit_local_route_override_to_canonical_payload_validation",
+    "submit_local_competing_successor_to_canonical_payload_validation",
+    "submit_domain_B_observation_under_domain_A_binding",
+    "attempt_physical_refresh_order_argument_on_canonical_resolver_and_compare_normal_orders",
+    "submit_redirected_site_and_route_projection",
+    "submit_projection_without_shared_route",
+    "submit_projection_with_route_access_field",
+    "submit_replacement_process_binding_for_H1_receipt",
+    "submit_H1_receipt_after_injected_partial_publication",
+    "execute_live_domain_destruction_and_refresh_failure_then_attempt_H1_change",
+    "attempt_local_state_argument_on_canonical_resolver_and_measure",
+    "execute_guard_open_exact_canonical_commit",
+    "submit_bad_head_observation_to_guard_reopen",
+    "execute_head_publication_failure_and_assert_failed_closed",
+    "deliver_live_refresh_before_head_observation_and_reject_current_acceptance",
+    "construct_head_observation_from_domain_source_and_reject",
+    "submit_retained_scalar_to_authoritative_constructor",
+    "execute_live_W5_poison_refresh_and_compare_H1",
+    "submit_PID_reuse_binding_and_liveness_check",
+    "send_live_alternate_and_second_refresh_commands",
+    "stage_invalid_live_bundle_and_invoke_adapter",
+    "send_head_observation_field_in_live_refresh_command",
+    "attempt_guard_and_head_arguments_on_canonical_resolver",
+    "submit_live_H1_receipt_without_probe",
+    "submit_probe_observation_with_adapter_source",
+    "execute_live_probe_invalid_surface_cases",
+    "send_live_inspection_command_with_expected_outcome",
+    "submit_synchronized_disposition_missing_prerequisites",
+    "invoke_current_head_claim_from_stale_disposition",
+    "send_live_undeclared_semantic_input_channels_and_audit",
 )
 
 LIVENESS_FAILURES = (
@@ -541,6 +589,70 @@ def canonical_records() -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]
     return r0, boundary, r1
 
 
+def canonical_measurement(record: Mapping[str, Any]) -> dict[str, Any]:
+    validated = _copy(dict(record))
+    validate_canonical_envelope(validated)
+    provenance = validated["causal_provenance"]
+    ledger = provenance["authoritative_causal_ledger"]
+    ancestry = provenance["canonical_ancestry"]
+    schedule = validated["future_causal_state"]["unresolved_work"]
+    return {
+        "snapshot_schema": CANONICAL_MEASUREMENT_SCHEMA,
+        "record_raw_sha256": sha256_bytes(phase1_stored_json_bytes(validated)),
+        "record_canonical_hash": canonical_hash(validated),
+        "authoritative_ledger_raw_sha256": sha256_bytes(canonical_json(ledger).encode("utf-8")),
+        "authoritative_ledger_entry_count": len(ledger),
+        "canonical_ancestry_raw_sha256": sha256_bytes(canonical_json(ancestry).encode("utf-8")),
+        "future_schedule_raw_sha256": sha256_bytes(canonical_json(schedule).encode("utf-8")),
+        "future_schedule_entry_count": len(schedule),
+        "canonical_mutation_count": len(ledger),
+    }
+
+
+def measured_canonical_relation(
+    before_record: Mapping[str, Any],
+    after_record: Mapping[str, Any],
+    *,
+    expected_relation: str,
+) -> dict[str, Any]:
+    before = canonical_measurement(before_record)
+    after = canonical_measurement(after_record)
+    if expected_relation == "unchanged_H1":
+        passed = before == after and before["record_canonical_hash"] == H1
+    elif expected_relation == "unchanged_H0":
+        passed = before == after and before["record_canonical_hash"] == H0
+    elif expected_relation == "exact_H0_to_H1":
+        passed = before["record_canonical_hash"] == H0 and after["record_canonical_hash"] == H1
+    else:
+        raise ValueError(f"unknown canonical relation: {expected_relation}")
+    return {
+        "measurement_schema": "SimultaneousPhysicalDomainsCanonicalBeforeAfter.v1",
+        "before": before,
+        "after": after,
+        "expected_relation": expected_relation,
+        "relation_verified": passed,
+    }
+
+
+def validate_measured_canonical_relation(
+    value: Any,
+    *,
+    before_record: Mapping[str, Any],
+    after_record: Mapping[str, Any],
+    expected_relation: str,
+) -> dict[str, Any]:
+    expected = measured_canonical_relation(
+        before_record, after_record, expected_relation=expected_relation
+    )
+    if value != expected or value["relation_verified"] is not True:
+        raise _reject(
+            "canonical_before_after_measurement",
+            "canonical_measurement_mismatch",
+            "canonical bytes/history measurement does not recompute",
+        )
+    return _copy(expected)
+
+
 def canonical_transition_run() -> dict[str, Any]:
     r0, boundary, r1 = canonical_records()
     route0 = r0["current_causal_state"]["spatial_topology"]["routes"][ROUTE_ID]
@@ -887,6 +999,121 @@ def validate_refresh_invocation(value: Any, domain_role: str) -> dict[str, Any]:
             "refresh command contains missing, extra, or altered input",
         )
     return _copy(expected)
+
+
+def local_step_invocation(domain_role: str) -> dict[str, Any]:
+    if domain_role not in DOMAIN_ROLES:
+        raise _reject("local_nonconsequential_step", "invalid_domain_role", domain_role)
+    return {
+        "command_schema": LOCAL_STEP_INVOCATION_SCHEMA,
+        "proof_scenario": PROOF_SCENARIO,
+        "domain_role": domain_role,
+        "operation": "execute_nonconsequential_step_once",
+        "step_id": "stale_quarantine_step_0001",
+    }
+
+
+def validate_local_step_observation(
+    value: Any,
+    *,
+    binding: Mapping[str, Any],
+) -> dict[str, Any]:
+    keys = (
+        "observation_schema", "proof_scenario", "domain_role",
+        "operational_process_instance_id", "process_binding_raw_sha256",
+        "step_id", "step_name", "counter_before", "counter_after",
+        "represented_hash_before", "represented_hash_after",
+        "published_actor_identity_unchanged", "materialization_receipt_count_delta",
+        "canonical_evidence_count_delta", "canonical_scheduling_count_delta",
+        "canonical_mutation_count_delta", "canonical_truth_claim_count_delta",
+        "observation_source",
+    )
+    _exact_keys(value, keys, "local_nonconsequential_step")
+    expected_instance = operational_process_instance_id(binding)
+    expected_binding_digest = sha256_value(binding)
+    if (
+        value["observation_schema"] != LOCAL_STEP_OBSERVATION_SCHEMA
+        or value["proof_scenario"] != PROOF_SCENARIO
+        or value["domain_role"] != binding["domain_role"]
+        or value["operational_process_instance_id"] != expected_instance
+        or value["process_binding_raw_sha256"] != expected_binding_digest
+        or value["step_id"] != "stale_quarantine_step_0001"
+        or value["step_name"] != "increment_nonconsequential_tick_counter_once"
+        or type(value["counter_before"]) is not int
+        or type(value["counter_after"]) is not int
+        or value["counter_after"] != value["counter_before"] + 1
+        or value["represented_hash_before"] != H0
+        or value["represented_hash_after"] != H0
+        or value["published_actor_identity_unchanged"] is not True
+        or any(value[field] != 0 for field in keys[12:17])
+        or value["observation_source"] != "live_ue_adapter_exact_local_step"
+    ):
+        raise _reject("local_nonconsequential_step", "local_step_observation_mismatch", "W3 exact step failed")
+    return _copy(value)
+
+
+def fault_arm_invocation(
+    *,
+    surface: str,
+    stage: str,
+    edge: str,
+    head_role: str,
+    domain_role: str = "domain_A",
+) -> dict[str, Any]:
+    if domain_role != "domain_A":
+        raise _reject("fault_arm_invocation_read", "fault_target_role_invalid", domain_role)
+    if surface == "refresh":
+        if stage not in REFRESH_FAULT_STAGES or edge not in ("before", "after") or head_role != "H1":
+            raise _reject("fault_arm_invocation_read", "refresh_fault_plan_invalid", stage)
+        run_id = f"refresh/H1/{stage}/{edge}/domain_A"
+    elif surface == "physical_observation":
+        if stage not in PHYSICAL_OBSERVATION_FAULT_STAGES or edge != "at" or head_role not in HEAD_ROLES:
+            raise _reject("fault_arm_invocation_read", "observation_fault_plan_invalid", stage)
+        run_id = f"physical_observation/{head_role}/{stage}/at/domain_A"
+    else:
+        raise _reject("fault_arm_invocation_read", "fault_surface_invalid", surface)
+    return {
+        "command_schema": FAULT_ARM_INVOCATION_SCHEMA,
+        "proof_scenario": PROOF_SCENARIO,
+        "domain_role": domain_role,
+        "operation": "arm_exact_fault_once",
+        "fault_run_id": run_id,
+        "fault_surface": surface,
+        "fault_stage": stage,
+        "fault_edge": edge,
+        "target_head_role": head_role,
+    }
+
+
+def validate_fault_arm_receipt(
+    value: Any,
+    *,
+    command: Mapping[str, Any],
+    binding: Mapping[str, Any],
+) -> dict[str, Any]:
+    keys = (
+        "receipt_schema", "proof_scenario", "domain_role",
+        "operational_process_instance_id", "process_binding_raw_sha256",
+        "executable_raw_sha256", "fault_run_id", "fault_surface", "fault_stage",
+        "fault_edge", "target_head_role", "armed_once",
+    )
+    _exact_keys(value, keys, "fault_arm_receipt")
+    if (
+        value["receipt_schema"] != FAULT_ARM_RECEIPT_SCHEMA
+        or value["proof_scenario"] != PROOF_SCENARIO
+        or value["domain_role"] != binding["domain_role"]
+        or value["operational_process_instance_id"] != operational_process_instance_id(binding)
+        or value["process_binding_raw_sha256"] != sha256_value(binding)
+        or value["executable_raw_sha256"] != binding["executable_raw_sha256"]
+        or value["fault_run_id"] != command["fault_run_id"]
+        or value["fault_surface"] != command["fault_surface"]
+        or value["fault_stage"] != command["fault_stage"]
+        or value["fault_edge"] != command["fault_edge"]
+        or value["target_head_role"] != command["target_head_role"]
+        or value["armed_once"] is not True
+    ):
+        raise _reject("fault_arm_receipt", "fault_arm_receipt_mismatch", "fault plan not bound")
+    return _copy(value)
 
 
 def expected_physical_observation(

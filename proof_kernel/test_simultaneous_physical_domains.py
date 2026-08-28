@@ -80,7 +80,7 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
     def _binding(role: str, *, pid: int = 4242) -> dict:
         witness = "w1_a_then_b"
         return process_binding({
-            "proof_scenario": "simultaneous-physical-domains-v1",
+            "proof_scenario": "simultaneous-physical-domains-v1.1",
             "witness_id": witness,
             "domain_role": role,
             "harness_launch_id": f"{witness}/{role}/launch_0001",

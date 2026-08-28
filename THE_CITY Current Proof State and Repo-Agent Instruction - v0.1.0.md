@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-28)\
 **Date:** 2026-08-28\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.76`\
+**Governing continuation:** `0.7.0-draft.77`\
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
@@ -72,9 +72,9 @@ Unreal occupancy, contention, simultaneous domains, networking, streaming,
 Phase 3, or adjacent architecture.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is frozen
-under proof-harness identity `SimultaneousPhysicalDomainsProof.v1` /
-`0.7.0-draft.72`. It reuses the exact sealed Phase-1 H0/H1 payload and
+v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md) is frozen
+under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` /
+`0.7.0-draft.77`. It reuses the exact sealed Phase-1 H0/H1 payload and
 access-only canonical transition, but explicitly does not inherit Phase 1's
 source-destruction physical lifecycle. The frozen contract keeps head observation private
 to the harness, makes the exact head-qualified physical guard canonically inert,
@@ -82,14 +82,17 @@ defines terminal guard-open failure and representation-only claim semantics,
 requires a separate live-UE available/blocked oracle, audits the
 proof-semantic process-input closure, and preserves the exact release DAG,
 member set, and self-excluding manifest. Its structurally exact non-release
-document validator passes 11/11 exact checks and all 30 adversarial in-memory
+document validator passes 12/12 exact checks and all 35 adversarial in-memory
 self-tests. Exact bounded
 implementation authority now covers only the four named Python paths, eight
 named Unreal paths, bounded `CityProofGameMode.cpp` dispatch branch, evidence
-path, 44-member artifact directory, and self-excluding 110-member manifest.
+path, 44-member artifact directory, and self-excluding 111-member manifest.
 The exact bounded implementation now passes 33/33 focused tests, 215/215
 predecessor regressions, the UE 5.8 build, all 11 frozen live-process witnesses,
-and exact 44/110 release verification. Evidence remains unsealed pending
+and exact 44/111 release verification. W3 uses exact compiled local-step counter
+evidence, all 60 fault rows are process-bound at their real boundaries, the 37
+authority rows match their exact actions, and canonical history is measured
+around every applicable adversary. Evidence remains unsealed pending
 independent review; no capacity advancement is established.
 
 ## Current proof progression
@@ -512,7 +515,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.76
+  version: 0.7.0-draft.77
 
 latest_capacity_record:
   version: 0.1.11
@@ -526,8 +529,8 @@ latest_sealed_proof:
 
 active_proof:
   name: Simultaneous Physical Domains Proof
-  version: 0.1.0
-  frozen_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1/0.7.0-draft.72
+  version: 0.1.1
+  frozen_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1.1/0.7.0-draft.77
   canonical_source_payload: CanonicalSpatialTopologyIdentityPayload.v1
   canonical_source_simulation_identity: 0.7.0-draft.61
   status: implemented_evidence_candidate_unsealed
@@ -580,7 +583,7 @@ traversal, derived travel time, Unreal occupancy materialization, multiple
 occupancy, contention, simultaneous physical domains, or Phase 3, and it
 authorizes no successor implementation.
 
-Simultaneous Physical Domains v0.1.0 is frozen for exact bounded
+Simultaneous Physical Domains v0.1.1 is frozen for exact bounded corrective
 implementation. It reuses the exact sealed Phase-1 R0/H0 and R1/H1
 canonical payloads and their sole access-state mutation. It does not create a
 new canonical payload or materialize Phase-2 occupancy. Its novelty is the
@@ -643,11 +646,11 @@ projection JSON, adapter candidate state, materialization receipt, or expected
 result. Both processes must independently observe `available` at H0 and
 `blocked` after H1 refresh before the harness accepts synchronized
 dispositions. The exact release DAG, 44 artifact-directory members, complete
-110-entry release set, and self-excluding manifest/verifier contract are frozen.
+111-entry release set, and self-excluding manifest/verifier contract are frozen.
 The non-release
 `proof_kernel/validate_simultaneous_physical_domains_spec.py` document validator
-must pass in default and `--self-test` modes, remains outside the 110-member
-release set, and proves no Phase-3 runtime behavior. Its 30 in-memory
+must pass in default and `--self-test` modes, remains outside the 111-member
+release set, and proves no Phase-3 runtime behavior. Its 35 in-memory
 adversaries close the authority, guard, semantic-input, permission, artifact,
 manifest, lifecycle, source-surface, and self-inclusion structures. The exact
 bounded implementation paths declared by the frozen specification are now
@@ -796,11 +799,11 @@ The blocked-access control, dense/jump equivalence, singular occupancy,
 reservation closure, record-relative completion, failure atomicity, replay,
 source audit, and release package are sealed predecessor evidence.
 
-Simultaneous Physical Domains v0.1.0 evidence review is the sole current
+Simultaneous Physical Domains v0.1.1 evidence review is the sole current
 working unit. The specification is frozen, the forward-corrected bounded
-implementation and exact 44/110 release candidate are complete, and evidence
-is unsealed. The exact structural validator's 11/11 positive checks and all
-30/30 adversarial self-tests remain hard gates. No implementation expansion,
+implementation and exact 44/111 release candidate are complete, and evidence
+is unsealed. The exact structural validator's 12/12 positive checks and all
+35/35 adversarial self-tests remain hard gates. No implementation expansion,
 capacity advancement, or successor work is authorized before independent
 evidence review and seal.
 

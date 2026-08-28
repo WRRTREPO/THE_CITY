@@ -8,7 +8,7 @@ strategic authority.
 
 **Current sealed proof record:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md).
 The governing continuation is [v0.7.0-draft.76](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
-[Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md)
+[Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md)
 is frozen under `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. It
 reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
 process-isolated Unreal representations to remain alive across the commit and

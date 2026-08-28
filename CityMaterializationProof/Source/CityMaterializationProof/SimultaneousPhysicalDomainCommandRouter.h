@@ -19,9 +19,33 @@ struct FSPDImmutableProcessBinding
     FString ProcessRootRealpath;
     FString OperationalProcessInstanceId;
     FString ProcessBindingRawSha256;
+    FString ExecutableRawSha256;
     int32 Pid = 0;
     TSharedPtr<FJsonObject> CompleteBinding;
 };
+
+struct FSPDInjectedFaultPlan
+{
+    FString FaultRunId;
+    FString Surface;
+    FString Stage;
+    FString Edge;
+    FString TargetHeadRole;
+    bool bArmed = false;
+    bool bInjected = false;
+    bool bBoundaryEntered = false;
+    bool bBoundaryCompleted = false;
+};
+
+namespace SimultaneousPhysicalDomainFault
+{
+    CITYMATERIALIZATIONPROOF_API bool InjectAt(
+        FSPDInjectedFaultPlan* Plan,
+        const TCHAR* Surface,
+        const TCHAR* Stage,
+        const TCHAR* Edge,
+        FString& OutReason);
+}
 
 // Shared proof-local JSON/byte helpers.  They carry no canonical resolver,
 // guard, head observer, refresh eligibility, or expected physical state.
@@ -40,8 +64,9 @@ namespace SimultaneousPhysicalDomainJson
 }
 
 // The one proof-local stdin router.  It accepts a process binding once, then
-// exactly two independent inspection commands and one refresh command.  It
-// never receives harness head observation or physical guard state.
+// the exact positive command sequence, W3's one local step, or one declared
+// fault plan in a fault-only process.  It never receives harness head
+// observation or physical guard state.
 UCLASS()
 class CITYMATERIALIZATIONPROOF_API ASimultaneousPhysicalDomainCommandRouter : public AActor
 {
@@ -58,8 +83,14 @@ protected:
 private:
     bool AcceptBinding(const TSharedPtr<FJsonObject>& Command, FString& OutReason);
     bool VerifyObservableBinding(const TSharedPtr<FJsonObject>& Binding, FString& OutReason) const;
+    bool AcceptFaultArm(const TSharedPtr<FJsonObject>& Command, FString& OutReason);
     void HandleLine(const FString& CanonicalLine);
     void EmitFailure(const FString& PublicationStage, const FString& ReasonCode) const;
+    void EmitFaultArmReceipt() const;
+    void EmitInjectedFaultResult(
+        const FString& ReceiptOutcome,
+        const FString& ObservationOutcome,
+        const FString& ReasonCode) const;
 
     TQueue<FString, EQueueMode::Mpsc> PendingLines;
     FSPDInputRunnable* InputRunnable = nullptr;
@@ -69,7 +100,10 @@ private:
     bool bLaunchInspectionAccepted = false;
     bool bRefreshAccepted = false;
     bool bRefreshInspectionAccepted = false;
+    bool bLocalStepAccepted = false;
+    bool bFaultArmAccepted = false;
     bool bProtocolFailed = false;
+    FSPDInjectedFaultPlan FaultPlan;
 
     UPROPERTY()
     TObjectPtr<ASimultaneousPhysicalDomainProofAdapter> Adapter;

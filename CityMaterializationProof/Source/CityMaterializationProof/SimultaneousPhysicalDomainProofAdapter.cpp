@@ -6,13 +6,15 @@
 #include "HAL/FileManager.h"
 #include "Misc/Paths.h"
 
+#include <fcntl.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 namespace
 {
 using namespace SimultaneousPhysicalDomainJson;
 
-constexpr TCHAR Scenario[] = TEXT("simultaneous-physical-domains-v1");
+constexpr TCHAR Scenario[] = TEXT("simultaneous-physical-domains-v1.1");
 constexpr TCHAR H0[] = TEXT("666d75281d3478e586edd12464d2736169f423c2d7b128bd3d2d2b1b2b826b29");
 constexpr TCHAR H1[] = TEXT("78cc5ffe0c4758c296d8fee0bc2a95e230be0bec0a4aab680806eb670500804a");
 constexpr TCHAR D0[] = TEXT("5e57c04875cfaead69f4cd6aaffeee2f788a2c1f5a820a56fb7083f8f7e861ed");
@@ -81,6 +83,60 @@ TSharedPtr<FJsonValue> StringValue(const FString& Value)
 {
     return MakeShared<FJsonValueString>(Value);
 }
+
+bool LoadStoredBytesNoFollow(const FString& Path, TArray<uint8>& OutBytes)
+{
+    FTCHARToUTF8 PathUtf8(*Path);
+    const int Descriptor = open(PathUtf8.Get(), O_RDONLY | O_NOFOLLOW);
+    if (Descriptor < 0)
+    {
+        return false;
+    }
+    struct stat Info {};
+    if (fstat(Descriptor, &Info) != 0 || !S_ISREG(Info.st_mode) || Info.st_nlink != 1 ||
+        Info.st_size < 3 || Info.st_size > 16 * 1024 * 1024)
+    {
+        close(Descriptor);
+        return false;
+    }
+    OutBytes.SetNumUninitialized(static_cast<int32>(Info.st_size));
+    ssize_t Total = 0;
+    while (Total < Info.st_size)
+    {
+        const ssize_t Read = ::read(
+            Descriptor, OutBytes.GetData() + Total,
+            static_cast<size_t>(Info.st_size - Total));
+        if (Read <= 0)
+        {
+            close(Descriptor);
+            return false;
+        }
+        Total += Read;
+    }
+    close(Descriptor);
+    if (OutBytes.Last() != '\n')
+    {
+        return false;
+    }
+    int32 Newlines = 0;
+    for (uint8 Byte : OutBytes)
+    {
+        if (Byte == '\r') return false;
+        if (Byte == '\n') ++Newlines;
+    }
+    return Newlines == 1;
+}
+
+bool ParseStoredObject(const TArray<uint8>& Bytes, TSharedPtr<FJsonObject>& OutObject)
+{
+    if (Bytes.Num() < 3 || Bytes.Last() != '\n')
+    {
+        return false;
+    }
+    FUTF8ToTCHAR Converted(
+        reinterpret_cast<const ANSICHAR*>(Bytes.GetData()), Bytes.Num() - 1);
+    return ParseCanonicalObject(FString(Converted.Length(), Converted.Get()), OutObject);
+}
 }
 
 ASimultaneousPhysicalDomainProofAdapter::ASimultaneousPhysicalDomainProofAdapter()
@@ -98,8 +154,10 @@ bool ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch(
         OutReason = TEXT("launch_materialization_already_consumed");
         return false;
     }
+    FSPDValidatedVisibleTuple Tuple;
     FSPDAuthoritativeRepresentation Candidate;
-    if (!LoadVisibleTuple(Binding, false, Candidate, OutReason))
+    if (!LoadVisibleTuple(Binding, false, Tuple, nullptr, OutReason) ||
+        !BuildAuthoritativeCandidate(Binding, Tuple, Candidate, nullptr, OutReason))
     {
         return false;
     }
@@ -132,6 +190,7 @@ bool ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch(
 
 bool ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(
     const FSPDImmutableProcessBinding& Binding,
+    FSPDInjectedFaultPlan* FaultPlan,
     TSharedPtr<FJsonObject>& OutReceipt,
     FString& OutReason)
 {
@@ -142,6 +201,57 @@ bool ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(
     }
     bRefreshConsumed = true;
     ASimultaneousPhysicalDomainRepresentationActor* PriorH0Representation = PublishedRepresentation;
+
+    FSPDValidatedVisibleTuple Tuple;
+    if (!LoadVisibleTuple(Binding, true, Tuple, FaultPlan, OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("process_binding_identity_verification"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    if (Binding.DomainRole != TEXT("domain_A") && Binding.DomainRole != TEXT("domain_B") ||
+        Binding.OperationalProcessInstanceId.Len() != 64 ||
+        Binding.ProcessBindingRawSha256.Len() != 64 ||
+        Binding.ExecutableRawSha256.Len() != 64 || Binding.CompleteBinding == nullptr)
+    {
+        OutReason = TEXT("refresh_process_binding_identity_invalid");
+        return false;
+    }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("process_binding_identity_verification"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("retained_local_state_projection_extraction"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    const uint64 RetainedTick = NonconsequentialTickCounter;
+    const FString RetainedCosmetic = CosmeticPhaseToken;
+    const uint64 RetainedDiagnostic = DiagnosticCounter;
+    if (RetainedCosmetic != TEXT("cosmetic_phase_0") && RetainedCosmetic != TEXT("cosmetic_phase_1") &&
+        RetainedCosmetic != TEXT("cosmetic_phase_2") && RetainedCosmetic != TEXT("cosmetic_phase_3"))
+    {
+        OutReason = TEXT("retained_local_state_projection_invalid");
+        return false;
+    }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("retained_local_state_projection_extraction"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("discard_required_state_poison_check"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
     if (bRetentionWitness)
     {
         bPoisonObservedBeforeRefresh = PriorH0Representation->HasExactDiscardRequiredH0Poison(
@@ -152,24 +262,75 @@ bool ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(
             return false;
         }
     }
-    FSPDAuthoritativeRepresentation Candidate;
-    if (!LoadVisibleTuple(Binding, true, Candidate, OutReason))
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("discard_required_state_poison_check"), TEXT("after"), OutReason))
     {
         return false;
     }
-    // The candidate above is a pure exact-H1-plus-projection reconstruction.
-    // Only after it exists and validates are the three nonconsequential scalar
-    // fields retained; none is an argument to LoadVisibleTuple.
-    const uint64 RetainedTick = NonconsequentialTickCounter;
-    const FString RetainedCosmetic = CosmeticPhaseToken;
-    const uint64 RetainedDiagnostic = DiagnosticCounter;
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("empty_authoritative_candidate_construction"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    FSPDAuthoritativeRepresentation Candidate;
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("empty_authoritative_candidate_construction"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+    if (!BuildAuthoritativeCandidate(Binding, Tuple, Candidate, FaultPlan, OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("retained_local_state_attachment"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    // Candidate construction and validation above receive no retained value.
+    // The whitelisted scalars are attached only to adapter-local state.
+    NonconsequentialTickCounter = RetainedTick;
+    CosmeticPhaseToken = RetainedCosmetic;
+    DiagnosticCounter = RetainedDiagnostic;
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("retained_local_state_attachment"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("prepublication_cross_field_validation"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    if (Candidate.CanonicalHash != H1 || Candidate.RawPayloadHash != D1 ||
+        Candidate.AccessState != TEXT("blocked") || Candidate.DomainRole != Binding.DomainRole)
+    {
+        OutReason = TEXT("prepublication_cross_field_validation_failed");
+        return false;
+    }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("prepublication_cross_field_validation"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("local_atomic_publication"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
     if (!PublishCandidate(Candidate, Binding, OutReceipt, OutReason))
     {
         return false;
     }
-    NonconsequentialTickCounter = RetainedTick;
-    CosmeticPhaseToken = RetainedCosmetic;
-    DiagnosticCounter = RetainedDiagnostic;
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("local_atomic_publication"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
     if (bRetentionWitness)
     {
         bPriorH0ActorReplaced = PublishedRepresentation != PriorH0Representation;
@@ -182,6 +343,52 @@ bool ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(
         }
     }
     return true;
+}
+
+bool ASimultaneousPhysicalDomainProofAdapter::ExecuteNonconsequentialStepOnce(
+    const FSPDImmutableProcessBinding& Binding,
+    TSharedPtr<FJsonObject>& OutObservation,
+    FString& OutReason)
+{
+    if (bLocalStepConsumed || Binding.WitnessId != TEXT("w3_stale_quarantine") ||
+        RepresentedCanonicalHash != H0 || PublishedRepresentation == nullptr ||
+        NonconsequentialTickCounter >= 9007199254740990ULL)
+    {
+        OutReason = TEXT("local_step_precondition_invalid");
+        return false;
+    }
+    bLocalStepConsumed = true;
+    ASimultaneousPhysicalDomainRepresentationActor* const ActorBefore = PublishedRepresentation;
+    const uint64 CounterBefore = NonconsequentialTickCounter;
+    ++NonconsequentialTickCounter;
+
+    OutObservation = MakeShared<FJsonObject>();
+    OutObservation->SetStringField(TEXT("observation_schema"), TEXT("SimultaneousPhysicalDomainLocalStepObservation.v1"));
+    OutObservation->SetStringField(TEXT("proof_scenario"), Scenario);
+    OutObservation->SetStringField(TEXT("domain_role"), Binding.DomainRole);
+    OutObservation->SetStringField(TEXT("operational_process_instance_id"), Binding.OperationalProcessInstanceId);
+    OutObservation->SetStringField(TEXT("process_binding_raw_sha256"), Binding.ProcessBindingRawSha256);
+    OutObservation->SetStringField(TEXT("step_id"), TEXT("stale_quarantine_step_0001"));
+    OutObservation->SetStringField(TEXT("step_name"), TEXT("increment_nonconsequential_tick_counter_once"));
+    OutObservation->SetNumberField(TEXT("counter_before"), static_cast<double>(CounterBefore));
+    OutObservation->SetNumberField(TEXT("counter_after"), static_cast<double>(NonconsequentialTickCounter));
+    OutObservation->SetStringField(TEXT("represented_hash_before"), H0);
+    OutObservation->SetStringField(TEXT("represented_hash_after"), RepresentedCanonicalHash);
+    OutObservation->SetBoolField(TEXT("published_actor_identity_unchanged"), ActorBefore == PublishedRepresentation);
+    OutObservation->SetNumberField(TEXT("materialization_receipt_count_delta"), 0);
+    OutObservation->SetNumberField(TEXT("canonical_evidence_count_delta"), 0);
+    OutObservation->SetNumberField(TEXT("canonical_scheduling_count_delta"), 0);
+    OutObservation->SetNumberField(TEXT("canonical_mutation_count_delta"), 0);
+    OutObservation->SetNumberField(TEXT("canonical_truth_claim_count_delta"), 0);
+    OutObservation->SetStringField(TEXT("observation_source"), TEXT("live_ue_adapter_exact_local_step"));
+    return true;
+}
+
+FString ASimultaneousPhysicalDomainProofAdapter::GetPublicationState() const
+{
+    if (RepresentedCanonicalHash == H1 && PublishedRepresentation != nullptr) return TEXT("H1_published");
+    if (RepresentedCanonicalHash == H0 && PublishedRepresentation != nullptr) return TEXT("H0_published");
+    return TEXT("none");
 }
 
 TSharedPtr<FJsonObject> ASimultaneousPhysicalDomainProofAdapter::BuildRetentionExecutionObservation(
@@ -218,7 +425,8 @@ TSharedPtr<FJsonObject> ASimultaneousPhysicalDomainProofAdapter::BuildRetentionE
 bool ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple(
     const FSPDImmutableProcessBinding& Binding,
     bool bRefresh,
-    FSPDAuthoritativeRepresentation& OutRepresentation,
+    FSPDValidatedVisibleTuple& OutTuple,
+    FSPDInjectedFaultPlan* FaultPlan,
     FString& OutReason) const
 {
     const FString HeadRole = bRefresh ? TEXT("H1") : TEXT("H0");
@@ -230,7 +438,17 @@ bool ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple(
     const FString PayloadName = bRefresh ? TEXT("canonical_topology_R1.json") : TEXT("canonical_topology_R0.json");
     const FString ProjectionName = FString::Printf(TEXT("simultaneous_domain_%s_%s_projection.json"), *RoleToken, *HeadRole);
     const FString ReceiptName = FString::Printf(TEXT("simultaneous_domain_%s_%s_operation_receipt.json"), *RoleToken, *HeadRole);
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("visible_input_inventory"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
     if (!StrictDirectory(Directory, {PayloadName, ProjectionName, ReceiptName}, OutReason))
+    {
+        return false;
+    }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("visible_input_inventory"), TEXT("after"), OutReason))
     {
         return false;
     }
@@ -238,21 +456,35 @@ bool ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple(
     TArray<uint8> PayloadBytes;
     TArray<uint8> ProjectionBytes;
     TArray<uint8> ReceiptBytes;
-    TSharedPtr<FJsonObject> Payload;
-    TSharedPtr<FJsonObject> Projection;
-    TSharedPtr<FJsonObject> Receipt;
-    if (!LoadExactStoredJsonNoFollow(FPaths::Combine(Directory, PayloadName), PayloadBytes, Payload) ||
-        !LoadExactStoredJsonNoFollow(FPaths::Combine(Directory, ProjectionName), ProjectionBytes, Projection) ||
-        !LoadExactStoredJsonNoFollow(FPaths::Combine(Directory, ReceiptName), ReceiptBytes, Receipt))
-    {
-        OutReason = TEXT("visible_input_open_parse_or_type_failure");
-        return false;
-    }
     const FString ExpectedRawPayload = bRefresh ? D1 : D0;
     const FString ExpectedHash = bRefresh ? H1 : H0;
-    if (Sha256Bytes(PayloadBytes) != ExpectedRawPayload)
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("payload_raw_byte_verification"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    if (!LoadStoredBytesNoFollow(FPaths::Combine(Directory, PayloadName), PayloadBytes) ||
+        Sha256Bytes(PayloadBytes) != ExpectedRawPayload)
     {
         OutReason = TEXT("payload_raw_sha256_mismatch");
+        return false;
+    }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("payload_raw_byte_verification"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("payload_parse_and_canonical_identity_verification"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    TSharedPtr<FJsonObject> Payload;
+    if (!ParseStoredObject(PayloadBytes, Payload))
+    {
+        OutReason = TEXT("payload_parse_failure");
         return false;
     }
     TArray<uint8> PayloadCanonicalBytes(PayloadBytes);
@@ -287,11 +519,60 @@ bool ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple(
         OutReason = TEXT("canonical_payload_structure_mismatch");
         return false;
     }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("payload_parse_and_canonical_identity_verification"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
 
     const FString ExpectedSite = Binding.DomainRole == TEXT("domain_A") ? SiteA : SiteB;
     const FString ExpectedSiteSlot = Binding.DomainRole == TEXT("domain_A") ? TEXT("domain_A_site_slot_01") : TEXT("domain_B_site_slot_01");
     const FString ExpectedRouteSlot = Binding.DomainRole == TEXT("domain_A") ? TEXT("domain_A_route_slot_01") : TEXT("domain_B_route_slot_01");
     const FString ExpectedProjectionId = FString::Printf(TEXT("simultaneous_domain_%s_%s_0001"), *RoleToken, *HeadRole);
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("operation_receipt_verification"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    TSharedPtr<FJsonObject> Receipt;
+    if (!LoadStoredBytesNoFollow(FPaths::Combine(Directory, ReceiptName), ReceiptBytes) ||
+        !ParseStoredObject(ReceiptBytes, Receipt) ||
+        !HasExactKeys(Receipt, {TEXT("receipt_schema"), TEXT("operation"), TEXT("proof_scenario"), TEXT("domain_role"),
+            TEXT("expected_operational_process_instance_id"), TEXT("expected_source_represented_hash"),
+            TEXT("expected_target_represented_hash"), TEXT("canonical_payload_raw_sha256"),
+            TEXT("expected_canonical_hash"), TEXT("projection_raw_sha256"), TEXT("expected_projection_id")}) ||
+        !ExactString(Receipt, TEXT("receipt_schema"), TEXT("SimultaneousPhysicalDomainOperationReceipt.v1")) ||
+        !ExactString(Receipt, TEXT("operation"), *Operation) || !ExactString(Receipt, TEXT("proof_scenario"), Scenario) ||
+        !ExactString(Receipt, TEXT("domain_role"), *Binding.DomainRole) ||
+        !(bRefresh ? ExactString(Receipt, TEXT("expected_operational_process_instance_id"), *Binding.OperationalProcessInstanceId) : ExactNull(Receipt, TEXT("expected_operational_process_instance_id"))) ||
+        !(bRefresh ? ExactString(Receipt, TEXT("expected_source_represented_hash"), H0) : ExactNull(Receipt, TEXT("expected_source_represented_hash"))) ||
+        !ExactString(Receipt, TEXT("expected_target_represented_hash"), *ExpectedHash) ||
+        !ExactString(Receipt, TEXT("canonical_payload_raw_sha256"), *ExpectedRawPayload) ||
+        !ExactString(Receipt, TEXT("expected_canonical_hash"), *ExpectedHash) ||
+        !ExactString(Receipt, TEXT("expected_projection_id"), *ExpectedProjectionId))
+    {
+        OutReason = TEXT("operation_receipt_verification_failed");
+        return false;
+    }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("operation_receipt_verification"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("projection_verification"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    TSharedPtr<FJsonObject> Projection;
+    if (!LoadStoredBytesNoFollow(FPaths::Combine(Directory, ProjectionName), ProjectionBytes) ||
+        !ParseStoredObject(ProjectionBytes, Projection))
+    {
+        OutReason = TEXT("projection_open_or_parse_failure");
+        return false;
+    }
     const TSharedPtr<FJsonObject>* SiteProjection = nullptr;
     const TSharedPtr<FJsonObject>* RouteProjection = nullptr;
     if (!HasExactKeys(Projection, {TEXT("projection_schema"), TEXT("projection_id"), TEXT("proof_scenario"), TEXT("domain_role"),
@@ -314,38 +595,113 @@ bool ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple(
         return false;
     }
     const FString ProjectionHash = Sha256Bytes(ProjectionBytes);
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("projection_verification"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
 
-    if (!HasExactKeys(Receipt, {TEXT("receipt_schema"), TEXT("operation"), TEXT("proof_scenario"), TEXT("domain_role"),
-        TEXT("expected_operational_process_instance_id"), TEXT("expected_source_represented_hash"),
-        TEXT("expected_target_represented_hash"), TEXT("canonical_payload_raw_sha256"),
-        TEXT("expected_canonical_hash"), TEXT("projection_raw_sha256"), TEXT("expected_projection_id")}) ||
-        !ExactString(Receipt, TEXT("receipt_schema"), TEXT("SimultaneousPhysicalDomainOperationReceipt.v1")) ||
-        !ExactString(Receipt, TEXT("operation"), *Operation) || !ExactString(Receipt, TEXT("proof_scenario"), Scenario) ||
-        !ExactString(Receipt, TEXT("domain_role"), *Binding.DomainRole) ||
-        !(bRefresh ? ExactString(Receipt, TEXT("expected_operational_process_instance_id"), *Binding.OperationalProcessInstanceId) : ExactNull(Receipt, TEXT("expected_operational_process_instance_id"))) ||
-        !(bRefresh ? ExactString(Receipt, TEXT("expected_source_represented_hash"), H0) : ExactNull(Receipt, TEXT("expected_source_represented_hash"))) ||
-        !ExactString(Receipt, TEXT("expected_target_represented_hash"), *ExpectedHash) ||
-        !ExactString(Receipt, TEXT("canonical_payload_raw_sha256"), *ExpectedRawPayload) ||
-        !ExactString(Receipt, TEXT("expected_canonical_hash"), *ExpectedHash) ||
-        !ExactString(Receipt, TEXT("projection_raw_sha256"), *ProjectionHash) ||
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("visible_command_bundle_cross_field_verification"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    if (!ExactString(Receipt, TEXT("projection_raw_sha256"), *ProjectionHash) ||
         !ExactString(Receipt, TEXT("expected_projection_id"), *ExpectedProjectionId))
     {
         OutReason = TEXT("operation_receipt_or_cross_field_mismatch");
         return false;
     }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("visible_command_bundle_cross_field_verification"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
 
+    OutTuple.Payload = Payload;
+    OutTuple.Projection = Projection;
+    OutTuple.OperationReceipt = Receipt;
+    OutTuple.RawPayloadHash = ExpectedRawPayload;
+    OutTuple.CanonicalHash = ExpectedHash;
+    OutTuple.RawProjectionHash = ProjectionHash;
+    OutTuple.HeadRole = HeadRole;
+    return true;
+}
+
+bool ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(
+    const FSPDImmutableProcessBinding& Binding,
+    const FSPDValidatedVisibleTuple& Tuple,
+    FSPDAuthoritativeRepresentation& OutRepresentation,
+    FSPDInjectedFaultPlan* FaultPlan,
+    FString& OutReason) const
+{
+    const bool bRefresh = Tuple.HeadRole == TEXT("H1");
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("H1_authoritative_fact_derivation"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    const TSharedPtr<FJsonObject>* Current = nullptr;
+    const TSharedPtr<FJsonObject>* Topology = nullptr;
+    const TSharedPtr<FJsonObject>* Routes = nullptr;
+    const TSharedPtr<FJsonObject>* Route = nullptr;
+    const TArray<TSharedPtr<FJsonValue>>* Endpoints = nullptr;
+    FString AccessState;
+    if (!Tuple.Payload.IsValid() ||
+        !Tuple.Payload->TryGetObjectField(TEXT("current_causal_state"), Current) ||
+        !(*Current)->TryGetObjectField(TEXT("spatial_topology"), Topology) ||
+        !(*Topology)->TryGetObjectField(TEXT("routes"), Routes) ||
+        !(*Routes)->TryGetObjectField(RouteId, Route) ||
+        !(*Route)->TryGetArrayField(TEXT("endpoint_site_ids"), Endpoints) ||
+        !ExactStringArray2(*Endpoints, SiteA, SiteB) ||
+        !(*Route)->TryGetStringField(TEXT("access_state"), AccessState))
+    {
+        OutReason = TEXT("H1_authoritative_fact_derivation_failed");
+        return false;
+    }
     OutRepresentation.DomainRole = Binding.DomainRole;
-    OutRepresentation.RawPayloadHash = ExpectedRawPayload;
-    OutRepresentation.CanonicalHash = ExpectedHash;
-    OutRepresentation.RawProjectionHash = ProjectionHash;
-    OutRepresentation.ProjectionId = ExpectedProjectionId;
-    OutRepresentation.SiteId = ExpectedSite;
-    OutRepresentation.SiteSlot = ExpectedSiteSlot;
+    OutRepresentation.RawPayloadHash = Tuple.RawPayloadHash;
+    OutRepresentation.CanonicalHash = Tuple.CanonicalHash;
     OutRepresentation.RouteId = RouteId;
-    OutRepresentation.RouteSlot = ExpectedRouteSlot;
     OutRepresentation.Endpoint0 = SiteA;
     OutRepresentation.Endpoint1 = SiteB;
-    OutRepresentation.AccessState = bRefresh ? TEXT("blocked") : TEXT("available");
+    OutRepresentation.AccessState = AccessState;
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("H1_authoritative_fact_derivation"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("projection_slot_binding"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
+    const TSharedPtr<FJsonObject>* SiteProjection = nullptr;
+    const TSharedPtr<FJsonObject>* RouteProjection = nullptr;
+    if (!Tuple.Projection.IsValid() ||
+        !Tuple.Projection->TryGetObjectField(TEXT("allowed_site_projection"), SiteProjection) ||
+        !Tuple.Projection->TryGetObjectField(TEXT("allowed_route_projection"), RouteProjection) ||
+        !Tuple.Projection->TryGetStringField(TEXT("projection_id"), OutRepresentation.ProjectionId) ||
+        !(*SiteProjection)->TryGetStringField(TEXT("canonical_site_id"), OutRepresentation.SiteId) ||
+        !(*SiteProjection)->TryGetStringField(TEXT("representation_slot"), OutRepresentation.SiteSlot) ||
+        !(*RouteProjection)->TryGetStringField(TEXT("representation_slot"), OutRepresentation.RouteSlot))
+    {
+        OutReason = TEXT("projection_slot_binding_failed");
+        return false;
+    }
+    OutRepresentation.RawProjectionHash = Tuple.RawProjectionHash;
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("projection_slot_binding"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
+
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("private_candidate_validation"), TEXT("before"), OutReason))
+    {
+        return false;
+    }
 
     TSharedPtr<FJsonObject> Representation = MakeShared<FJsonObject>();
     Representation->SetStringField(TEXT("representation_schema"), TEXT("SimultaneousPhysicalDomainAuthoritativeDerivedRepresentation.v1"));
@@ -363,6 +719,19 @@ bool ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple(
     Representation->SetStringField(TEXT("materialized_route_access_state"), OutRepresentation.AccessState);
     OutRepresentation.CanonicalJson = CanonicalizeObject(Representation);
     OutRepresentation.RawStoredSha256 = Sha256Utf8(OutRepresentation.CanonicalJson + TEXT("\n"));
+    const FString ExpectedSite = Binding.DomainRole == TEXT("domain_A") ? SiteA : SiteB;
+    if (OutRepresentation.SiteId != ExpectedSite || OutRepresentation.RouteId != RouteId ||
+        OutRepresentation.AccessState != (bRefresh ? TEXT("blocked") : TEXT("available")) ||
+        OutRepresentation.CanonicalHash != (bRefresh ? H1 : H0))
+    {
+        OutReason = TEXT("private_candidate_validation_failed");
+        return false;
+    }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("refresh"), TEXT("private_candidate_validation"), TEXT("after"), OutReason))
+    {
+        return false;
+    }
     return true;
 }
 

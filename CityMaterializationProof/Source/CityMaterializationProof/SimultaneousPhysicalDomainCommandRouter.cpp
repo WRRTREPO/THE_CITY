@@ -21,11 +21,47 @@
 
 namespace
 {
-constexpr TCHAR Scenario[] = TEXT("simultaneous-physical-domains-v1");
+constexpr TCHAR Scenario[] = TEXT("simultaneous-physical-domains-v1.1");
 constexpr TCHAR BindingSchema[] = TEXT("SimultaneousPhysicalDomainProcessBinding.v1");
 constexpr TCHAR BindCommandSchema[] = TEXT("SimultaneousPhysicalDomainBindInvocation.v1");
 constexpr TCHAR RefreshCommandSchema[] = TEXT("SimultaneousPhysicalDomainRefreshInvocation.v1");
 constexpr TCHAR InspectionCommandSchema[] = TEXT("SimultaneousPhysicalDomainInspectionInvocation.v1");
+constexpr TCHAR LocalStepCommandSchema[] = TEXT("SimultaneousPhysicalDomainLocalStepInvocation.v1");
+constexpr TCHAR FaultArmCommandSchema[] = TEXT("SimultaneousPhysicalDomainFaultArmInvocation.v1");
+
+bool IsAllowedWitnessId(const FString& Value)
+{
+    return Value == TEXT("w1_a_then_b") || Value == TEXT("w2_b_then_a") ||
+        Value == TEXT("w3_stale_quarantine") || Value == TEXT("w4_head_observation_failure") ||
+        Value == TEXT("w5_retention_baseline") || Value == TEXT("w5_retention_perturbed") ||
+        Value == TEXT("w6_asymmetric_a_synchronized") || Value == TEXT("w6_asymmetric_b_synchronized") ||
+        Value == TEXT("w7_destroy_a") || Value == TEXT("w7_destroy_b") ||
+        Value == TEXT("w8_guard_open_control") || Value == TEXT("f_refresh_fault") ||
+        Value == TEXT("f_physical_observation_fault");
+}
+
+bool IsRefreshFaultStage(const FString& Value)
+{
+    return Value == TEXT("invocation_read") || Value == TEXT("visible_input_inventory") ||
+        Value == TEXT("payload_raw_byte_verification") || Value == TEXT("payload_parse_and_canonical_identity_verification") ||
+        Value == TEXT("operation_receipt_verification") || Value == TEXT("projection_verification") ||
+        Value == TEXT("visible_command_bundle_cross_field_verification") || Value == TEXT("process_binding_identity_verification") ||
+        Value == TEXT("retained_local_state_projection_extraction") || Value == TEXT("discard_required_state_poison_check") ||
+        Value == TEXT("empty_authoritative_candidate_construction") || Value == TEXT("H1_authoritative_fact_derivation") ||
+        Value == TEXT("projection_slot_binding") || Value == TEXT("private_candidate_validation") ||
+        Value == TEXT("retained_local_state_attachment") || Value == TEXT("prepublication_cross_field_validation") ||
+        Value == TEXT("local_atomic_publication") || Value == TEXT("materialization_receipt_emission");
+}
+
+bool IsObservationFaultStage(const FString& Value)
+{
+    return Value == TEXT("inspection_invocation_read") || Value == TEXT("immutable_process_binding_verification") ||
+        Value == TEXT("role_probe_tag_derivation") || Value == TEXT("live_world_actor_enumeration") ||
+        Value == TEXT("exact_actor_count_check") || Value == TEXT("live_mesh_component_lookup") ||
+        Value == TEXT("live_mesh_visibility_and_material_parameter_read") || Value == TEXT("live_label_component_lookup") ||
+        Value == TEXT("live_label_visibility_text_and_color_read") || Value == TEXT("independent_surface_consistency_classification") ||
+        Value == TEXT("physical_observation_emission") || Value == TEXT("harness_receipt_observation_head_cross_check");
+}
 
 FString SPDEscapeJsonString(const FString& Value)
 {
@@ -283,6 +319,28 @@ void EmitStructuredObject(const TSharedPtr<FJsonObject>& Object)
 }
 }
 
+namespace SimultaneousPhysicalDomainFault
+{
+bool InjectAt(
+    FSPDInjectedFaultPlan* Plan,
+    const TCHAR* Surface,
+    const TCHAR* Stage,
+    const TCHAR* Edge,
+    FString& OutReason)
+{
+    if (Plan == nullptr || !Plan->bArmed || Plan->bInjected ||
+        Plan->Surface != Surface || Plan->Stage != Stage || Plan->Edge != Edge)
+    {
+        return false;
+    }
+    Plan->bInjected = true;
+    Plan->bBoundaryEntered = true;
+    Plan->bBoundaryCompleted = Plan->Edge == TEXT("after") || Plan->Edge == TEXT("at");
+    OutReason = FString::Printf(TEXT("injected_fault/%s/%s/%s"), Surface, Stage, Edge);
+    return true;
+}
+}
+
 class FSPDInputRunnable final : public FRunnable
 {
 public:
@@ -388,7 +446,7 @@ bool ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding(const TSh
     double PidNumber = 0;
     if (!Binding->TryGetStringField(TEXT("domain_role"), DomainRole) ||
         (DomainRole != TEXT("domain_A") && DomainRole != TEXT("domain_B")) ||
-        !Binding->TryGetStringField(TEXT("witness_id"), WitnessId) || WitnessId.IsEmpty() ||
+        !Binding->TryGetStringField(TEXT("witness_id"), WitnessId) || !IsAllowedWitnessId(WitnessId) ||
         !Binding->TryGetStringField(TEXT("harness_launch_id"), HarnessLaunchId) ||
         HarnessLaunchId != WitnessId + TEXT("/") + DomainRole + TEXT("/launch_0001") ||
         !Binding->TryGetStringField(TEXT("process_root_realpath"), ProcessRoot) || ProcessRoot.IsEmpty() ||
@@ -466,6 +524,7 @@ bool ASimultaneousPhysicalDomainCommandRouter::AcceptBinding(const TSharedPtr<FJ
     (*Binding)->TryGetStringField(TEXT("domain_role"), ImmutableBinding.DomainRole);
     (*Binding)->TryGetStringField(TEXT("witness_id"), ImmutableBinding.WitnessId);
     (*Binding)->TryGetStringField(TEXT("process_root_realpath"), ImmutableBinding.ProcessRootRealpath);
+    (*Binding)->TryGetStringField(TEXT("executable_raw_sha256"), ImmutableBinding.ExecutableRawSha256);
     double PidNumber = 0;
     (*Binding)->TryGetNumberField(TEXT("pid"), PidNumber);
     ImmutableBinding.Pid = static_cast<int32>(PidNumber);
@@ -485,6 +544,120 @@ bool ASimultaneousPhysicalDomainCommandRouter::AcceptBinding(const TSharedPtr<FJ
     bBindingAccepted = true;
     EmitStructuredObject(LaunchReceipt);
     return true;
+}
+
+bool ASimultaneousPhysicalDomainCommandRouter::AcceptFaultArm(
+    const TSharedPtr<FJsonObject>& Command,
+    FString& OutReason)
+{
+    using namespace SimultaneousPhysicalDomainJson;
+    if (bFaultArmAccepted || ImmutableBinding.DomainRole != TEXT("domain_A") ||
+        !HasExactKeys(Command, {
+            TEXT("command_schema"), TEXT("proof_scenario"), TEXT("domain_role"), TEXT("operation"),
+            TEXT("fault_run_id"), TEXT("fault_surface"), TEXT("fault_stage"), TEXT("fault_edge"),
+            TEXT("target_head_role")
+        }) || !ExactString(Command, TEXT("command_schema"), FaultArmCommandSchema) ||
+        !ExactString(Command, TEXT("proof_scenario"), Scenario) ||
+        !ExactString(Command, TEXT("domain_role"), TEXT("domain_A")) ||
+        !ExactString(Command, TEXT("operation"), TEXT("arm_exact_fault_once")))
+    {
+        OutReason = TEXT("fault_arm_structure_or_role_invalid");
+        return false;
+    }
+
+    FString RunId;
+    FString Surface;
+    FString Stage;
+    FString Edge;
+    FString HeadRole;
+    if (!Command->TryGetStringField(TEXT("fault_run_id"), RunId) ||
+        !Command->TryGetStringField(TEXT("fault_surface"), Surface) ||
+        !Command->TryGetStringField(TEXT("fault_stage"), Stage) ||
+        !Command->TryGetStringField(TEXT("fault_edge"), Edge) ||
+        !Command->TryGetStringField(TEXT("target_head_role"), HeadRole))
+    {
+        OutReason = TEXT("fault_arm_fields_missing");
+        return false;
+    }
+
+    bool bSequenceValid = false;
+    FString ExpectedRunId;
+    if (Surface == TEXT("refresh"))
+    {
+        bSequenceValid = ImmutableBinding.WitnessId == TEXT("f_refresh_fault") &&
+            IsRefreshFaultStage(Stage) && (Edge == TEXT("before") || Edge == TEXT("after")) &&
+            HeadRole == TEXT("H1") && bLaunchInspectionAccepted && !bRefreshAccepted;
+        ExpectedRunId = FString::Printf(TEXT("refresh/H1/%s/%s/domain_A"), *Stage, *Edge);
+    }
+    else if (Surface == TEXT("physical_observation"))
+    {
+        const bool bH0Slot = HeadRole == TEXT("H0") && !bLaunchInspectionAccepted && !bRefreshAccepted;
+        const bool bH1Slot = HeadRole == TEXT("H1") && bLaunchInspectionAccepted && bRefreshAccepted && !bRefreshInspectionAccepted;
+        bSequenceValid = ImmutableBinding.WitnessId == TEXT("f_physical_observation_fault") &&
+            IsObservationFaultStage(Stage) && Edge == TEXT("at") && (bH0Slot || bH1Slot);
+        ExpectedRunId = FString::Printf(TEXT("physical_observation/%s/%s/at/domain_A"), *HeadRole, *Stage);
+    }
+    if (!bSequenceValid || RunId != ExpectedRunId)
+    {
+        OutReason = TEXT("fault_arm_cross_field_or_sequence_invalid");
+        return false;
+    }
+
+    FaultPlan.FaultRunId = RunId;
+    FaultPlan.Surface = Surface;
+    FaultPlan.Stage = Stage;
+    FaultPlan.Edge = Edge;
+    FaultPlan.TargetHeadRole = HeadRole;
+    FaultPlan.bArmed = true;
+    bFaultArmAccepted = true;
+    return true;
+}
+
+void ASimultaneousPhysicalDomainCommandRouter::EmitFaultArmReceipt() const
+{
+    using namespace SimultaneousPhysicalDomainJson;
+    TSharedPtr<FJsonObject> Receipt = MakeShared<FJsonObject>();
+    Receipt->SetStringField(TEXT("receipt_schema"), TEXT("SimultaneousPhysicalDomainFaultArmReceipt.v1"));
+    Receipt->SetStringField(TEXT("proof_scenario"), Scenario);
+    Receipt->SetStringField(TEXT("domain_role"), ImmutableBinding.DomainRole);
+    Receipt->SetStringField(TEXT("operational_process_instance_id"), ImmutableBinding.OperationalProcessInstanceId);
+    Receipt->SetStringField(TEXT("process_binding_raw_sha256"), ImmutableBinding.ProcessBindingRawSha256);
+    Receipt->SetStringField(TEXT("executable_raw_sha256"), ImmutableBinding.ExecutableRawSha256);
+    Receipt->SetStringField(TEXT("fault_run_id"), FaultPlan.FaultRunId);
+    Receipt->SetStringField(TEXT("fault_surface"), FaultPlan.Surface);
+    Receipt->SetStringField(TEXT("fault_stage"), FaultPlan.Stage);
+    Receipt->SetStringField(TEXT("fault_edge"), FaultPlan.Edge);
+    Receipt->SetStringField(TEXT("target_head_role"), FaultPlan.TargetHeadRole);
+    Receipt->SetBoolField(TEXT("armed_once"), true);
+    EmitStructuredObject(Receipt);
+}
+
+void ASimultaneousPhysicalDomainCommandRouter::EmitInjectedFaultResult(
+    const FString& ReceiptOutcome,
+    const FString& ObservationOutcome,
+    const FString& ReasonCode) const
+{
+    using namespace SimultaneousPhysicalDomainJson;
+    TSharedPtr<FJsonObject> Result = MakeShared<FJsonObject>();
+    Result->SetStringField(TEXT("result_schema"), TEXT("SimultaneousPhysicalDomainInjectedFaultResult.v1"));
+    Result->SetStringField(TEXT("proof_scenario"), Scenario);
+    Result->SetStringField(TEXT("domain_role"), ImmutableBinding.DomainRole);
+    Result->SetStringField(TEXT("operational_process_instance_id"), ImmutableBinding.OperationalProcessInstanceId);
+    Result->SetStringField(TEXT("process_binding_raw_sha256"), ImmutableBinding.ProcessBindingRawSha256);
+    Result->SetStringField(TEXT("executable_raw_sha256"), ImmutableBinding.ExecutableRawSha256);
+    Result->SetStringField(TEXT("fault_run_id"), FaultPlan.FaultRunId);
+    Result->SetStringField(TEXT("fault_surface"), FaultPlan.Surface);
+    Result->SetStringField(TEXT("fault_stage"), FaultPlan.Stage);
+    Result->SetStringField(TEXT("fault_edge"), FaultPlan.Edge);
+    Result->SetStringField(TEXT("target_head_role"), FaultPlan.TargetHeadRole);
+    Result->SetBoolField(TEXT("boundary_entered"), FaultPlan.bBoundaryEntered);
+    Result->SetBoolField(TEXT("boundary_completed"), FaultPlan.bBoundaryCompleted);
+    Result->SetStringField(TEXT("local_publication_state"), Adapter != nullptr ? Adapter->GetPublicationState() : TEXT("none"));
+    Result->SetStringField(TEXT("represented_hash_if_known"), Adapter != nullptr ? Adapter->GetRepresentedCanonicalHash() : TEXT(""));
+    Result->SetStringField(TEXT("materialization_receipt_outcome"), ReceiptOutcome);
+    Result->SetStringField(TEXT("physical_observation_outcome"), ObservationOutcome);
+    Result->SetStringField(TEXT("reason_code"), ReasonCode);
+    EmitStructuredObject(Result);
 }
 
 void ASimultaneousPhysicalDomainCommandRouter::HandleLine(const FString& CanonicalLine)
@@ -517,8 +690,47 @@ void ASimultaneousPhysicalDomainCommandRouter::HandleLine(const FString& Canonic
     Command->TryGetStringField(TEXT("command_schema"), Schema);
     FString Reason;
     TSharedPtr<FJsonObject> Result;
+    if (Schema == FaultArmCommandSchema)
+    {
+        if (!AcceptFaultArm(Command, Reason))
+        {
+            bProtocolFailed = true;
+            EmitFailure(TEXT("fault_arm_invocation_read"), Reason);
+            return;
+        }
+        EmitFaultArmReceipt();
+        return;
+    }
+    if (Schema == LocalStepCommandSchema)
+    {
+        if (ImmutableBinding.WitnessId != TEXT("w3_stale_quarantine") ||
+            !bLaunchInspectionAccepted || bRefreshAccepted || bLocalStepAccepted ||
+            !HasExactKeys(Command, {
+                TEXT("command_schema"), TEXT("proof_scenario"), TEXT("domain_role"),
+                TEXT("operation"), TEXT("step_id")
+            }) || !ExactString(Command, TEXT("proof_scenario"), Scenario) ||
+            !ExactString(Command, TEXT("domain_role"), *ImmutableBinding.DomainRole) ||
+            !ExactString(Command, TEXT("operation"), TEXT("execute_nonconsequential_step_once")) ||
+            !ExactString(Command, TEXT("step_id"), TEXT("stale_quarantine_step_0001")) ||
+            !Adapter->ExecuteNonconsequentialStepOnce(ImmutableBinding, Result, Reason))
+        {
+            bProtocolFailed = true;
+            EmitFailure(TEXT("local_nonconsequential_step"), Reason.IsEmpty() ? TEXT("local_step_command_invalid") : Reason);
+            return;
+        }
+        bLocalStepAccepted = true;
+        EmitStructuredObject(Result);
+        return;
+    }
     if (Schema == InspectionCommandSchema)
     {
+        if (SimultaneousPhysicalDomainFault::InjectAt(
+            &FaultPlan, TEXT("physical_observation"), TEXT("inspection_invocation_read"), TEXT("at"), Reason))
+        {
+            bProtocolFailed = true;
+            EmitInjectedFaultResult(TEXT("not_applicable"), TEXT("not_emitted"), Reason);
+            return;
+        }
         if (!HasExactKeys(Command, {TEXT("command_schema"), TEXT("proof_scenario"), TEXT("domain_role"), TEXT("operation"), TEXT("inspection_id")}) ||
             !ExactString(Command, TEXT("proof_scenario"), Scenario) ||
             !ExactString(Command, TEXT("domain_role"), *ImmutableBinding.DomainRole) ||
@@ -532,19 +744,39 @@ void ASimultaneousPhysicalDomainCommandRouter::HandleLine(const FString& Canonic
         Command->TryGetStringField(TEXT("inspection_id"), InspectionId);
         const bool bExpectedLaunchSlot = !bLaunchInspectionAccepted && !bRefreshAccepted && InspectionId == TEXT("launch_physical_0001");
         const bool bExpectedRefreshSlot = bLaunchInspectionAccepted && bRefreshAccepted && !bRefreshInspectionAccepted && InspectionId == TEXT("refresh_physical_0001");
-        if ((!bExpectedLaunchSlot && !bExpectedRefreshSlot) || !Probe->InspectPublishedRoute(InspectionId, Result, Reason))
+        if ((!bExpectedLaunchSlot && !bExpectedRefreshSlot) || !Probe->InspectPublishedRoute(InspectionId, &FaultPlan, Result, Reason))
         {
             bProtocolFailed = true;
+            if (FaultPlan.bInjected)
+            {
+                EmitInjectedFaultResult(TEXT("not_applicable"), TEXT("not_emitted"), Reason);
+                return;
+            }
             EmitFailure(TEXT("inspection_invocation_read"), Reason.IsEmpty() ? TEXT("inspection_order_or_probe_failure") : Reason);
             return;
         }
         bLaunchInspectionAccepted |= bExpectedLaunchSlot;
         bRefreshInspectionAccepted |= bExpectedRefreshSlot;
+        if (SimultaneousPhysicalDomainFault::InjectAt(
+            &FaultPlan, TEXT("physical_observation"), TEXT("physical_observation_emission"), TEXT("at"), Reason))
+        {
+            bProtocolFailed = true;
+            EmitInjectedFaultResult(TEXT("not_applicable"), TEXT("not_emitted"), Reason);
+            return;
+        }
         EmitStructuredObject(Result);
         return;
     }
     if (Schema == RefreshCommandSchema)
     {
+        if (SimultaneousPhysicalDomainFault::InjectAt(
+            &FaultPlan, TEXT("refresh"), TEXT("invocation_read"), TEXT("before"), Reason))
+        {
+            bRefreshAccepted = true;
+            bProtocolFailed = true;
+            EmitInjectedFaultResult(TEXT("not_emitted"), TEXT("not_applicable"), Reason);
+            return;
+        }
         if (!bLaunchInspectionAccepted || bRefreshAccepted || !HasExactKeys(Command, {
             TEXT("command_schema"), TEXT("proof_scenario"), TEXT("domain_role"), TEXT("operation"), TEXT("refresh_id"), TEXT("target_canonical_hash")
         }) || !ExactString(Command, TEXT("proof_scenario"), Scenario) ||
@@ -557,17 +789,45 @@ void ASimultaneousPhysicalDomainCommandRouter::HandleLine(const FString& Canonic
             EmitFailure(TEXT("invocation_read"), TEXT("invalid_duplicate_or_out_of_order_refresh"));
             return;
         }
-        if (!Adapter->RefreshOnce(ImmutableBinding, Result, Reason))
+        if (SimultaneousPhysicalDomainFault::InjectAt(
+            &FaultPlan, TEXT("refresh"), TEXT("invocation_read"), TEXT("after"), Reason))
+        {
+            bRefreshAccepted = true;
+            bProtocolFailed = true;
+            EmitInjectedFaultResult(TEXT("not_emitted"), TEXT("not_applicable"), Reason);
+            return;
+        }
+        if (!Adapter->RefreshOnce(ImmutableBinding, &FaultPlan, Result, Reason))
         {
             // A prepublication refresh rejection is not a router protocol
             // failure.  The original process remains available for harness
             // diagnostics and termination, but this proof accepts no retry.
             bRefreshAccepted = true;
+            if (FaultPlan.bInjected)
+            {
+                bProtocolFailed = true;
+                EmitInjectedFaultResult(TEXT("not_emitted"), TEXT("not_applicable"), Reason);
+                return;
+            }
             EmitFailure(TEXT("refresh_rejected_before_publication"), Reason);
             return;
         }
         bRefreshAccepted = true;
+        if (SimultaneousPhysicalDomainFault::InjectAt(
+            &FaultPlan, TEXT("refresh"), TEXT("materialization_receipt_emission"), TEXT("before"), Reason))
+        {
+            bProtocolFailed = true;
+            EmitInjectedFaultResult(TEXT("not_emitted"), TEXT("not_applicable"), Reason);
+            return;
+        }
         EmitStructuredObject(Result);
+        if (SimultaneousPhysicalDomainFault::InjectAt(
+            &FaultPlan, TEXT("refresh"), TEXT("materialization_receipt_emission"), TEXT("after"), Reason))
+        {
+            bProtocolFailed = true;
+            EmitInjectedFaultResult(TEXT("emitted_but_not_harness_accepted"), TEXT("not_applicable"), Reason);
+            return;
+        }
         if (ImmutableBinding.WitnessId == TEXT("w5_retention_baseline") ||
             ImmutableBinding.WitnessId == TEXT("w5_retention_perturbed"))
         {

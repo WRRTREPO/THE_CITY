@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.76`
+**Governing continuation:** `0.7.0-draft.77`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -112,9 +112,9 @@ phase_2_canonical_occupancy_transition:
 
 phase_3_simultaneous_physical_domains:
   selected: true
-  specification: v0.1.0_frozen
+  specification: v0.1.1_corrective_frozen
   frozen: true
-  frozen_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1/0.7.0-draft.72
+  frozen_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1.1/0.7.0-draft.77
   implementation: bounded_phase_3_proof_only
   evidence: unsealed
   capacity_advancement: none
@@ -136,7 +136,7 @@ detached-representation-scoped to `topology_site_0001`, domain B to
 `topology_site_0002`, and both projections include
 `topology_route_0001`. Site scope is not canonical occupancy.
 
-The frozen v0.1.0 contract preserves the resolved semantics and grants only its
+The frozen v0.1.1 corrective contract preserves the resolved semantics and grants only its
 named bounded implementation surface:
 
 - the exact H1 observer is harness-private and no derived head input reaches
@@ -153,14 +153,19 @@ named bounded implementation surface:
   control/output pipes prove uninterrupted A/B liveness across L0–L4B;
 - an independent live-UE probe observes `available` at H0 and `blocked` after
   H1 without consuming receipt/JSON state;
+- W3 requires one named compiled local step with a real before/after counter in
+  each original UE process; CPU activity alone is rejected;
+- all 36 refresh and 24 physical-observation fault rows bind fresh live process,
+  executable, arm-receipt, boundary-result, disposition, and canonical-history
+  measurements, while the 37 authority rows bind exact case IDs to actions;
 - the exact proof-semantic input closure audits argv, environment, cwd,
   descriptors, executable/project/runtime dependencies, stdin, and bundle
   files;
-- the release DAG, 44 artifact members, complete 110-entry release set, and
+- the release DAG, 44 artifact members, complete 111-entry release set, and
   self-excluding manifest contract pass the exact structural non-release
   document validator;
-- the validator passes 11/11 exact checks and its in-memory self-test rejects
-  30/30 extra, missing, duplicate,
+- the validator passes 12/12 exact checks and its in-memory self-test rejects
+  35/35 extra, missing, duplicate,
   reordered, contradictory, unbounded, altered, lifecycle-invalid,
   source-surface, or self-included mutations; and
 - only the exact four Python paths, eight Unreal paths, bounded dispatch branch,
@@ -217,13 +222,13 @@ The current corpus does not establish:
 ## Development frontier
 
 The active working unit is independent evidence review of [Simultaneous
-Physical Domains Proof — v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md).
-Its specification is frozen under `SimultaneousPhysicalDomainsProof.v1` /
-`0.7.0-draft.72`; evidence is unsealed. Authority is limited to the four named
+Physical Domains Proof — v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md).
+Its specification is frozen under `SimultaneousPhysicalDomainsProof.v1.1` /
+`0.7.0-draft.77`; evidence is unsealed. Authority is limited to the four named
 Python paths, eight named Unreal paths, bounded `CityProofGameMode.cpp`
 dispatch branch, evidence path, 44-member artifact directory, and
-self-excluding 110-member manifest. The corrected validator binds the complete
-frozen specification bytes, passes 11/11 exact checks, and rejects all 30
+self-excluding 111-member manifest. The corrected validator binds the complete
+frozen specification bytes, passes 12/12 exact checks, and rejects all 35
 declared adversarial mutations. The forward-corrected implementation candidate
 passes 33/33 focused tests, 215/215 predecessor regressions, the UE 5.8 build,
 all 11 live witnesses, every frozen fault and authority surface, and release
@@ -233,7 +238,7 @@ before separate review.
 Current authority:
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0 evidence review
+working_unit: Simultaneous Physical Domains Proof v0.1.1 evidence review
 successor_selected: true
 specification_status: frozen
 freeze_status: frozen

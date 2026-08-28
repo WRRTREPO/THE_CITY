@@ -42,12 +42,32 @@ bool ASimultaneousPhysicalRebindProbe::BindProcessIdentity(const FSPDImmutablePr
 
 bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
     const FString& InspectionId,
+    FSPDInjectedFaultPlan* FaultPlan,
     TSharedPtr<FJsonObject>& OutObservation,
     FString& OutReason) const
 {
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("immutable_process_binding_verification"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
     if (!bBound || (InspectionId != TEXT("launch_physical_0001") && InspectionId != TEXT("refresh_physical_0001")))
     {
         OutReason = TEXT("immutable_binding_or_inspection_id_invalid");
+        return false;
+    }
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("role_probe_tag_derivation"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
+    const FString ExpectedRouteSlot = DomainRole == TEXT("domain_A")
+        ? TEXT("domain_A_route_slot_01") : TEXT("domain_B_route_slot_01");
+    const FString ExpectedProbeTag = FString::Printf(
+        TEXT("simultaneous_physical_domain/%s/%s"), *DomainRole, *ExpectedRouteSlot);
+    if (ProbeTag != ExpectedProbeTag)
+    {
+        OutReason = TEXT("role_probe_tag_derivation_failed");
         return false;
     }
 
@@ -85,6 +105,11 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
         return false;
     }
 
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("live_world_actor_enumeration"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
     TArray<ASimultaneousPhysicalDomainRepresentationActor*> Matching;
     for (TActorIterator<ASimultaneousPhysicalDomainRepresentationActor> It(GetWorld()); It; ++It)
     {
@@ -95,9 +120,23 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
         }
     }
 
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("exact_actor_count_check"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
     ASimultaneousPhysicalDomainRepresentationActor* Actor = Matching.Num() == 1 ? Matching[0] : nullptr;
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("live_mesh_component_lookup"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
     const UStaticMeshComponent* Mesh = Actor != nullptr ? Actor->GetPublishedRouteMesh() : nullptr;
-    const UTextRenderComponent* Label = Actor != nullptr ? Actor->GetPublishedAccessLabel() : nullptr;
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("live_mesh_visibility_and_material_parameter_read"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
     const UMaterialInstanceDynamic* Material = Mesh != nullptr ? Cast<UMaterialInstanceDynamic>(Mesh->GetMaterial(0)) : nullptr;
     FLinearColor MeshColor(0, 0, 0, 0);
     const bool bColorRead = Material != nullptr && Material->GetVectorParameterValue(
@@ -105,7 +144,18 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
     const bool bActorHidden = Actor == nullptr || Actor->IsHidden();
     const bool bMeshRegistered = Mesh != nullptr && Mesh->IsRegistered();
     const bool bMeshVisible = bMeshRegistered && Mesh->IsVisible();
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("live_label_component_lookup"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
+    const UTextRenderComponent* Label = Actor != nullptr ? Actor->GetPublishedAccessLabel() : nullptr;
     const bool bLabelRegistered = Label != nullptr && Label->IsRegistered();
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("live_label_visibility_text_and_color_read"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
     const bool bLabelVisible = bLabelRegistered && Label->IsVisible();
     const FString LabelText = Label != nullptr ? Label->Text.ToString() : TEXT("");
     const FColor LabelColor = Label != nullptr ? Label->TextRenderColor : FColor(0, 0, 0, 0);
@@ -117,6 +167,11 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
         Near(MeshColor.B, 0.12f) && Near(MeshColor.A, 1.00f);
     const bool bAvailableLabel = LabelText == TEXT("AVAILABLE") && LabelColor == FColor(0, 255, 0, 255);
     const bool bBlockedLabel = LabelText == TEXT("BLOCKED") && LabelColor == FColor(255, 0, 0, 255);
+    if (SimultaneousPhysicalDomainFault::InjectAt(
+        FaultPlan, TEXT("physical_observation"), TEXT("independent_surface_consistency_classification"), TEXT("at"), OutReason))
+    {
+        return false;
+    }
     FString ObservedState = TEXT("inconsistent");
     if (Matching.Num() == 1 && !bActorHidden && bMeshRegistered && bMeshVisible && bLabelRegistered && bLabelVisible)
     {
@@ -126,7 +181,7 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
 
     OutObservation = MakeShared<FJsonObject>();
     OutObservation->SetStringField(TEXT("observation_schema"), TEXT("SimultaneousPhysicalDomainPhysicalObservation.v1"));
-    OutObservation->SetStringField(TEXT("proof_scenario"), TEXT("simultaneous-physical-domains-v1"));
+    OutObservation->SetStringField(TEXT("proof_scenario"), TEXT("simultaneous-physical-domains-v1.1"));
     OutObservation->SetStringField(TEXT("domain_role"), DomainRole);
     OutObservation->SetStringField(TEXT("operational_process_instance_id"), OperationalProcessInstanceId);
     OutObservation->SetStringField(TEXT("process_binding_raw_sha256"), ProcessBindingRawSha256);
