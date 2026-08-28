@@ -99,6 +99,28 @@ EXPECTED_PERMISSION_TABLE = (
     "| `invalid` | any matching recorded state | disabled | disabled | halted; diagnostics/termination only |",
     "| `protocol_invalid(H0/H1)` | `failed_closed` | disabled | disabled | halted; diagnostics/termination only |",
 )
+REQUIRED_REFRESH_FAULT_LIFECYCLE = (
+    "The exact refresh stages frozen for mandatory pre/post fault injection during "
+    "the later authorized implementation/evidence phase are:"
+)
+PROHIBITED_OLD_REFRESH_FAULT_LIFECYCLE = (
+    "The exact refresh stages that require pre/post fault injection before freeze are:"
+)
+PREFREEZE_TERMS = re.compile(
+    r"\b(?:before|prior to)\s+(?:a\s+)?(?:separately reviewed\s+)?freeze\b|\bpre[- ]freeze\b",
+    re.IGNORECASE,
+)
+PHASE_3_EXECUTION_TERMS = re.compile(
+    r"\b(?:phase[- ]?3\s+execution|proof\s+execution|runtime|harness|"
+    r"unreal\s+execution|fault[- ]injection|refresh\s+fault\s+stages?)\b",
+    re.IGNORECASE,
+)
+OBLIGATION_TERMS = re.compile(
+    r"\b(?:must|shall|mandatory|required|requires?|has\s+to|have\s+to|"
+    r"needs?\s+to|is\s+to|are\s+to|occurs?|runs?|executes?|"
+    r"is\s+performed|are\s+performed|is\s+executed|are\s+executed)\b",
+    re.IGNORECASE,
+)
 
 # These digests bind complete ordered structures, not selected phrases. They are
 # filled from the reviewed Draft.4 blocks and deliberately fail on any byte,
@@ -249,6 +271,20 @@ def require_unique(values: list[str], subject: str) -> None:
         raise ValidationError(f"{subject} has duplicates: {duplicates}")
 
 
+def prefreeze_runtime_obligation_clauses(text: str) -> list[str]:
+    """Return prose clauses that require Phase-3 execution before freeze."""
+
+    normalized = re.sub(r"\s+", " ", text)
+    clauses = re.split(r"(?<=[.:])\s+", normalized)
+    return [
+        clause
+        for clause in clauses
+        if PREFREEZE_TERMS.search(clause)
+        and PHASE_3_EXECUTION_TERMS.search(clause)
+        and OBLIGATION_TERMS.search(clause)
+    ]
+
+
 def validate_text(text: str) -> list[str]:
     checks: list[str] = []
 
@@ -316,6 +352,19 @@ def validate_text(text: str) -> list[str]:
         if impossible_literal in text:
             raise ValidationError(f"impossible process-visibility claim remains: {impossible_literal}")
     checks.append("proof-semantic and launch surfaces: exact ordered structures")
+
+    normalized_text = re.sub(r"\s+", " ", text)
+    if normalized_text.count(REQUIRED_REFRESH_FAULT_LIFECYCLE) != 1:
+        raise ValidationError("correct refresh-fault lifecycle wording must occur exactly once")
+    if PROHIBITED_OLD_REFRESH_FAULT_LIFECYCLE in normalized_text:
+        raise ValidationError("old pre-freeze refresh-fault obligation remains")
+    prohibited_clauses = prefreeze_runtime_obligation_clauses(text)
+    if prohibited_clauses:
+        raise ValidationError(
+            "Phase-3 runtime execution is required before freeze: "
+            + repr(prohibited_clauses[0])
+        )
+    checks.append("refresh fault lifecycle: later authorized execution only")
 
     artifact_block = fenced_block_after(
         text, "That directory must contain exactly these 44 regular files"
@@ -467,6 +516,36 @@ def self_test_mutations(text: str) -> list[tuple[str, str]]:
                 selection_marker,
                 "  freeze_status: not_frozen",
                 "  freeze_status: frozen",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "old_fault_injection_before_freeze_wording",
+            replace_once(
+                text,
+                REQUIRED_REFRESH_FAULT_LIFECYCLE,
+                PROHIBITED_OLD_REFRESH_FAULT_LIFECYCLE,
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "mandatory_harness_execution_before_freeze",
+            replace_once(
+                text,
+                REQUIRED_REFRESH_FAULT_LIFECYCLE,
+                "Phase-3 harness execution is mandatory before freeze:",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "proof_runtime_must_execute_before_freeze",
+            replace_once(
+                text,
+                REQUIRED_REFRESH_FAULT_LIFECYCLE,
+                "Before freeze, the proof runtime must execute every refresh fault stage:",
             ),
         )
     )

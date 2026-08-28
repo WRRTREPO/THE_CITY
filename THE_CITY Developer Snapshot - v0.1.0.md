@@ -219,7 +219,7 @@ proof-semantic-input and refresh mechanism, exact release DAG/member/manifest co
 head-state machine, stale local execution quarantine, refresh publication
 boundary, asymmetric failure, isolation, provenance, replay, and current-head
 rejection surface before freeze may be considered.
-The exact document validator and all 21 adversarial self-tests must also pass.
+The exact document validator and all 24 adversarial self-tests must also pass.
 
 Current authority:
 

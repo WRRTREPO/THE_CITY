@@ -1699,8 +1699,7 @@ record.
 
 ### Physical refresh fault surface
 
-The exact refresh stages that require pre/post fault injection before freeze
-are:
+The exact refresh stages frozen for mandatory pre/post fault injection during the later authorized implementation/evidence phase are:
 
 ```yaml
 refresh_fault_stages:
@@ -2279,7 +2278,10 @@ movement, streaming, or production physical-domain architecture.
 - Added `--self-test` in-memory adversaries for missing, extra, duplicate, or
   reordered guard/authority/input/list structure, contradictory or granted
   implementation authority, a falsely frozen Phase-3 state, altered permission
-  rows, and validator/manifest self-inclusion.
+  rows, validator/manifest self-inclusion, and pre-freeze runtime-obligation
+  wording.
+- Bound mandatory refresh fault injection to the later authorized
+  implementation/evidence phase.
 - Named the review-time document validator as the sole pre-freeze QA-code
   exception while keeping every Phase-3 runtime, Unreal, proof, test, evidence,
   artifact, and release implementation prohibited.

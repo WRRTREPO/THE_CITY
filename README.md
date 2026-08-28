@@ -20,7 +20,7 @@ rebuilds canonical-derived representation facts only from exact H1 plus the exac
 separate live-UE probe must observe `available` at H0 and `blocked` after H1.
 The exact process-liveness, proof-semantic-input, release-DAG, member-set, and
 manifest contracts are fixed for final review and pass the exact structural
-document validator plus its 21 adversarial self-tests. That review-only
+document validator plus its 24 adversarial self-tests. That review-only
 validator is the sole pre-freeze QA-code exception. The proof is not frozen. No
 Phase-3 runtime or capacity advancement is authorized.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)

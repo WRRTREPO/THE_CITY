@@ -83,7 +83,7 @@ defines terminal guard-open failure and representation-only claim semantics,
 requires a separate live-UE available/blocked oracle, audits the
 proof-semantic process-input closure, and preserves the exact release DAG,
 member set, and self-excluding manifest. Its structurally exact non-release
-document validator and 21 adversarial in-memory self-tests pass. That validator
+document validator and 24 adversarial in-memory self-tests pass. That validator
 is the sole pre-freeze QA-code exception. It is not frozen. No Phase-3 runtime, Unreal source
 change, capacity advancement, or adjacent scope is authorized.
 

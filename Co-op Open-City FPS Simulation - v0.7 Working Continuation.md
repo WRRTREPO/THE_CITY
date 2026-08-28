@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
 **Version:** 0.7.0-draft.72
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and remains in final freeze review under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. Draft.4 structurally closes the non-release document validator, adds 21 adversarial in-memory rejection tests, and names that validator as the sole pre-freeze QA-code exception. The proof is not frozen. No Phase-3 runtime, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and remains in final freeze review under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. Draft.4 structurally closes the non-release document validator, adds 24 adversarial in-memory rejection tests, and names that validator as the sole pre-freeze QA-code exception. The proof is not frozen. No Phase-3 runtime, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -194,8 +194,8 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
   It now closes the head-state table, guard, disposition, permission matrix,
   proof-semantic inputs, launch surface, artifact list, and manifest members.
 - Added `--self-test`, which mutates only in-memory document copies and rejects
-  21 forbidden missing, extra, duplicate, reordered, contradictory, granted,
-  altered, or self-included cases.
+  24 forbidden missing, extra, duplicate, reordered, contradictory, granted,
+  altered, self-included, or pre-freeze-runtime-obligation cases.
 - Named the validator as the sole pre-freeze QA-code exception. Phase-3 runtime,
   Unreal, adapter, harness, proof-test, evidence, artifact, release, capacity,
   and adjacent implementation remain prohibited.
