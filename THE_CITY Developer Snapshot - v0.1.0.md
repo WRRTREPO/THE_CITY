@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.70`
+**Governing continuation:** `0.7.0-draft.71`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -112,7 +112,7 @@ phase_2_canonical_occupancy_transition:
 
 phase_3_simultaneous_physical_domains:
   selected: true
-  specification: v0.1.0-draft.2_final_freeze_review
+  specification: v0.1.0-draft.3_final_freeze_review
   frozen: false
   implementation: prohibited
 ```
@@ -133,21 +133,28 @@ detached-representation-scoped to `topology_site_0001`, domain B to
 `topology_site_0002`, and both projections include
 `topology_route_0001`. Site scope is not canonical occupancy.
 
-Draft.2 closes the remaining material review seams without granting
+Draft.3 resolves the latest material review seams without granting
 implementation:
 
 - the exact H1 observer is harness-private and no derived head input reaches
   Unreal;
-- the physical-current-head guard controls only physical acceptance and
-  refresh, while a guard-open control proves canonical R1 still commits;
+- the head-qualified physical-current-head guard controls only physical
+  acceptance and refresh; normal reopening occurs only after verified H1 and
+  stale classification, while a guard-open control still commits canonical R1
+  and ends `failed_closed` / `protocol_invalid`;
+- synchronized domains may make only a harness-accepted disposable
+  representation-correspondence claim, never a canonical authority claim;
 - refresh reconstructs every authoritative-derived fact from exact H1 plus the
   exact projection, retaining only three detached scalar local values;
 - original child handles, macOS process-start pairs, process bindings, and
-  control/output pipes prove uninterrupted A/B liveness across L0–L4B; and
+  control/output pipes prove uninterrupted A/B liveness across L0–L4B;
 - an independent live-UE probe observes `available` at H0 and `blocked` after
-  H1 without consuming receipt/JSON state; and
-- the exact visible-input closure, release DAG, 44 artifact members, complete
-  110-entry release set, and self-excluding manifest contract are fixed.
+  H1 without consuming receipt/JSON state;
+- the exact proof-semantic input closure audits argv, environment, cwd,
+  descriptors, executable/project/runtime dependencies, stdin, and bundle
+  files; and
+- the release DAG, 44 artifact members, complete 110-entry release set, and
+  self-excluding manifest contract pass the non-release document validator.
 
 ## Exact current proof envelope
 
@@ -199,12 +206,12 @@ The current corpus does not establish:
 ## Development frontier
 
 The active working unit is [Simultaneous Physical Domains Proof —
-v0.1.0-draft.2](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
+v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
 final freeze review but not frozen. Review must verify its exact detached
 projections, harness-private current-head observation, canonically inert
 physical guard, H1-only reconstruction and retention whitelist, independent
-live-UE rebind oracle, uninterrupted process-birth witness, fixed visible-input
-and refresh mechanism, exact release DAG/member/manifest contract, physical
+live-UE rebind oracle, uninterrupted process-birth witness, exact
+proof-semantic-input and refresh mechanism, exact release DAG/member/manifest contract, physical
 head-state machine, stale local execution quarantine, refresh publication
 boundary, asymmetric failure, isolation, provenance, replay, and current-head
 rejection surface before freeze may be considered.
@@ -212,7 +219,7 @@ rejection surface before freeze may be considered.
 Current authority:
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.2
+working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.3
 successor_selected: true
 specification_status: final_freeze_review
 freeze_status: not_frozen

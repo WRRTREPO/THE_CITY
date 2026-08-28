@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.70
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.2](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and has advanced to final freeze review under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.70`. Draft.2 removes private head-observation input from Unreal, makes the physical guard canonically inert, adds an independent live-UE available/blocked rebind oracle, and fixes the exact release DAG/member/manifest contract. The proof is not frozen. No implementation, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.71
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and remains in final freeze review under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.71`. Draft.3 gives the canonically inert physical guard exact head-qualified states, a terminal guard-open control, aligned representation-only claim semantics, and an audited proof-semantic input closure with a passing non-release document validator. The proof is not frozen. No implementation, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -85,7 +85,7 @@ production topology, World Partition, streaming, networking, city expansion,
 and adjacent scope remain unauthorized.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0-draft.2](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the
+v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the
 sole active successor and is in final freeze review. It asks
 whether two process-isolated Unreal representation domains can remain alive
 across the exact sealed Phase-1 H0-to-H1 access transition, then independently
@@ -94,11 +94,12 @@ current-head authority. Both exact detached domain projections include one
 distinct canonical site scope and the shared `topology_route_0001` access fact.
 The candidate explicitly does not inherit Phase 1's source-destruction
 lifecycle, create a new canonical payload or mutation, materialize occupancy,
-or exercise Q/BQ/BEXT. Draft.2 keeps the head observer harness-private, limits
-the physical guard to physical acceptance, requires independent live-UE
-component observation after each materialization, and fixes the exact release
-boundary. It remains unfrozen; no implementation or Unreal source change is
-authorized.
+or exercise Q/BQ/BEXT. Draft.3 keeps the head observer harness-private, defines
+the exact guard close/reopen/failed states and guard-open terminal disposition,
+aligns synchronized representation-only claims, audits the exact proof-semantic
+process inputs, requires independent live-UE component observation after each
+materialization, and preserves the exact release boundary. It remains unfrozen;
+no implementation or Unreal source change is authorized.
 
 ## Product framing
 
@@ -178,6 +179,31 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.71 — 2026-08-28
+
+- Advanced [Simultaneous Physical Domains Proof —
+  v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) in
+  final freeze review under candidate identity
+  `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.71`; the proof remains
+  unfrozen and implementation authority remains `none`.
+- Defined `open_for_H0`, `closed_for_H0_to_H1`, `open_for_H1`, and
+  `failed_closed` physical guard states. The guard-open control still commits
+  exact R1/H1, then ends in terminal `protocol_invalid(H0/H1)` dispositions;
+  normal reopening occurs only after exact H1 reverification and all stale
+  classifications.
+- Aligned synchronized current-head claim permission as a harness-accepted,
+  disposable representation-correspondence claim only. Evidence, scheduling,
+  mutation, truth publication, and canonical head selection remain prohibited.
+- Replaced literal all-process visibility closure with an exact proof-semantic
+  input closure and audits of ordered argv, redacted environment, cwd,
+  descriptors, executable/project/module inputs, bundle files, and engine/system
+  dependency identities.
+- Added and passed the non-release specification validator for the physical
+  state/disposition laws, hidden-input prohibitions, exact 44 artifacts, and
+  110 unique self-excluding manifest members. No Phase-3 runtime exists or was
+  exercised.
+- Preserved every exclusion and the sealed capacity boundary.
 
 ### 0.7.0-draft.70 — 2026-08-28
 
@@ -924,14 +950,15 @@ predecessor evidence.
 Canonical Occupancy Transition Proof v0.1.0 is complete and sealed in its exact
 bounded canonical scope.
 
-Simultaneous Physical Domains Proof v0.1.0-draft.2 is the sole current working
+Simultaneous Physical Domains Proof v0.1.0-draft.3 is the sole current working
 unit. It is in final freeze review and is not frozen. Review must verify the exact sealed
 Phase-1 H0/H1 reuse, noninheritance of Phase 1's physical lifecycle, two live
 process-isolated domain projections, shared-route representation, operational
 head-state machine, harness-private current-head observer, canonically inert
-physical guard, H1-only refresh reconstruction and retained-local whitelist,
+head-qualified physical guard, terminal guard-open control, aligned
+representation-only claim law, H1-only refresh reconstruction and retained-local whitelist,
 independent live-UE available/blocked oracle, uninterrupted L0–L4B process-
-birth evidence, exact visible-input closure and stdin/three-file refresh
+birth evidence, exact proof-semantic input closure and stdin/three-file refresh
 mechanism, exact release DAG/member set/manifest, quarantined stale execution,
 atomic refresh boundary, asymmetric failure, isolation, current-head rejection
 surface, replay, provenance, and source audit before freeze or implementation

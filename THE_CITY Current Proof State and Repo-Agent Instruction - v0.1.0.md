@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-28)\
 **Date:** 2026-08-28\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.70`\
+**Governing continuation:** `0.7.0-draft.71`\
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
@@ -72,15 +72,18 @@ Unreal occupancy, contention, simultaneous domains, networking, streaming,
 Phase 3, or adjacent architecture.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0-draft.2](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is now
+v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is now
 the sole active successor. It is in final freeze review under candidate
 proof-harness identity `SimultaneousPhysicalDomainsProof.v1` /
-`0.7.0-draft.70`. It reuses the exact sealed Phase-1 H0/H1 payload and
+`0.7.0-draft.71`. It reuses the exact sealed Phase-1 H0/H1 payload and
 access-only canonical transition, but explicitly does not inherit Phase 1's
-source-destruction physical lifecycle. Draft.2 keeps head observation private
-to the harness, makes the physical guard canonically inert, requires a separate
-live-UE available/blocked oracle, and fixes the exact release DAG, member set,
-and self-excluding manifest. It is not frozen. No implementation, Unreal source
+source-destruction physical lifecycle. Draft.3 keeps head observation private
+to the harness, makes the exact head-qualified physical guard canonically inert,
+defines terminal guard-open failure and representation-only claim semantics,
+requires a separate live-UE available/blocked oracle, audits the
+proof-semantic process-input closure, and preserves the exact release DAG,
+member set, and self-excluding manifest. Its non-release document validator
+passes. It is not frozen. No implementation, Unreal source
 change, capacity advancement, or adjacent scope is authorized.
 
 ## Current proof progression
@@ -503,7 +506,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.70
+  version: 0.7.0-draft.71
 
 latest_capacity_record:
   version: 0.1.11
@@ -517,7 +520,7 @@ latest_sealed_proof:
 
 active_proof:
   name: Simultaneous Physical Domains Proof
-  version: 0.1.0-draft.2
+  version: 0.1.0-draft.3
   candidate_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1
   canonical_source_payload: CanonicalSpatialTopologyIdentityPayload.v1
   canonical_source_simulation_identity: 0.7.0-draft.61
@@ -569,7 +572,7 @@ traversal, derived travel time, Unreal occupancy materialization, multiple
 occupancy, contention, simultaneous physical domains, or Phase 3, and it
 authorizes no successor implementation.
 
-Simultaneous Physical Domains v0.1.0-draft.2 is selected only for final freeze
+Simultaneous Physical Domains v0.1.0-draft.3 is selected only for final freeze
 review and is not frozen. It reuses the exact sealed Phase-1 R0/H0 and R1/H1
 canonical payloads and their sole access-state mutation. It does not create a
 new canonical payload or materialize Phase-2 occupancy. Its novelty is the
@@ -587,13 +590,23 @@ scheduling, mutation, and truth claims are prohibited. A refresh rejected
 before local publication leaves the domain stale. An unprovable partial local
 publication makes it invalid and halts local execution.
 
-Draft.2 keeps `current_head_observation.json` and every derived head value
+Draft.3 keeps `current_head_observation.json` and every derived head value
 strictly harness-private. The Unreal adapter reads only its exact process
 binding, declared command, and declared three-file tuple. The physical-current-
-head guard controls only physical current-head claim/receipt acceptance and
-refresh eligibility; it has no edge into the sealed canonical path. A
-guard-open control must still commit exact R1/H1 while failing only the Phase-3
-harness protocol.
+head guard controls only physical current-head representation-claim/receipt
+acceptance and refresh eligibility; it has no edge into the sealed canonical
+path. Its exact states are `open_for_H0`, `closed_for_H0_to_H1`, `open_for_H1`,
+and `failed_closed`. Normal reopening requires exact H1 reverification plus all
+stale classifications. A guard-open control must still commit exact R1/H1,
+then end with a `failed_closed` guard and terminal `protocol_invalid(H0/H1)`
+physical dispositions.
+
+A synchronized disposition may enable only a harness-accepted disposable
+representation-correspondence claim when the represented head, privately
+verified head, open head-qualified guard, materialization receipt, and
+independent live observation all match. It never enables canonical evidence,
+scheduling, mutation, truth publication, strategic authority, or head
+selection.
 
 Refresh reconstructs every authoritative-derived representation fact solely
 from exact H1 plus the exact role/H1 projection. Only
@@ -608,6 +621,14 @@ L0–L4B samples, and a two-launch/no-replacement audit. Refresh uses exactly on
 canonical-JSON line on each original stdin pipe plus one isolated role-specific
 read-only three-file H1 bundle; no alternate mechanism is permitted.
 
+The process-input law is an exact proof-semantic closure, not a claim that
+Unreal sees no platform context. It inventories ordered argv, a redacted
+complete environment, cwd, inherited descriptors, executable/project/config/
+module hashes, engine/system dependency identities, stdin commands, launch and
+refresh bundles, and live probe surfaces. Static and runtime audit must prove
+that no platform context, project ProofRecords, other-domain state, head
+observation, guard state, or alternate channel affects Phase-3 semantics.
+
 Each original process also contains a separate live-UE probe. It inspects the
 published route Actor's mesh material and label without consuming canonical or
 projection JSON, adapter candidate state, materialization receipt, or expected
@@ -615,7 +636,10 @@ result. Both processes must independently observe `available` at H0 and
 `blocked` after H1 refresh before the harness accepts synchronized
 dispositions. The exact release DAG, 44 artifact-directory members, complete
 110-entry release set, and self-excluding manifest/verifier contract are fixed
-for final review.
+for final review. The review-time
+`proof_kernel/validate_simultaneous_physical_domains_spec.py` document validator
+must pass, remains outside the 110-member release set, and proves no Phase-3
+runtime behavior.
 
 Do not begin any of the following without a separately reviewed freeze and
 explicit implementation authority:
@@ -760,14 +784,15 @@ The blocked-access control, dense/jump equivalence, singular occupancy,
 reservation closure, record-relative completion, failure atomicity, replay,
 source audit, and release package are sealed predecessor evidence.
 
-Simultaneous Physical Domains v0.1.0-draft.2 is the sole current working unit
+Simultaneous Physical Domains v0.1.0-draft.3 is the sole current working unit
 and is in final freeze review but not frozen. Review the exact Phase-1 H0/H1 reuse,
 noninheritance of Phase 1's physical lifecycle, detached A/B site-and-route
 projections, harness-private current-head observation, canonically inert
-physical guard and guard-open control, independent live-UE available/blocked
+head-qualified physical guard, exact reopening law and guard-open terminal
+control, aligned representation-only claim disposition, independent live-UE available/blocked
 oracle, uninterrupted process-birth liveness,
-head-unconfirmed/synchronized/stale/invalid state machine, H1-only
-reconstruction and retained-local perturbation witness, exact visible-input
+head-unconfirmed/synchronized/stale/invalid/protocol-invalid state machine, H1-only
+reconstruction and retained-local perturbation witness, exact proof-semantic-input
 closure and stdin/three-file refresh mechanism, exact release DAG/member/
 manifest contract, quarantined stale execution, atomic refresh boundary,
 A-synchronized/B-stale asymmetric failure and symmetric branch, isolation,
