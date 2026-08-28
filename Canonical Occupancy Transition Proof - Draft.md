@@ -1,7 +1,7 @@
 # Canonical Occupancy Transition Proof
 
 **Version:** 0.1.0
-**Status:** Frozen specification; bounded canonical implementation authorized
+**Status:** Frozen specification. The bounded canonical implementation is proven and sealed by the [v0.1.0 evidence record](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md); no successor scope is authorized.
 **Selected:** 2026-08-27
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 **Latest sealed predecessor:** [Canonical Spatial Topology Identity Proof — v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md)
@@ -1808,8 +1808,8 @@ The governing authority state after freeze is:
 ```yaml
 implementation: bounded_canonical_only
 unreal_changes: prohibited
-capacity_change: none
-README_capacity_promotion: prohibited
+capacity_change: sealed_as_v0.1.11
+README_capacity_promotion: exact_sealed_claim_only
 phase_3_selection: prohibited
-evidence_status: unsealed
+evidence_status: passed_and_sealed
 ```

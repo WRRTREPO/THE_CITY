@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.66
-**Status:** Canonical Spatial Topology Identity Proof v0.1.0 remains the latest sealed proof and Development Capacity v0.1.10 remains governing. Canonical Occupancy Transition Proof v0.1.0 is frozen under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`, and only its exact bounded canonical implementation, evidence, and release verification are authorized. Its evidence remains unsealed; Unreal changes, capacity advancement, Phase 3, generalization, and adjacent scope remain unauthorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.67
+**Status:** Canonical Occupancy Transition Proof v0.1.0 is implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 is governing. Phase 3 and every successor, Unreal, movement, contention, networking, streaming, generalized architecture, and adjacent scope remain unselected and unauthorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -162,6 +162,30 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.67 — 2026-08-27
+
+- Implemented, evidenced, and sealed [Canonical Occupancy Transition Proof —
+  v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md)
+  under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`.
+- Proved the exact R0 → Rtransit → Rfinal canonical chain: singular occupancy
+  leaves site B, becomes one exact resource-owning in-transition relation,
+  then settles at site A only after completion is freshly rediscovered from
+  published Rtransit unresolved work.
+- Proved the blocked route as an ordinary failed gate with unchanged occupancy,
+  no acquired reservation, and no completion residue; malformed lifecycle or
+  authority state remains diagnostic-only rejection.
+- Recorded byte-identical dense/jump checkpoints, exact reservation closure,
+  sealed Phase-1 topology binding, 41/41 adversarial families, 30/30 private
+  fault points, deterministic replay, a hard source audit, 215/215 full
+  regressions, 20/20 focused checks, 19 regenerated artifacts, and a
+  self-excluding 33/33 release package.
+- Advanced Development Capacity to v0.1.11 only for the exact bounded canonical
+  fixture. This is not physical movement, Unreal occupancy materialization,
+  navigation, derived travel time, route occupancy/capacity, multiple subjects,
+  contention, simultaneous physical domains, networking, streaming, or
+  production topology.
+- Selected no successor. Phase 3 and all adjacent implementation remain closed.
 
 ### 0.7.0-draft.66 — 2026-08-27
 
@@ -784,15 +808,9 @@ external-input, same-clock, integrated Unreal lifecycle, concurrent external
 arbitration, and canonical spatial-topology identity proofs are sealed
 predecessor evidence.
 
-The sole current working unit is the bounded canonical implementation of
-[Canonical Occupancy Transition Proof —
-v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md). Implement
-only its exact singular occupancy and `in_transition` ontology,
-start-publication/completion-rediscovery barrier, unresolved-work-only
-scheduler discovery, canonical reservation disposition, blocked control,
-dense/jump checkpoint oracle, declared failure surface, replay, source audit,
-evidence artifacts, and self-excluding release verifier. The proof remains
-unsealed until those gates pass.
+Canonical Occupancy Transition Proof v0.1.0 is complete and sealed in its exact
+bounded canonical scope. There is no current working unit and no successor
+proof is selected.
 
 Do not begin stochastic identity, simultaneous physical domains, 2+2 player
 topology, networking, live input collection, transport semantics, physical

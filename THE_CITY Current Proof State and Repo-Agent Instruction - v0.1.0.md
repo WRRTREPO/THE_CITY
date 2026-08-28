@@ -3,10 +3,10 @@
 **Version:** 0.1.0 (current amendment: 2026-08-27)\
 **Date:** 2026-08-27\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.66`\
-**Latest sealed proof:** `Canonical Spatial Topology Identity Proof v0.1.0`\
+**Governing continuation:** `0.7.0-draft.67`\
+**Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
 **Latest capacity record:**
-`THE_CITY Development Capacity and Progress Note v0.1.10`
+`THE_CITY Development Capacity and Progress Note v0.1.11`
 
 ## Authority boundary
 
@@ -60,12 +60,16 @@ no production Bridge endpoints, movement, streaming, networking, or adjacent
 architecture.
 
 [Canonical Occupancy Transition Proof —
-v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20-%20Draft.md) is now
-frozen under `CanonicalOccupancyTransitionPayload.v1` /
-`0.7.0-draft.65`. Its exact bounded canonical implementation is the sole
-active working unit. Evidence remains unsealed; Unreal source, capacity
-advancement, Phase 3, generalization, and adjacent spatial work remain
-unauthorized.
+v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md)
+is implemented, proven, and sealed under
+`CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`. It records
+215/215 regressions, 20/20 focused checks, 41/41 adversarial families, 30/30
+private fault points, two byte-identical local-policy histories, one exact
+blocked ordinary-failure control, and a self-excluding 33/33 release. It
+advances capacity only for the exact one-subject/two-site/one-route/
+one-reservation canonical fixture and authorizes no physical movement,
+Unreal occupancy, contention, simultaneous domains, networking, streaming,
+Phase 3, or adjacent architecture.
 
 ## Current proof progression
 
@@ -96,7 +100,7 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Canonical Occupancy Transition
-                FROZEN / BOUNDED IMPLEMENTATION AUTHORIZED
+                PROVEN / SEALED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -425,8 +429,8 @@ streaming identity
    PROVEN / SEALED
 
 8. Canonical occupancy transition
-   ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-   FROZEN / BOUNDED IMPLEMENTATION AUTHORIZED
+   ████████████████████
+   PROVEN / SEALED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -455,13 +459,17 @@ canonical ordering and private working-state revalidation publish one R1
 conceptual references, canonical site/route identity, and disposable Unreal
 representation remain separate through one access mutation and reconstruction
         ↓
+one canonical subject can suspend settled occupancy under one exact
+resource-owning transition and later settle at the other endpoint only after
+record-relative completion rediscovery
+        ↓
 without policy, local representation, input cursor, or Unreal becoming
 strategic authority
 ```
 
-> **Canonical spatial identity survives conceptual relabeling, one canonical
-> access mutation, complete representation destruction, and fresh Unreal
-> reconstruction.**
+> **Canonical occupancy can leave one settled site, remain exactly in one
+> resource-owning transition, and later settle at the other endpoint without
+> navigation or representation becoming location or completion authority.**
 
 That is now proven evidence.
 
@@ -473,26 +481,22 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.66
+  version: 0.7.0-draft.67
 
 latest_capacity_record:
-  version: 0.1.10
+  version: 0.1.11
 
 latest_sealed_proof:
-  name: Canonical Spatial Topology Identity Proof
-  version: 0.1.0
-  payload_schema: CanonicalSpatialTopologyIdentityPayload.v1
-  simulation_identity: 0.7.0-draft.61
-  evidence_status: passed_and_sealed
-
-active_proof:
   name: Canonical Occupancy Transition Proof
   version: 0.1.0
   payload_schema: CanonicalOccupancyTransitionPayload.v1
-  frozen_simulation_identity: 0.7.0-draft.65
-  status: frozen_implementation_authorized
-  implementation: bounded_canonical_only
-  evidence_status: unsealed
+  simulation_identity: 0.7.0-draft.65
+  evidence_status: passed_and_sealed
+
+active_proof:
+  name: none
+  status: no_successor_selected
+  implementation: prohibited
 ```
 
 Older continuation snapshots, README files, draft states, and superseded
@@ -528,19 +532,15 @@ Canonical Spatial Topology Identity v0.1.0 is separately sealed only in its
 exact two-site/one-route scope. Its seal authorizes no adjacent spatial
 behavior or successor implementation.
 
-Canonical Occupancy Transition v0.1.0 is separately frozen with bounded
-canonical implementation authority. The proof asks whether one proof-local subject
-can change its singular tagged canonical occupancy from `at_site` into one
-exact resource-owning `in_transition` commitment relation over canonical time,
-back to `at_site` at the other endpoint. `in_transition` is not route occupancy
-or another place. Start must publish Rtransit before completion is independently
-rediscovered from Rtransit's `unresolved_work`; navigation, physical
-interpolation, historical ledger, local cache, and representation state have no
-completion authority. Implementation is limited to the exact frozen records,
-two boundary resolutions, reservation lifecycle, blocked control, dense/jump
-witnesses, declared failures, replay, source audit, evidence, and release
-verification. It is not physical movement, traversal, derived travel time,
-Unreal occupancy materialization, multiple occupancy, contention, or Phase 3.
+Canonical Occupancy Transition v0.1.0 is separately sealed only in its exact
+one-subject/two-site/one-route/one-reservation scope. `in_transition` is not
+route occupancy or another place. Start publishes Rtransit before completion
+is independently rediscovered from Rtransit's `unresolved_work`; navigation,
+physical interpolation, historical ledger, local cache, and representation
+state have no completion authority. The seal is not physical movement,
+traversal, derived travel time, Unreal occupancy materialization, multiple
+occupancy, contention, simultaneous physical domains, or Phase 3, and it
+authorizes no successor implementation.
 
 Do not begin any of the following without a separately reviewed freeze and
 explicit implementation authority:
@@ -570,7 +570,7 @@ The latest sealed release verifier is:
 ``` sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_canonical_spatial_topology_identity_release.py verify
+  python3 proof_kernel/verify_canonical_occupancy_transition_release.py verify
 ```
 
 ## Sealed Fork 4 boundary
@@ -659,8 +659,8 @@ fixture ID spaces, unordered-request normalization, endpoint relation,
 access-only R0-to-R1 mutation, read-only Unreal reconstruction, rejection
 surface, replay, source audit, and release package are predecessor evidence.
 
-Canonical Occupancy Transition v0.1.0 is the sole current implementation
-target. Implement only the exact two-boundary canonical chain:
+Canonical Occupancy Transition v0.1.0 is complete and sealed. Its exact
+two-boundary canonical chain is now predecessor evidence:
 
 ``` text
 R0 / subject at site_0002
@@ -672,14 +672,11 @@ R0 / subject at site_0002
 → Rfinal / subject at site_0001
 ```
 
-The blocked-access control must terminate by ordinary failed gate without
-changing occupancy or acquiring a subject-transition reservation. Dense local
-inspection and boundary jump must converge at every canonical checkpoint. The
-proof must not derive occupancy or schedule authority from navigation,
-interpolation, Unreal, conceptual-map, representation, commitment-time,
-historical-ledger, provisional-record, or local-cache state.
+The blocked-access control, dense/jump equivalence, singular occupancy,
+reservation closure, record-relative completion, failure atomicity, replay,
+source audit, and release package are sealed. There is no current working unit
+and no successor proof is selected.
 
-> **Implement only the frozen bounded canonical proof DAG and stop at evidence
-> plus release verification. Do not infer Phase 3, physical movement, travel
-> systems, occupancy materialization, generalized resolver behavior, or
-> adjacent spatial architecture from this authority.**
+> **Do not infer Phase 3, physical movement, travel systems, occupancy
+> materialization, generalized resolver behavior, simultaneous domains, or
+> adjacent spatial architecture from this seal.**

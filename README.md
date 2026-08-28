@@ -6,8 +6,8 @@ strategic authority.
 
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
-**Current sealed proof record:** [Canonical Spatial Topology Identity Proof — v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md).
-The governing continuation is [v0.7.0-draft.66](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+**Current sealed proof record:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md).
+The governing continuation is [v0.7.0-draft.67](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -67,8 +67,9 @@ proposals. Unreal cannot write city truth or causal-ledger entries.
 | [Integrated Unreal Promotion-Unload-Repromotion](Integrated%20Unreal%20Promotion-Unload-Repromotion%20Proof%20Evidence%20-%20v0.1.0.md) | A real UE source interaction emits exact Q; its source process is destroyed before canonical continuation; an isolated fresh UE process materializes the evolved final record only. |
 | [Concurrent External Evidence Arbitration](Concurrent%20External%20Evidence%20Arbitration%20Proof%20Evidence%20-%20v0.1.0.md) | Two UE domains with disjoint proof roots physically emit distinct evidence against the same R0; one canonical batch orders, revalidates, and publishes one atomic R1 independent of physical or presentation order. |
 | [Canonical Spatial Topology Identity](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md) | Two exact canonical sites and one unordered canonical route retain their endpoint identity through one access mutation, total source-representation destruction, and isolated fresh UE reconstruction; labels and Actor identity remain non-authoritative. |
+| [Canonical Occupancy Transition](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md) | One exact subject leaves settled site B, enters one resource-owning canonical transition, and settles at site A only after a fresh Rtransit-bound completion; blocked access fails ordinarily without occupancy or reservation residue. |
 
-The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.10](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.10.md).
+The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.11](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.11.md).
 
 ## Verification
 
@@ -86,7 +87,8 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   test_external_input_boundary.py test_same_clock_successor_semantics.py \
   test_integrated_unreal_promotion_unload_repromotion.py \
   test_concurrent_external_evidence_arbitration.py \
-  test_canonical_spatial_topology_identity.py
+  test_canonical_spatial_topology_identity.py \
+  test_canonical_occupancy_transition.py
 ```
 
 Verify the latest sealed release package:
@@ -94,7 +96,7 @@ Verify the latest sealed release package:
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_canonical_spatial_topology_identity_release.py verify
+  python3 proof_kernel/verify_canonical_occupancy_transition_release.py verify
 ```
 
 The `CityMaterializationProof/README.md` remains the focused UE 5.8
@@ -110,8 +112,9 @@ This is not a production-scale city simulation. The record does not yet prove:
   rollback, save/load, or host migration;
 - stale intelligence, agent memory, learning, generalized planning, or multi-agent strategy;
 - economy, civilians, traffic, repair, damage gradation, or production content density;
-- canonical occupancy/movement, directionality, distance, travel time,
-  pathfinding, production Bridge topology, or a generalized city graph;
+- physical or generalized multi-subject occupancy/movement, directionality,
+  distance, derived travel time, pathfinding, production Bridge topology, or
+  a generalized city graph;
 - that the demonstrated opportunity pressure remains readable and fun at scale.
 
 Each future capability requires a separately selected, frozen, and verified
