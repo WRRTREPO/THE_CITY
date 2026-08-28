@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.67
-**Status:** Canonical Occupancy Transition Proof v0.1.0 is implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 is governing. Phase 3 and every successor, Unreal, movement, contention, networking, streaming, generalized architecture, and adjacent scope remain unselected and unauthorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.68
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and is open for specification review only under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.68`. It reuses the exact sealed Phase-1 H0/H1 canonical payload and mutation without inheriting Phase 1's source-destruction lifecycle. No implementation, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -84,6 +84,18 @@ pathfinding, travel,
 production topology, World Partition, streaming, networking, city expansion,
 and adjacent scope remain unauthorized.
 
+[Simultaneous Physical Domains Proof —
+v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the
+sole active successor and is open for specification review only. It asks
+whether two process-isolated Unreal representation domains can remain alive
+across the exact sealed Phase-1 H0-to-H1 access transition, then independently
+rebind to H1 while an H0 representation is mechanically stale and incapable of
+current-head authority. Both exact detached domain projections include one
+distinct canonical site scope and the shared `topology_route_0001` access fact.
+The candidate explicitly does not inherit Phase 1's source-destruction
+lifecycle, create a new canonical payload or mutation, materialize occupancy,
+or exercise Q/BQ/BEXT. No implementation or Unreal source change is authorized.
+
 ## Product framing
 
 This proof track serves a 1–4 player co-op open-city FPS. The crew receives incomplete intelligence, chooses where to deploy from a persistent hub, and pays active-world time for travel and intervention. The core player pressure is: **what do we answer, what do we delay, and what do we allow to happen without us?**
@@ -162,6 +174,42 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.68 — 2026-08-28
+
+- Selected [Simultaneous Physical Domains Proof —
+  v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) for
+  specification review only under candidate proof-harness identity
+  `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.68`.
+- Reused the exact sealed Phase-1
+  `CanonicalSpatialTopologyIdentityPayload.v1` R0/H0 and R1/H1 artifacts and
+  their sole `topology_route_0001.access_state: available → blocked` canonical
+  mutation. The candidate adds no canonical field, payload, mutation, or
+  resolver.
+- Made noninheritance of the Phase-1 physical lifecycle explicit: Phase 1
+  destroyed its H0 representation before the canonical transition, while this
+  candidate requires two isolated Unreal processes to remain simultaneously
+  alive across the independent H0-to-H1 commit and rebind in place.
+- Required exact detached A/B projections. Domain A is scoped to
+  `topology_site_0001`, domain B to `topology_site_0002`, and both must include
+  `topology_route_0001` so they independently materialize its canonical access
+  fact from the accepted payload.
+- Defined current-head authority rather than historical invalidation: H0 remains
+  valid history, but every H0-bound refresh, capability, cache, or truth claim
+  is stale against H1 and cannot exercise current-head authority.
+- Proposed an exhaustive physical-domain head-state machine. Stale domains may
+  continue only quarantined nonconsequential local execution; current-head
+  evidence, scheduling, mutation, and truth claims are prohibited. A rejected
+  prepublication refresh remains stale, while an unprovable partial local
+  publication makes the domain invalid and halts local execution.
+- Required A-then-B and B-then-A refresh witnesses, the exact asymmetric
+  A-synchronized/B-stale failure and its symmetric branch, domain-destruction
+  controls, canonical byte-equivalence, failure atomicity, replay, provenance,
+  isolation, and source audit.
+- Authorized no implementation, Unreal source change, capacity advancement,
+  occupancy materialization, Q/BQ/BEXT, live input, movement, networking,
+  World Partition, streaming, split players, cross-domain causal propagation,
+  or production architecture.
 
 ### 0.7.0-draft.67 — 2026-08-27
 
@@ -809,10 +857,17 @@ arbitration, and canonical spatial-topology identity proofs are sealed
 predecessor evidence.
 
 Canonical Occupancy Transition Proof v0.1.0 is complete and sealed in its exact
-bounded canonical scope. There is no current working unit and no successor
-proof is selected.
+bounded canonical scope.
 
-Do not begin stochastic identity, simultaneous physical domains, 2+2 player
+Simultaneous Physical Domains Proof v0.1.0-draft.0 is the sole current working
+unit. It is specification review only. Review must freeze the exact sealed
+Phase-1 H0/H1 reuse, noninheritance of Phase 1's physical lifecycle, two live
+process-isolated domain projections, shared-route representation, operational
+head-state machine, quarantined stale execution, atomic refresh boundary,
+asymmetric failure, isolation, current-head rejection surface, replay,
+provenance, and source audit before implementation may be considered.
+
+Do not implement the candidate or begin stochastic identity, 2+2 player
 topology, networking, live input collection, transport semantics, physical
 movement, derived travel time, navigation, pathfinding, production topology,
 World Partition, streaming, autonomous batch members, retry/re-admission,

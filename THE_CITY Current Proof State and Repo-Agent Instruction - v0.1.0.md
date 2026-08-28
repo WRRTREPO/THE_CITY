@@ -1,9 +1,9 @@
 # THE_CITY — Current Proof State and Repo-Agent Instruction
 
-**Version:** 0.1.0 (current amendment: 2026-08-27)\
-**Date:** 2026-08-27\
+**Version:** 0.1.0 (current amendment: 2026-08-28)\
+**Date:** 2026-08-28\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.67`\
+**Governing continuation:** `0.7.0-draft.68`\
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
@@ -71,6 +71,15 @@ one-reservation canonical fixture and authorizes no physical movement,
 Unreal occupancy, contention, simultaneous domains, networking, streaming,
 Phase 3, or adjacent architecture.
 
+[Simultaneous Physical Domains Proof —
+v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is now
+the sole active successor. It is specification review only under candidate
+proof-harness identity `SimultaneousPhysicalDomainsProof.v1` /
+`0.7.0-draft.68`. It reuses the exact sealed Phase-1 H0/H1 payload and
+access-only canonical transition, but explicitly does not inherit Phase 1's
+source-destruction physical lifecycle. No implementation, Unreal source
+change, capacity advancement, or adjacent scope is authorized.
+
 ## Current proof progression
 
 ``` text
@@ -101,6 +110,9 @@ Same-Clock Successor Semantics
                 ↓
         Canonical Occupancy Transition
                 PROVEN / SEALED
+                ↓
+        Simultaneous Physical Domains
+                SPECIFICATION REVIEW ONLY
 ```
 
 Record-relative chronological resolution remains an essential
@@ -431,6 +443,10 @@ streaming identity
 8. Canonical occupancy transition
    ████████████████████
    PROVEN / SEALED
+
+9. Simultaneous physical domains
+   ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
+   SPECIFICATION REVIEW ONLY
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -473,6 +489,9 @@ strategic authority
 
 That is now proven evidence.
 
+The active Phase 3 candidate is not proven evidence and does not advance this
+machine summary.
+
 # Repo-agent instruction
 
 ## Governing state
@@ -481,7 +500,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.67
+  version: 0.7.0-draft.68
 
 latest_capacity_record:
   version: 0.1.11
@@ -494,8 +513,13 @@ latest_sealed_proof:
   evidence_status: passed_and_sealed
 
 active_proof:
-  name: none
-  status: no_successor_selected
+  name: Simultaneous Physical Domains Proof
+  version: 0.1.0-draft.0
+  candidate_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1
+  canonical_source_payload: CanonicalSpatialTopologyIdentityPayload.v1
+  canonical_source_simulation_identity: 0.7.0-draft.61
+  status: specification_review_only
+  freeze_status: not_frozen
   implementation: prohibited
 ```
 
@@ -542,6 +566,24 @@ traversal, derived travel time, Unreal occupancy materialization, multiple
 occupancy, contention, simultaneous physical domains, or Phase 3, and it
 authorizes no successor implementation.
 
+Simultaneous Physical Domains v0.1.0-draft.0 is selected only for
+specification review. It reuses the exact sealed Phase-1 R0/H0 and R1/H1
+canonical payloads and their sole access-state mutation. It does not create a
+new canonical payload or materialize Phase-2 occupancy. Its novelty is the
+physical lifecycle: two process-isolated Unreal representations must remain
+alive across the independent canonical commit, then independently rebind to
+H1. Domain A is detached-representation-scoped to `topology_site_0001`, domain
+B to `topology_site_0002`, and both exact projections include
+`topology_route_0001`.
+
+The candidate head-state law is review material, not implementation authority.
+After H1 commits, H0 remains valid history while an H0 representation is
+mechanically stale against current head H1. A stale domain may continue only
+quarantined nonconsequential local execution; current-head evidence,
+scheduling, mutation, and truth claims are prohibited. A refresh rejected
+before local publication leaves the domain stale. An unprovable partial local
+publication makes it invalid and halts local execution.
+
 Do not begin any of the following without a separately reviewed freeze and
 explicit implementation authority:
 
@@ -565,13 +607,22 @@ Same-Clock Successor Semantics is sealed. Do not reopen it by adding
 multi-member batching, same-time input ordering, another creator, or a new
 phase policy. Those are separate successor decisions.
 
-The latest sealed release verifier is:
+The Phase 2 release manifest binds the exact continuation, README, and handover
+bytes at seal commit `638e1ac`. Verify it from an isolated export of that
+commit:
 
 ``` sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
+phase2_seal_dir="$(mktemp -d /private/tmp/thecity-phase2-seal.XXXXXX)"
+git archive 638e1ac | tar -x -C "$phase2_seal_dir"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_canonical_occupancy_transition_release.py verify
+  python3 "$phase2_seal_dir/proof_kernel/verify_canonical_occupancy_transition_release.py" verify
+rm -rf -- "$phase2_seal_dir"
 ```
+
+That sealed export verifies 33/33 members. The same verifier must reject the
+later live continuation bytes; do not regenerate the sealed manifest merely to
+make current-state documents match it.
 
 ## Sealed Fork 4 boundary
 
@@ -674,9 +725,17 @@ R0 / subject at site_0002
 
 The blocked-access control, dense/jump equivalence, singular occupancy,
 reservation closure, record-relative completion, failure atomicity, replay,
-source audit, and release package are sealed. There is no current working unit
-and no successor proof is selected.
+source audit, and release package are sealed predecessor evidence.
 
-> **Do not infer Phase 3, physical movement, travel systems, occupancy
-> materialization, generalized resolver behavior, simultaneous domains, or
-> adjacent spatial architecture from this seal.**
+Simultaneous Physical Domains v0.1.0-draft.0 is the sole current working unit
+and remains specification review only. Review the exact Phase-1 H0/H1 reuse,
+noninheritance of Phase 1's physical lifecycle, detached A/B site-and-route
+projections, simultaneous process liveness, synchronized/stale/invalid state
+machine, quarantined stale execution, atomic refresh boundary, A-synchronized/
+B-stale asymmetric failure and symmetric branch, isolation, current-head
+rejection surface, canonical equivalence, replay, provenance, and source audit.
+
+> **Do not implement the Phase 3 candidate until a separately reviewed freeze
+> explicitly grants its bounded implementation. Do not infer physical movement,
+> occupancy materialization, evidence arbitration, multiplayer, networking,
+> streaming, or adjacent spatial architecture from its selection.**

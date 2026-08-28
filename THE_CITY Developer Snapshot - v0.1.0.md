@@ -1,11 +1,11 @@
 # THE_CITY — Developer Snapshot
 
 **Version:** 0.1.0
-**Date:** 2026-08-27
+**Date:** 2026-08-28
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.67`
+**Governing continuation:** `0.7.0-draft.68`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -111,16 +111,25 @@ phase_2_canonical_occupancy_transition:
   status: proven_sealed
 
 phase_3_simultaneous_physical_domains:
-  selected: false
-  specification: not_open
+  selected: true
+  specification: v0.1.0-draft.0_review_only
   implementation: prohibited
 ```
 
 Phase 1 established what canonical places and their relation are. Phase 2
 established how one subject's settled occupancy can lawfully change between
-them. Phase 3 would ask whether multiple disposable physical domains can remain
-simultaneously alive at different canonical locations while sharing one
-canonical world, but that question has not been selected.
+them. Phase 3 is now selected for specification review only. It asks whether
+two process-isolated Unreal representation domains can remain simultaneously
+alive against one canonical head, survive the exact sealed Phase-1 H0-to-H1
+access transition without participating in it, and independently rebind while
+an H0 representation is mechanically stale against H1.
+
+The candidate explicitly does not inherit Phase 1's physical lifecycle. Phase
+1 destroyed its source representation before H1; Phase 3 requires the same two
+operational process instances to remain alive across the commit. Domain A is
+detached-representation-scoped to `topology_site_0001`, domain B to
+`topology_site_0002`, and both projections include
+`topology_route_0001`. Site scope is not canonical occupancy.
 
 ## Exact current proof envelope
 
@@ -171,19 +180,22 @@ The current corpus does not establish:
 
 ## Development frontier
 
-There is currently no active working unit. Phase 2 closure does not select its
-successor.
+The active working unit is [Simultaneous Physical Domains Proof —
+v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
+specification review only. Review must freeze its exact detached projections,
+simultaneous process-liveness witness, physical head-state machine, stale local
+execution quarantine, refresh publication boundary, asymmetric failure,
+isolation, provenance, replay, and current-head rejection surface before any
+implementation authority may be considered.
 
-The next lawful operation is a deliberate risk-selection decision. If Phase 3
-is selected, the repository should first open a specification-only proof and
-freeze its authority, isolation, concurrency, lifecycle, and failure laws
-before implementation.
-
-Until then:
+Current authority:
 
 ```yaml
-working_unit: none
-successor_selected: false
+working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.0
+successor_selected: true
+specification_status: review_only
+freeze_status: not_frozen
+implementation_authority: none
 governing_record_change_from_this_note: none
 capacity_change_from_this_note: none
 ```

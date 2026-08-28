@@ -7,7 +7,13 @@ strategic authority.
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
 **Current sealed proof record:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md).
-The governing continuation is [v0.7.0-draft.67](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+The governing continuation is [v0.7.0-draft.68](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+[Simultaneous Physical Domains Proof v0.1.0-draft.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md)
+is the sole active successor and is open for specification review only. It
+reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
+process-isolated Unreal representations to remain alive across the commit and
+obey one explicit synchronized/stale/invalid physical-head law. No
+implementation or capacity advancement is authorized.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -91,13 +97,22 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   test_canonical_occupancy_transition.py
 ```
 
-Verify the latest sealed release package:
+The Phase 2 manifest binds the exact continuation, README, and handover bytes at
+seal commit `638e1ac`. After a successor continuation opens, verify that sealed
+package from an isolated export of its commit:
 
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
+phase2_seal_dir="$(mktemp -d /private/tmp/thecity-phase2-seal.XXXXXX)"
+git archive 638e1ac | tar -x -C "$phase2_seal_dir"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_canonical_occupancy_transition_release.py verify
+  python3 "$phase2_seal_dir/proof_kernel/verify_canonical_occupancy_transition_release.py" verify
+rm -rf -- "$phase2_seal_dir"
 ```
+
+This verifies **33/33** sealed members. Running that verifier against a later
+working continuation must fail on the changed current-state documents; do not
+rewrite the sealed manifest to conceal that version boundary.
 
 The `CityMaterializationProof/README.md` remains the focused UE 5.8
 materialization and physical-evidence guide. It is intentionally not the
@@ -113,8 +128,8 @@ This is not a production-scale city simulation. The record does not yet prove:
 - stale intelligence, agent memory, learning, generalized planning, or multi-agent strategy;
 - economy, civilians, traffic, repair, damage gradation, or production content density;
 - physical or generalized multi-subject occupancy/movement, directionality,
-  distance, derived travel time, pathfinding, production Bridge topology, or
-  a generalized city graph;
+  distance, derived travel time, pathfinding, production Bridge topology,
+  proven simultaneous live-domain rebinding, or a generalized city graph;
 - that the demonstrated opportunity pressure remains readable and fun at scale.
 
 Each future capability requires a separately selected, frozen, and verified
