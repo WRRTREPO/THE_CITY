@@ -1,13 +1,13 @@
 # Canonical Occupancy Transition Proof
 
-**Version:** 0.1.0-draft.1
-**Status:** Specification review only; implementation prohibited
+**Version:** 0.1.0
+**Status:** Frozen specification; bounded canonical implementation authorized
 **Selected:** 2026-08-27
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 **Latest sealed predecessor:** [Canonical Spatial Topology Identity Proof — v0.1.0](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md)
 **External program framing:** `The PROBLEM to solve v1.1 — Causal Continuity Under Distribution`, SHA-256 `de080c065006ccaf5899cca12c98a3f10a72a62176a265204b04521f9031aa07`; non-authoritative and not a repository release member
-**Candidate payload schema:** `CanonicalOccupancyTransitionPayload.v1`
-**Candidate simulation identity:** `0.7.0-draft.65` — not frozen
+**Frozen payload schema:** `CanonicalOccupancyTransitionPayload.v1`
+**Frozen simulation identity:** `0.7.0-draft.65`
 
 ## Question
 
@@ -121,7 +121,7 @@ proof_scope:
   authoritative_random_draws: none
   external_inputs: none
   unreal_processes: none
-  implementation_authority: none
+  implementation_authority: bounded_canonical_only
 ```
 
 The proof is canonical-only. Phase 1's real UE evidence remains predecessor
@@ -474,7 +474,7 @@ genesis access. It otherwise occupies the same matrix row.
 
 ## Exact identity value spaces
 
-The candidate payload admits only these proof-local values:
+The frozen payload admits only these proof-local values:
 
 ```yaml
 CanonicalSiteId.v1:
@@ -504,7 +504,7 @@ ID. Display labels, conceptual-map identities, Unreal Actor names, navigation
 IDs, level IDs, transforms, streaming cells, and coordinates are outside every
 canonical value space.
 
-## Candidate record identity
+## Frozen record identity
 
 Every record in this proof uses:
 
@@ -518,9 +518,10 @@ identity:
   seed: canonical-occupancy-transition-v1/0001
 ```
 
-This identity is a review candidate until the proof freezes. A changed
+This identity is frozen for the bounded implementation. A changed
 authoritative field, ordering law, gate, or lifecycle rule requires a new
-payload/simulation identity before implementation.
+payload/simulation identity and a separately reviewed freeze before
+implementation.
 
 ## Exact R0 shape
 
@@ -1288,6 +1289,96 @@ canonical successor. No partial record may expose the subject at both sites,
 at neither site without an in-transition identity, active without its
 reservation, or terminal while retaining its reservation.
 
+### Exact diagnostic precedence
+
+The implementation must apply these stages in order. A later stage may not
+repair, reinterpret, or replace a failure from an earlier stage:
+
+```yaml
+diagnostic_precedence:
+  1_stored_bytes:
+    disposition: occupancy_transition_rejected.serialization
+    covers: UTF-8, BOM, terminal-LF, duplicate-member, finite-number, and canonical-JSON checks
+  2_canonical_record:
+    disposition: occupancy_transition_rejected.invalid_canonical_record
+    covers: exact identity, schema, topology, occupancy, lifecycle, resource, schedule, ledger, and ancestry validation
+  3_record_bound_capability:
+    ordered_precedence:
+      - if the validated source record has no unresolved boundary: occupancy_transition_rejected.no_due_work
+      - if the supplied capability is not an object with the exact five boundary keys: occupancy_transition_rejected.boundary_shape_mismatch
+      - if its source_record_hash differs from the exact supplied record hash: occupancy_transition_rejected.boundary_source_mismatch
+      - if any remaining field differs from the freshly discovered complete boundary: occupancy_transition_rejected.boundary_shape_mismatch
+    covers: exact queried-record binding and complete due-boundary equality
+  4_ordinary_gates:
+    disposition: canonical result started | failed_gate | completed
+    covers: complete non-short-circuited action-specific gate observations
+  5_private_construction:
+    disposition: private candidate only; no authority may escape
+    covers: exhaustive provisional writes under the test-only fault seam
+  6_complete_successor_validation:
+    disposition: occupancy_transition_rejected.invalid_canonical_record
+    covers: exhaustive successor validation before the singular publication point
+  7_post_validation_prepublication_fault_seam:
+    disposition: occupancy_transition_rejected.injected_private_construction_fault
+    covers: the exact final branch-specific fault point after validation and before publication
+  8_atomic_publication:
+    disposition: return the one complete canonical successor
+    covers: the sole point at which successor authority may escape
+```
+
+Malformed resolution-local traces use
+`occupancy_transition_rejected.invalid_resolution_local_trace`. Attempts to
+derive authority from local, retained, unpublished, navigation, or
+representation state use `occupancy_transition_rejected.local_authority` or
+`occupancy_transition_rejected.unpublished_candidate` as applicable. These
+are diagnostic dispositions only and never canonical ledger values.
+
+The exact private fault-injection points are:
+
+```yaml
+accepted_start:
+  - start_after_occupancy
+  - start_after_commitment_state
+  - start_after_resources_owned
+  - start_after_reservation_state
+  - start_after_reservation_owner
+  - start_after_start_work_consumed
+  - start_after_completion_work_created
+  - start_after_clock
+  - start_after_ledger
+  - start_after_ancestry
+  - start_after_complete_validation_before_publication
+
+completion:
+  - completion_after_occupancy
+  - completion_after_commitment_state
+  - completion_after_resources_cleared
+  - completion_after_terminal_disposition
+  - completion_after_reservation_state
+  - completion_after_reservation_owner_cleared
+  - completion_after_work_consumed
+  - completion_after_clock
+  - completion_after_ledger
+  - completion_after_ancestry
+  - completion_after_complete_validation_before_publication
+
+blocked_start:
+  - blocked_after_commitment_state
+  - blocked_after_terminal_reason
+  - blocked_after_terminal_disposition
+  - blocked_after_work_consumed
+  - blocked_after_clock
+  - blocked_after_ledger
+  - blocked_after_ancestry
+  - blocked_after_complete_validation_before_publication
+```
+
+The fault seam is private and test-only. The public resolver signature remains
+exactly `(canonical_record, record_bound_boundary)`. At every point, an
+injected fault must leave the exact input bytes/hash and its scheduler result
+unchanged, publish no candidate, append no canonical ledger entry, and retain
+no global or reusable provisional state.
+
 ## Required witness matrix
 
 ```yaml
@@ -1502,6 +1593,96 @@ The blocked control replays byte-identically from its exact blocked R0 and
 produces one exact failed successor. Its scheduler oracle must likewise match
 start bound to `H0_blocked` at the root and `none` after `Rblocked`.
 
+## Exact evidence and release artifact DAG
+
+The implementation must emit exactly these deterministic artifact members:
+
+```yaml
+artifact_names:
+  - canonical_occupancy_transition_R0.json
+  - canonical_occupancy_transition_R0_blocked.json
+  - canonical_occupancy_transition_start_boundary_H0.json
+  - canonical_occupancy_transition_start_boundary_H0_blocked.json
+  - canonical_occupancy_transition_Rtransit.json
+  - canonical_occupancy_transition_completion_boundary_Htransit.json
+  - canonical_occupancy_transition_Rfinal.json
+  - canonical_occupancy_transition_Rblocked.json
+  - canonical_occupancy_transition_dense_inspection_run.json
+  - canonical_occupancy_transition_boundary_jump_run.json
+  - canonical_occupancy_transition_blocked_control_run.json
+  - canonical_occupancy_transition_checkpoint_oracle.json
+  - canonical_occupancy_transition_topology_projection_oracle.json
+  - canonical_occupancy_transition_transition_definition_oracle.json
+  - canonical_occupancy_transition_runtime_fail_closed.json
+  - canonical_occupancy_transition_fault_atomicity.json
+  - canonical_occupancy_transition_replay_oracle.json
+  - canonical_occupancy_transition_source_audit.json
+  - canonical_occupancy_transition_proof_run.json
+```
+
+Their role DAG is exact:
+
+```text
+sealed Phase-1 canonical_topology_R0 spatial projection
+        ├─ detached byte-identity oracle → exact available R0
+        └─ same IDs/endpoints + declared access-only difference → exact blocked R0
+
+R0 → Bstart(H0) → Rtransit → Bcomplete(Htransit) → Rfinal
+R0_blocked → Bstart(H0_blocked) → Rblocked
+
+dense + jump + blocked control
+        ↓
+checkpoint / topology / transition-definition oracles
+        ↓
+runtime rejection + private fault atomicity + replay + source audit
+        ↓
+proof run + evidence document
+        ↓
+self-excluding exact-member SHA-256 manifest
+        ↓
+release verifier regenerates and validates every artifact
+```
+
+The Phase-1 predecessor input is bound to exact sealed artifact:
+
+```yaml
+path: proof_kernel/CanonicalSpatialTopologyIdentityProofRecords/canonical_topology_R0.json
+sha256: 5e57c04875cfaead69f4cd6aaffeee2f788a2c1f5a820a56fb7083f8f7e861ed
+```
+
+The complete self-excluding release member set is exactly:
+
+```yaml
+source_and_governing_members:
+  - README.md
+  - Resolution Semantics Law - v0.1.1.md
+  - Causal-LOD Equivalence Proof Evidence - v0.1.0.md
+  - Record-Relative Chronological Resolution Proof Evidence - v0.1.0.md
+  - Canonical Spatial Topology Identity Proof Evidence - v0.1.0.md
+  - proof_kernel/CanonicalSpatialTopologyIdentityProofRecords/canonical_topology_R0.json
+  - Canonical Occupancy Transition Proof - Draft.md
+  - Canonical Occupancy Transition Proof Evidence - v0.1.0.md
+  - Co-op Open-City FPS Simulation - v0.7 Working Continuation.md
+  - THE_CITY Development Capacity and Progress Note - v0.1.11.md
+  - THE_CITY Current Proof State and Repo-Agent Instruction - v0.1.0.md
+  - proof_kernel/canonical_occupancy_transition.py
+  - proof_kernel/test_canonical_occupancy_transition.py
+  - proof_kernel/verify_canonical_occupancy_transition_release.py
+
+deterministic_artifact_members:
+  - the exact 19 artifact_names listed above, each under
+    proof_kernel/CanonicalOccupancyTransitionProofRecords/
+```
+
+The release manifest path is
+`Canonical Occupancy Transition Proof - v0.1.0 SHA256SUMS.txt` and it must
+exclude itself. Hashes are written only after every exact member is final.
+The verifier must reject missing, additional, reordered, duplicated, absolute,
+parent-traversing, or checksum-mismatched members and recompute every semantic
+oracle rather than trusting checked-in pass booleans. Artifact filenames,
+diagnostic labels, and test-only fault IDs are evidence plumbing; they never
+enter canonical records or affect resolver selection.
+
 ## Exclusions
 
 This proof does not authorize or prove:
@@ -1553,14 +1734,15 @@ And, as the chronology boundary:
 
 This is not evidence that a physical Actor traversed a road.
 
-## Freeze gate
+## Frozen contract
 
-Before implementation authority may be considered, review must freeze:
+Freeze review accepted this exact contract on 2026-08-27. The frozen
+requirements are:
 
 ```yaml
 freeze_requirements:
   proof_question: exact
-  candidate_identity: reviewed_or_superseded
+  frozen_identity: 0.7.0-draft.65
   exact_payload_schema: exhaustive
   exact_ID_value_spaces: exhaustive_and_type_disjoint
   phase_1_topology_projection_oracle: exact_and_detached
@@ -1585,12 +1767,49 @@ freeze_requirements:
   exclusions: closed
 ```
 
-Until that review passes:
+The freeze changes no demonstrated capacity. Evidence remains unsealed until
+the exact implementation DAG, witnesses, source audit, and release verifier
+pass.
+
+## Bounded implementation authority
+
+Implementation is authorized only for:
 
 ```yaml
-implementation: prohibited
+authorized:
+  - exact CanonicalOccupancyTransitionPayload.v1 validation
+  - canonical serialization and canonical-envelope hashing
+  - exact R0, R0_blocked, Rtransit, Rfinal, and Rblocked records
+  - record-bound start and completion boundary discovery
+  - one canonical start/blocked/completion resolution path
+  - publication of Rtransit before completion rediscovery
+  - canonical subject-transition reservation ownership and disposition
+  - dense-inspection and boundary-jump witnesses
+  - blocked-access control
+  - declared structural rejection and fault-injection witnesses
+  - byte-identical replay and checkpoint oracle
+  - hard source audit
+  - evidence artifacts, self-excluding manifest, and release verifier
+
+not_authorized:
+  - Unreal or occupancy materialization
+  - physical movement, traversal, navigation, or interpolation
+  - derived travel time, distance, speed, progress, or route occupancy
+  - route capacity, leases, traffic, collision, or congestion
+  - multiple subjects, routes, transitions, or contention
+  - external input, randomness, same-clock work, or agent planning
+  - networking, World Partition, streaming, save/load, or rollback
+  - generalized resolver, topology, reservation, or movement abstractions
+  - Phase 3, simultaneous physical domains, or adjacent spatial architecture
+```
+
+The governing authority state after freeze is:
+
+```yaml
+implementation: bounded_canonical_only
 unreal_changes: prohibited
 capacity_change: none
 README_capacity_promotion: prohibited
 phase_3_selection: prohibited
+evidence_status: unsealed
 ```
