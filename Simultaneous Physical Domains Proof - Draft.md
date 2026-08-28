@@ -1,13 +1,13 @@
 # Simultaneous Physical Domains Proof
 
-**Version:** 0.1.0-draft.1
-**Status:** Freeze review; not frozen; implementation prohibited
+**Version:** 0.1.0-draft.2
+**Status:** Final freeze review; not frozen; implementation prohibited
 **Selected:** 2026-08-28
 **Advanced to freeze review:** 2026-08-28
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 **Latest sealed predecessor:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md)
 **Canonical source payload:** `CanonicalSpatialTopologyIdentityPayload.v1` / `0.7.0-draft.61`, reused byte-for-byte
-**Candidate proof-harness identity:** `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.69` — not frozen
+**Candidate proof-harness identity:** `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.70` — not frozen
 
 ## Question
 
@@ -59,8 +59,8 @@ sealed Phase-1 H0/H1 transition with a new physical-lifecycle question.
 selection:
   phase: 3
   proof: Simultaneous Physical Domains Proof
-  version: 0.1.0-draft.1
-  status: freeze_review
+  version: 0.1.0-draft.2
+  status: final_freeze_review
   implementation_authority: none
   unreal_source_change_authority: none
   capacity_advancement: none
@@ -130,7 +130,11 @@ proof_scope:
   primary_refresh_orders: 2
   asymmetric_refresh_failures: 2 symmetric branches
   current_head_observation_failures: 1 exact injected branch
+  guard_open_canonical_controls: 1 exact branch
   stale_local_state_perturbation_pairs: 1 exact pair
+  independent_live_UE_observations_per_primary_order: 4
+  release_artifact_members: 44 exact files
+  release_manifest_members: 110 exact files_excluding_manifest
   uninterrupted_liveness_intervals: 2 domains across 1 canonical commit
   external_inputs: none
   occupancy_materializations: none
@@ -218,14 +222,28 @@ compare a domain's accepted record with the already committed canonical head.
 The observation is not a second authority plane. It may mirror a canonical
 commit; it may not select, create, delay, repair, roll back, or replace one.
 
-Before the H0-to-H1 resolver is invoked, the harness must close one global
-current-head guard. While that guard is closed:
+Before the H0-to-H1 resolver is invoked, the harness protocol must close one
+global **physical-current-head guard**. The guard governs only:
 
-- no domain materialization receipt is accepted as a current-head claim;
-- no physical-domain evidence path is enabled;
-- no physical-domain scheduling or mutation request is accepted;
-- no refresh invocation is permitted; and
-- both domains may continue only quarantined nonconsequential local execution.
+- acceptance of a physical materialization as a current-head claim;
+- harness acceptance of Unreal materialization and physical-observation
+  receipts; and
+- harness eligibility to stage and invoke a domain refresh.
+
+The guard is incapable of gating canonical execution. It is not an input,
+parameter, precondition, capability, lock, branch, or failure mode of the
+sealed Phase-1 boundary discovery, resolver, transaction, commit, serializer,
+ledger, ancestry, or hash path. The canonical path receives only the exact
+sealed R0/H0 and its exact H0-bound boundary. It neither reads nor can discover
+the guard, head-observation file, domain state, receipt state, or refresh
+eligibility. Physical evidence, canonical scheduling from a domain, and
+canonical mutation from a domain remain unconditionally absent or prohibited;
+the guard does not turn those paths on or off.
+
+While the physical-current-head guard is closed, no physical receipt is
+accepted as current and no refresh command is sent. Both domains may continue
+only quarantined nonconsequential local execution under the physical head-state
+law.
 
 The exact operational head-observation record is:
 
@@ -261,20 +279,43 @@ construct complete candidate bytes privately
 → independently reread and reverify exact observation bytes
 ```
 
-The file is not visible to either physical-domain input root. A missing,
-malformed, mismatched, partially written, stale-H0, or unverifiable observation
-does not mean H0 remains current. It means current-head observation is
-unproven.
+The file is harness-private and lies outside both physical-domain roots. Its
+path, bytes, digest, existence, absence, validity, publication result, and any
+derived boolean or head-state classification must never enter Unreal through a
+file, directory, command line, environment variable, inherited descriptor,
+standard-input command, operation receipt, projection, process binding, or
+shared memory. A missing, malformed, mismatched, partially written, stale-H0,
+or unverifiable observation does not mean H0 remains current. It means
+current-head observation is unproven to the harness.
 
 Only after the independent reread proves exact H1 may the harness:
 
 1. classify both still-H0 domains as `stale(H0/H1)`;
 2. open refresh eligibility for exact H1 bundles; and
-3. evaluate each domain's current-head claim against its own accepted head.
+3. stage a role-specific bundle and send the already frozen refresh command;
+   and
+4. evaluate later Unreal receipts and independent physical observations
+   against H1 at the harness boundary.
 
-The operational observation never opens evidence, scheduling, or mutation in
-this proof. Those paths remain absent or prohibited even for a synchronized
-domain.
+The Unreal refresh adapter does not perform any head-observation check. It
+verifies only its declared visible command/bundle inputs and its exact process
+binding, then publishes a disposable representation of the supplied record.
+The adapter may report which canonical hash it represents; it may not report
+that the hash is current. Only the harness compares that represented hash with
+its private verified head. The operational observation never opens evidence,
+scheduling, or mutation in this proof. Those paths remain absent or prohibited
+even for a harness-classified synchronized domain.
+
+### Guard-open canonical control
+
+The required guard-order adversary deliberately leaves the physical-current-
+head guard open and invokes the exact sealed Phase-1 boundary and resolver.
+The canonical resolver must still produce and durably commit byte-identical
+R1/H1. The Phase-3 harness protocol witness is invalid because physical receipt
+acceptance was not closed before the transition, so all affected physical
+current-head claims and later refresh eligibility fail closed. The canonical
+transaction is neither rejected nor rolled back. This control proves guard
+order protects physical acceptance only and cannot select canonical execution.
 
 ### Injected post-commit observation failure
 
@@ -283,13 +324,13 @@ durably verified exact R1/H1 but before the candidate operational observation
 is published:
 
 ```text
-global current-head guard closes
+global physical-current-head guard closes
 → A and B become head_unconfirmed while remaining alive
 → exact canonical H0-to-H1 transaction commits
 → exact R1/H1 is durable canonical truth
 → injected fault prevents current_head_observation.json publication
 → prior H0 observation is not accepted as current
-→ global current-head guard remains closed
+→ global physical-current-head guard remains closed
 → A and B remain head_unconfirmed
 → refresh invocation is prohibited
 → current-head claims/evidence/scheduling/mutation are disabled
@@ -424,9 +465,32 @@ is operational evidence, not a generalized identifier grammar.
 The macOS process-start pair must come from `proc_pidinfo` /
 `PROC_PIDTBSDINFO` for the launched PID. The harness computes
 `operational_process_instance_id` as lowercase SHA-256 over canonical JSON of
-the complete binding. The process receives that identity at launch and echoes
-it in every accepted materialization, state, refresh, and lifecycle receipt.
-The binding is detached operational evidence and never enters canonical state.
+the complete binding.
+
+The binding is delivered without a hidden launch channel. The harness creates
+the two anonymous pipes, launches the direct child with macOS
+`POSIX_SPAWN_START_SUSPENDED`, obtains and verifies its PID/process-start pair,
+registers the exit watch, constructs the complete binding, and writes exactly
+one canonical-JSON binding command plus LF to the original stdin pipe before
+resuming the child:
+
+```yaml
+command_schema: SimultaneousPhysicalDomainBindInvocation.v1
+proof_scenario: simultaneous-physical-domains-v1
+operation: bind_process_once
+operational_process_instance_id: lowercase_sha256_of_complete_binding
+process_binding: exact complete SimultaneousPhysicalDomainProcessBinding.v1 object
+```
+
+The Unreal process must consume this as its first input, verify the observable
+PID, executable, root, role, and standard-input/output descriptors, store the
+binding immutably, and echo its identity/digest in every accepted
+materialization, refresh, physical observation, and lifecycle result. The
+harness separately verifies that the descriptors are the original binding's
+pipe endpoints. A second binding command or resume before the complete command
+is buffered fails launch. The binding contains no canonical head, head
+observation, physical guard, refresh eligibility, or expected access state. It
+is detached operational evidence and never enters canonical state.
 
 The harness must retain the original direct child handle plus the original
 anonymous control and structured-output pipe endpoints. From the first H0
@@ -457,12 +521,16 @@ At each exact checkpoint below, one combined witness must sample both domains
 and require their complete process-birth bindings to match their launch
 bindings byte-for-byte:
 
-1. `L0`: both H0 materialization receipts accepted, before head guard closure;
-2. `L1`: head guard closed, immediately before canonical boundary invocation;
+1. `L0`: both H0 representation receipts and independent live `available`
+   observations accepted, before physical guard closure;
+2. `L1`: physical guard closed, immediately before canonical boundary
+   invocation;
 3. `L2`: exact R1/H1 committed, before operational head publication;
 4. `L3`: exact H1 observation published, before either refresh invocation;
-5. `L4A`: first domain refresh accepted, second domain still stale;
-6. `L4B`: both domain refreshes accepted.
+5. `L4A`: first domain H1 receipt plus independent live `blocked` observation
+   accepted, second domain still stale;
+6. `L4B`: both domains' H1 receipts plus independent live `blocked`
+   observations accepted.
 
 The harness launch audit must record exactly two Unreal process launches for a
 primary witness: A once and B once. A process exit, non-null wait status, pipe
@@ -494,8 +562,8 @@ operation: launch | refresh
 proof_scenario: simultaneous-physical-domains-v1
 domain_role: domain_A | domain_B
 expected_operational_process_instance_id: absent_for_launch | exact_existing_id_for_refresh
-expected_source_head: none_for_launch | H0
-expected_target_head: H0 | H1
+expected_source_represented_hash: none_for_launch | H0
+expected_target_represented_hash: H0 | H1
 canonical_payload_raw_sha256: exact R0 or R1 raw digest
 expected_canonical_hash: H0 | H1
 projection_raw_sha256: exact detached projection digest
@@ -504,9 +572,12 @@ expected_projection_id: exact legal matrix value
 
 Unknown, missing, duplicate, redirected, empty, or type-incompatible members
 reject. Raw bytes are verified before parse. Parsed identities, schema,
-scenario, domain role, expected process identity, source head, target head,
-projection, and current harness head must agree before a candidate physical
-update is built.
+scenario, domain role, expected process identity, source represented hash,
+target represented hash, projection, and payload must agree with one another
+before a candidate physical update is built. Separately, before staging any
+refresh bundle, the harness must compare that exact tuple with its private
+verified H1 and stale-domain classification. That harness comparison is not an
+Unreal-visible input and is not repeated by the adapter.
 
 ### Exact refresh invocation and visible-input mechanism
 
@@ -553,9 +624,10 @@ than reopening by pathname. The harness retains the pre-invocation inventory
 and repeats the complete inventory after the structured refresh result; any
 change rejects the result. Neither domain can see the other domain's bundle.
 
-After exact H1 head observation is proven and the target domain is classified
-`stale(H0/H1)`, the harness writes exactly one canonical-JSON object followed
-by one LF to that domain's original standard-input pipe:
+As a harness-only protocol step, after exact H1 head observation is proven and
+the target domain is classified `stale(H0/H1)`, the harness writes exactly one
+canonical-JSON object followed by one LF to that domain's original
+standard-input pipe:
 
 ```yaml
 command_schema: SimultaneousPhysicalDomainRefreshInvocation.v1
@@ -574,10 +646,15 @@ role-specific `refresh_input/refresh_0001` directory and the three exact
 filenames shown above.
 
 Each process accepts exactly one refresh invocation in this proof. A second
-line, extra JSON value, unknown command, wrong role, wrong refresh ID, wrong
-target head, command before verified H1 observation, command delivered on a
-different pipe, or any alternative visible-input member fails before private
-candidate construction.
+refresh command, extra JSON value on one line, unknown command, wrong role,
+wrong refresh ID, wrong target head relative to the visible bundle, command
+delivered on a different pipe, or any alternative visible-input member fails
+before private candidate construction. The two separately declared physical-
+inspection commands are not refresh invocations and are routed only to the
+independent probe. Delivery of the refresh command before the harness has
+privately verified H1 is not an adapter-detectable condition: it is a harness-
+protocol failure, the physical guard closes, and no resulting receipt or
+representation is accepted as current.
 
 No command-line refresh, file watcher, directory polling, signal, FIFO, Unix
 socket, loopback socket, network socket, shared directory, environment-variable
@@ -585,19 +662,56 @@ refresh, or runtime-selected alternative is permitted. The standard-input
 line is an operational invocation only; the exact R1 bytes and detached
 projection/receipt bundle are the complete refresh data.
 
-The process emits exactly one structured refresh result on its original
-standard-output pipe. Console logs, rendered state, filesystem timestamps, and
-process timing are not refresh receipts.
+The refresh adapter emits exactly one structured materialization result on its
+original standard-output pipe. The independent physical observer later emits a
+separate structured observation on the same output pipe. Console logs,
+filesystem timestamps, process timing, and either structured object standing
+alone are not proof of a successful current-head rebind.
 
 This mechanism is bounded local harness control. It is not live input
 collection, player input, packet/transport ordering law, networking, or
 canonical transport.
+
+### Unreal-visible input closure
+
+The complete information visible to either Unreal process is closed as:
+
+```yaml
+unreal_visible_inputs:
+  launch_tuple:
+    - exact R0 bytes
+    - exact role/H0 projection
+    - exact role/H0 operation receipt
+  stdin_commands_in_exact_order:
+    - exact bind_process_once invocation carrying the process binding
+    - exact launch_physical_0001 inspection invocation
+    - exact h0_to_h1_refresh_0001 refresh invocation
+    - exact refresh_physical_0001 inspection invocation
+  refresh_tuple:
+    - exact R1 bytes
+    - exact role/H1 projection
+    - exact role/H1 operation receipt
+  other_files_or_context: none
+```
+
+The adapter consumes only the stored process binding, its launch or refresh
+tuple, and the refresh command. The independent probe consumes only the stored
+process binding and the two inspection commands. Neither component may read a
+harness control-root path. No current-head observation, physical guard state,
+harness head-state classification, refresh-eligibility boolean, expected
+physical access result, or other implicit context may reach the process. A
+runtime environment, argument, descriptor, file, command, or shared object
+outside this exact closure fails the witness.
 
 ## Exact physical-domain head-state machine
 
 The harness owns the comparison between each domain's accepted head and the
 current canonical head. The domain reports its accepted source hash; it does
 not declare which canonical record is current.
+
+Every state and diagnostic classification below is harness-owned. Unreal may
+report only represented-record and local-publication facts; it neither receives
+nor emits `synchronized`, `head_unconfirmed`, or `stale`.
 
 The only admitted head states are:
 
@@ -657,7 +771,7 @@ unbound
   -- valid launch against current H0 --> synchronized(H0)
 
 synchronized(H0)
-  -- global current-head guard closes before commit --> head_unconfirmed(accepted H0)
+  -- global physical-current-head guard closes before commit --> head_unconfirmed(accepted H0)
 
 head_unconfirmed(accepted H0)
   -- exact H1 commits but observation is not yet proven --> head_unconfirmed(accepted H0)
@@ -669,7 +783,8 @@ head_unconfirmed
   -- observation missing/malformed/mismatched or publication fails --> head_unconfirmed
 
 stale(H0/H1)
-  -- valid complete atomic refresh --> synchronized(H1)
+  -- valid complete atomic refresh + independent live blocked observation
+     + harness acceptance against private H1 --> synchronized(H1)
 
 stale(H0/H1)
   -- refresh bundle rejected before local publication --> stale(H0/H1)
@@ -712,30 +827,39 @@ proves only that such disposable execution cannot acquire strategic authority.
 Physical refresh is not a canonical transaction. It nevertheless must be
 fail-closed about claims of synchronized representation.
 
-The adapter must:
+Before sending the refresh command, the harness alone must prove exact H1,
+classify the domain stale, open refresh eligibility, stage the exact bundle,
+and reverify the original process binding. None of those private head or guard
+facts is sent into Unreal.
+
+The adapter must then:
 
 ```text
 verify complete H1 payload/receipt/projection tuple
-→ verify exact H1 operational head observation is published and reverified
-→ verify exact existing process-birth binding and uninterrupted liveness
+→ verify exact process-binding identity visible to this original process
 → extract only the exact allowed retained-local-state projection
 → construct authoritative-derived H1 representation from empty private state
   using exact H1 + exact domain/H1 projection only
 → attach the detached retained-local-state projection without feeding it into
   authoritative-derived construction
 → validate complete candidate projection
-→ publish accepted_head = H1 and the visible H1 projection together
+→ publish represented_head = H1 and the visible H1 projection together
+→ emit one representation receipt that makes no current-head claim
 ```
 
 Before the final local publication point, the old H0 representation remains
-stale and visible only under quarantine. A rejection before publication leaves
-the process exactly `stale(H0/H1)` and publishes no H1 acceptance receipt.
+represented and visible only under harness quarantine. A rejection before
+publication leaves the process representing H0 and publishes no H1
+materialization receipt; the harness classification remains `stale(H0/H1)`.
 
-If a fault makes it impossible to establish that accepted-head identity and
+If a fault makes it impossible to establish that represented-head identity and
 visible authoritative-derived representation changed together, the process is
-classified `invalid`, local execution halts, and no synchronized receipt is
-accepted. The adapter may not claim H1 while showing H0-derived access state,
-or show H1-derived access state while claiming H0.
+classified `invalid` by the harness, local execution halts, and no current-head
+receipt is accepted. The adapter may not report represented H1 while showing
+H0-derived access state, or show H1-derived access state while reporting
+represented H0. Even a structurally valid H1 receipt remains insufficient
+until the independent live-UE physical observer passes and the harness accepts
+both objects against its private H1.
 
 No local refresh failure may roll back, rewrite, delay, or create canonical H1.
 
@@ -900,9 +1024,10 @@ The equivalence oracle compares the canonical JSON bytes of the extracted
 authoritative-derived representation projection, not process IDs or the
 detached retained-local-state block.
 
-## Materialization and head-state receipts
+## Materialization and harness head-disposition receipts
 
-Every successful launch or refresh emits one detached receipt:
+Every successful Unreal launch or refresh emits one detached representation
+receipt:
 
 ```yaml
 receipt_schema: SimultaneousPhysicalDomainMaterializationReceipt.v1
@@ -923,12 +1048,17 @@ materialized_endpoint_site_ids:
   - topology_site_0002
 materialized_route_access_state: available | blocked
 authoritative_derived_representation_raw_sha256: lowercase_sha256
-head_state_at_receipt: synchronized
+receipt_authority: representation_only
 ```
 
 The digest is computed over the exact canonical JSON object defined above,
 and every repeated materialization field in the receipt must equal that
 object. A digest or repeated-field mismatch rejects the receipt.
+
+The receipt asserts only that this process represents the accepted payload. It
+contains no `current_head`, `observed_current_head`, `head_state`, guard,
+observation, refresh-eligibility, canonical evidence, scheduling, or mutation
+field. Receipt emission cannot classify the process as synchronized.
 
 The A process ID must remain identical across its H0 launch and H1 refresh.
 The B process ID must remain identical across its H0 launch and H1 refresh.
@@ -937,25 +1067,145 @@ match the uninterrupted-liveness witness for that exact original child.
 Actor IDs, transforms, object paths, and local physics state may differ and
 remain detached.
 
-A head-unconfirmed, stale, or invalid process may emit only a diagnostic state
-receipt:
+The harness emits a separate detached disposition after applying its private
+head observation and, for a purported synchronized materialization, the
+independent physical-rebind oracle:
 
 ```yaml
-receipt_schema: SimultaneousPhysicalDomainStateDiagnostic.v1
+disposition_schema: SimultaneousPhysicalDomainHeadDisposition.v1
+proof_scenario: simultaneous-physical-domains-v1
 domain_role: domain_A | domain_B
 operational_process_instance_id: OperationalInstanceId.v1
 process_binding_raw_sha256: exact binding digest for this process instance
-accepted_canonical_hash: H0 | H1 | null
-observed_current_canonical_hash: H1 | null
-head_state: head_unconfirmed | stale | invalid
-refresh_enabled: false | true_only_when_stale_against_verified_H1
+representation_receipt_raw_sha256: lowercase_sha256 | null
+physical_observation_raw_sha256: lowercase_sha256 | null
+represented_canonical_hash: H0 | H1 | null
+harness_observed_current_canonical_hash: H0 | H1 | null
+head_state: head_unconfirmed | stale | synchronized | invalid
+refresh_enabled: false | true_only_when_harness_classifies_stale_against_verified_H1
 current_head_claim_enabled: false
 canonical_evidence_enabled: false
 canonical_scheduling_enabled: false
 canonical_mutation_enabled: false
 ```
 
-This receipt is operational evidence, never canonical truth.
+For a synchronized result, both receipt digests are required, the represented
+and harness head must be identical, and the physical observation must match the
+expected live H0 or H1 representation law. The disposition is written only
+under the harness evidence root and is never provided to Unreal. It is
+operational evidence, never canonical truth.
+
+An Unreal process may emit a local failure diagnostic, but it may contain only
+its process binding, represented hash if known, local publication stage, and
+reason code. It may not name `synchronized`, `stale`, `head_unconfirmed`, or a
+current canonical head.
+
+## Independent live-UE physical rebind oracle
+
+Correct canonical JSON and a correct materialization receipt are necessary but
+insufficient. In each original Unreal process, a proof-local observer distinct
+from the refresh adapter must inspect the actually published live route
+representation at H0 and again after H1 refresh.
+
+### Exact physical representation signal
+
+The one projected route Actor carries one noncanonical probe tag fixed only by
+domain role and route slot:
+
+```yaml
+domain_A: simultaneous_physical_domain/domain_A/domain_A_route_slot_01
+domain_B: simultaneous_physical_domain/domain_B/domain_B_route_slot_01
+```
+
+Exactly one live `ASimultaneousPhysicalDomainRepresentationActor` with that
+tag must exist in the process world. Its route mesh and access label must be
+registered, visible, and not hidden. The exact access-state surfaces are:
+
+```yaml
+available:
+  route_mesh_color_parameter_rgba: [0.10, 0.85, 0.35, 1.00]
+  access_label_text: AVAILABLE
+  access_label_color_rgba8: [0, 255, 0, 255]
+
+blocked:
+  route_mesh_color_parameter_rgba: [0.90, 0.12, 0.12, 1.00]
+  access_label_text: BLOCKED
+  access_label_color_rgba8: [255, 0, 0, 255]
+```
+
+The mesh color and label must independently map to the same result. Missing,
+duplicate, hidden, unregistered, invisible, non-finite, out-of-tolerance, or
+cross-state surfaces produce `inconsistent`. Float color components use exact
+binary values written by the proof adapter and are accepted only within an
+absolute per-component tolerance of `0.000001`; the label values are exact.
+These colors and labels are disposable representation facts, not canonical
+topology or gameplay behavior.
+
+### Independent observer path
+
+One `ASimultaneousPhysicalRebindProbe`, created at initial process launch and
+kept alive in the original process, consumes an exact inspection command on the
+original stdin command stream:
+
+```yaml
+command_schema: SimultaneousPhysicalDomainInspectionInvocation.v1
+proof_scenario: simultaneous-physical-domains-v1
+domain_role: domain_A | domain_B
+operation: inspect_published_route_once
+inspection_id: launch_physical_0001 | refresh_physical_0001
+```
+
+The command contains no expected canonical hash, access state, color, label,
+Actor identifier, receipt digest, projection value, or pass condition.
+`inspection_id` labels the capture only and may not select the expected result.
+The probe derives its role and exact probe tag only from the process binding,
+enumerates the live UE world, and reads the matching Actor's live mesh material
+parameter plus live text component state.
+
+The probe must not receive or read the canonical payload, detached projection,
+operation receipt, authoritative-derived representation JSON, materialization
+receipt, refresh adapter candidate, retained local state, harness head
+observation, or guard state. It shares no parsed-record object, candidate
+object, receipt builder, or access-state variable with the adapter. Source
+audit must establish this negative dataflow mechanically.
+
+The exact observer result is:
+
+```yaml
+observation_schema: SimultaneousPhysicalDomainPhysicalObservation.v1
+proof_scenario: simultaneous-physical-domains-v1
+domain_role: domain_A | domain_B
+operational_process_instance_id: OperationalInstanceId.v1
+process_binding_raw_sha256: exact binding digest for this process instance
+inspection_id: launch_physical_0001 | refresh_physical_0001
+probe_tag: exact role-specific value
+matching_live_actor_count: 1
+actor_class: ASimultaneousPhysicalDomainRepresentationActor
+actor_hidden_in_game: false
+route_mesh_registered: true
+route_mesh_visible: true
+observed_route_mesh_color_parameter_rgba: exact four-number array
+access_label_registered: true
+access_label_visible: true
+observed_access_label_text: AVAILABLE | BLOCKED
+observed_access_label_color_rgba8: exact four-integer array
+observed_physical_access_state: available | blocked | inconsistent
+observation_source: live_ue_world_actor_component_inspection
+```
+
+The harness sends `launch_physical_0001` only after the H0 representation
+receipt and requires `available` before accepting the initial synchronized-H0
+disposition. It sends `refresh_physical_0001` only after the H1 representation
+receipt and requires `blocked` before accepting a synchronized-H1 disposition.
+The original process binding must match both observations. The harness compares
+the live observation with its expected H0/H1 law without feeding that
+expectation into the probe.
+
+A missing or inconsistent observation, a receipt/observation disagreement, or
+an H1 receipt paired with a live `available` surface fails the physical rebind
+oracle. If this occurs after local H1 publication, the harness classifies the
+domain `invalid`, halts its local execution, accepts no synchronized
+disposition, and leaves canonical H1 unchanged.
 
 ## Required positive witnesses
 
@@ -964,8 +1214,10 @@ This receipt is operational evidence, never canonical truth.
 ```text
 launch A from exact H0 + A/H0 projection
 launch B from exact H0 + B/H0 projection
-prove L0: both original process bindings concurrently alive and synchronized to H0
-close global current-head guard
+invoke each independent physical probe after its H0 representation receipt
+observe actual live route state = available in original A and original B
+prove L0: both original process bindings concurrently alive and harness-accepted synchronized to H0
+close global physical-current-head guard
 prove L1: both original process bindings still alive and head_unconfirmed
 commit exact H0-to-H1 canonical transition independently
 prove L2: both original process bindings alive before head publication
@@ -973,10 +1225,12 @@ publish and independently reverify exact H1 operational observation
 prove L3: both original process bindings alive and stale against H1
 stage exact A/H1 three-file bundle and invoke refresh once on A's original stdin pipe
 refresh A atomically to H1
-prove L4A: original A synchronized / original B stale and both alive
+invoke A's independent physical probe and observe actual live route state = blocked
+prove L4A: original A harness-accepted synchronized / original B stale and both alive
 stage exact B/H1 three-file bundle and invoke refresh once on B's original stdin pipe
 refresh B atomically to H1
-prove L4B: original A and B synchronized to H1 and both alive
+invoke B's independent physical probe and observe actual live route state = blocked
+prove L4B: original A and B harness-accepted synchronized to H1 and both alive
 ```
 
 ### W2 — B then A refresh
@@ -984,7 +1238,10 @@ prove L4B: original A and B synchronized to H1 and both alive
 Repeat W1 from fresh isolated proof roots and process instances, reversing only
 the physical refresh order. The canonical R0, boundary, R1, ledger, ancestry,
 and hashes must be byte-identical to W1. Both processes must satisfy the same
-continuous birth-binding and pipe-continuity law.
+continuous birth-binding and pipe-continuity law. Each original process must
+independently observe live `available` at H0 and live `blocked` after its H1
+refresh; neither receipt nor authoritative-derived JSON can satisfy that
+oracle.
 
 ### W3 — stale local execution quarantine
 
@@ -1002,7 +1259,7 @@ diagnostic may differ, but:
 
 Inject the exact failure defined under current-head observation after H1 is
 durable and before operational head publication. Require both original process
-bindings alive, both domains `head_unconfirmed`, the global guard closed,
+bindings alive, both domains `head_unconfirmed`, the global physical guard closed,
 refresh prohibited, all current-head claims/evidence/scheduling/mutation
 disabled, and canonical H1 byte-identical to the primary witness.
 
@@ -1011,7 +1268,8 @@ disabled, and canonical H1 byte-identical to the primary witness.
 Run the exact baseline/perturbed pair defined by the retention law. Require
 byte-identical H1 authoritative-derived representation projections despite the
 declared retained-scalar differences and poisoned discard-required H0 Actor,
-cache, collision, and physics state.
+cache, collision, and physics state. The independent live-UE oracle must also
+observe `blocked` in both runs without consuming either projection object.
 
 ## Required asymmetric witness
 
@@ -1021,14 +1279,15 @@ The primary asymmetric failure is exact:
 H1 commits
 → exact H1 operational observation publishes and reverifies
 → both original process bindings remain continuously alive
-→ A's original stdin pipe receives its sole exact invocation
+→ A's original stdin pipe receives its sole exact refresh invocation
 → A refresh reads the exact valid A/H1 three-file tuple and succeeds
-→ B's original stdin pipe receives its sole exact invocation
+→ A's independent physical probe observes the live route as blocked
+→ B's original stdin pipe receives its sole exact refresh invocation
 → B refresh reads a B/H1 operation receipt whose payload raw digest does
   not match the supplied exact R1 bytes
 → B rejects before private candidate construction or local publication
 → H1 remains sole canonical authority
-→ A is synchronized(H1)
+→ A is harness-accepted synchronized(H1)
 → B remains stale(accepted H0, current H1)
 → B may continue only quarantined local nonconsequential execution
 → every H0-bound current-head capability/cache/truth claim from B fails
@@ -1068,12 +1327,15 @@ The frozen review must require at least:
 18. local execution trace, cache, Actor state, transform, physics, or
     diagnostic reaching canonical scheduling, gates, mutation, ledger,
     ancestry, or hashing;
-19. canonical boundary invocation while the global current-head guard is open;
+19. exact canonical boundary invocation while the physical-current-head guard
+    is open producing any result other than byte-identical committed R1 plus a
+    failed Phase-3 harness-protocol witness;
 20. missing, stale-H0, malformed, mismatched, or unverified operational head
     observation reopening current-head or refresh eligibility after H1;
 21. publication failure after H1 followed by any domain state other than
     `head_unconfirmed` or any enabled current-head path;
-22. refresh invocation while current-head observation is unproven;
+22. harness delivery of a refresh invocation while current-head observation is
+    unproven followed by acceptance of any resulting receipt as current;
 23. operational head observation constructed from domain, projection, cache,
     expected outcome, or prior-register state instead of exact committed R1;
 24. any allowed retained-local scalar selecting or modifying an
@@ -1084,14 +1346,32 @@ The frozen review must require at least:
     closed original pipe, observed child exit, or replacement spawn accepted as
     uninterrupted liveness;
 27. refresh accepted through a command-line flag, watcher, poller, signal,
-    FIFO, socket, shared directory, alternate pipe, or second invocation; and
+    FIFO, socket, shared directory, alternate pipe, or second refresh
+    invocation;
 28. refresh bundle with any missing, additional, redirected, non-regular,
     cross-domain, mutable, or wrong-role visible input reaching candidate
-    construction.
+    construction;
+29. any path, bytes, digest, existence flag, validity flag, or classification
+    derived from `current_head_observation.json` reaching Unreal;
+30. guard or head-observation state read by the sealed Phase-1 scheduler,
+    resolver, transaction, serializer, ledger, ancestry, or hash path;
+31. structurally correct H1 JSON and representation receipt accepted as a
+    successful rebind without an independent live `blocked` observation;
+32. the physical probe deriving its result from canonical/projection JSON,
+    adapter candidate state, materialization receipt, expected outcome, or a
+    shared access-state variable instead of live Actor components;
+33. H1 receipt paired with missing, duplicate, hidden, invisible,
+    unregistered, `available`, or inconsistent live route surfaces; and
+34. an inspection command containing an expected hash, access state, color,
+    label, Actor identity, receipt digest, or pass condition.
 
-Every case fails before canonical mutation. Cases involving a malformed
-physical refresh leave the domain stale if no local publication occurred and
-make it invalid if atomic publication can no longer be proven.
+No case may create or alter a canonical mutation. Case 19 must still commit the
+exact sealed R1/H1 and fails only the Phase-3 physical harness protocol; the
+canonical result is not rejected or rolled back. All other adversaries leave
+canonical history unchanged beyond any already committed exact H1. Cases
+involving a malformed physical refresh leave the domain stale if no local
+publication occurred and make it invalid if atomic publication or the
+independent physical oracle can no longer be proven.
 
 ## Destruction and isolation controls
 
@@ -1148,7 +1428,7 @@ The exact current-head observation publication fault points are:
 
 ```yaml
 head_observation_fault_points:
-  - after_global_guard_close_before_canonical_invocation
+  - after_physical_guard_close_before_canonical_invocation
   - after_R1_H1_commit_verification_before_observation_construction
   - after_observation_construction_before_temporary_write
   - after_temporary_write_before_file_fsync
@@ -1159,12 +1439,14 @@ head_observation_fault_points:
   - after_identity_reverification_before_refresh_eligibility
 ```
 
-At every point the global current-head guard remains closed until exact H1 has
-been independently reread and reverified and refresh eligibility has been
-explicitly opened. A candidate or even atomically replaced observation file is
-not sufficient by its mere existence. Any missing completion witness leaves
-all affected domains `head_unconfirmed` and disables current-head claims,
-evidence, scheduling, mutation, and refresh.
+At every point the global physical-current-head guard remains closed until
+exact H1 has been independently reread and reverified and refresh eligibility
+has been explicitly opened. A candidate or even atomically replaced
+observation file is not sufficient by its mere existence. Any missing
+completion witness leaves all affected domains `head_unconfirmed` and disables
+current-head claim/receipt acceptance and refresh. Evidence, scheduling, and
+mutation paths remain independently prohibited. None of these fault points may
+block, alter, or roll back the sealed canonical transaction.
 
 The required injected witness uses
 `after_R1_H1_commit_verification_before_observation_construction`. H1 is already
@@ -1185,8 +1467,8 @@ refresh_fault_stages:
   - payload_parse_and_canonical_identity_verification
   - operation_receipt_verification
   - projection_verification
-  - verified_head_observation_check
-  - process_birth_binding_and_liveness_check
+  - visible_command_bundle_cross_field_verification
+  - process_binding_identity_verification
   - retained_local_state_projection_extraction
   - discard_required_state_poison_check
   - empty_authoritative_candidate_construction
@@ -1208,6 +1490,32 @@ authoritative candidate is a prepublication failure, not a merge conflict. An
 allowed retained scalar reaching the authoritative derivation call is a source
 audit and witness failure even if the resulting H1 fact happens to match.
 
+### Independent physical-observation fault surface
+
+The exact post-publication observer stages are:
+
+```yaml
+physical_observation_fault_stages:
+  - inspection_invocation_read
+  - immutable_process_binding_verification
+  - role_probe_tag_derivation
+  - live_world_actor_enumeration
+  - exact_actor_count_check
+  - live_mesh_component_lookup
+  - live_mesh_visibility_and_material_parameter_read
+  - live_label_component_lookup
+  - live_label_visibility_text_and_color_read
+  - independent_surface_consistency_classification
+  - physical_observation_emission
+  - harness_receipt_observation_head_cross_check
+```
+
+The probe receives no expected state at any stage. A fault or mismatch at H0
+prevents initial synchronized acceptance and the primary witness does not
+advance. A fault or mismatch after local H1 publication makes the domain
+invalid and halted; no synchronized-H1 disposition is accepted. Neither case
+changes canonical bytes or grants the representation authority.
+
 ### Liveness failure surface
 
 Continuous child-handle, process-start, and pipe monitoring runs independently
@@ -1216,8 +1524,8 @@ spawn at any point from L0 through L4B fails uninterrupted liveness. If H1 is
 already committed, H1 remains sole authority and the affected domain cannot
 publish a current-head claim. No restart may repair that witness.
 
-No observer, refresh, retention, or liveness fault changes canonical H1 or the
-other domain's already valid detached state.
+No head observer, physical observer, refresh, retention, or liveness fault
+changes canonical H1 or the other domain's already valid detached state.
 
 ## Provenance and replay
 
@@ -1228,13 +1536,16 @@ Detached proof evidence must record:
 - process-root inventories and realpaths;
 - process-birth bindings, continuous child-handle/pipe monitors, exact L0–L4B
   samples, and two-launch/no-replacement audits;
-- global current-head guard transitions, exact operational head-observation
-  bytes, publication/reread witnesses, and the injected post-commit publication
-  failure;
+- global physical-current-head guard transitions, the guard-open canonical
+  control, exact operational head-observation bytes, publication/reread
+  witnesses, and the injected post-commit publication failure;
 - per-domain launch and refresh input inventories;
-- exact per-domain standard-input invocation bytes and original pipe bindings;
+- the exact Unreal-visible input closure, all binding/inspection/refresh
+  standard-input bytes, and original pipe bindings;
 - per-domain projection and operation-receipt hashes;
 - successful materialization receipts;
+- independent live-UE H0 `available` and H1 `blocked` observations, including
+  raw mesh and label surfaces and receipt-independent oracle results;
 - head-unconfirmed, stale, and invalid diagnostics;
 - refresh-order and asymmetric-failure timelines;
 - retained-local-state baseline/perturbation values, discard-required poison
@@ -1261,33 +1572,289 @@ The eventual source audit must establish:
    work, boundaries, or current-head identity;
 4. projection data cannot supply route access, endpoint identity, canonical
    topology, canonical clock, or work;
-5. domain head state, operational observation, process identity, liveness,
-   refresh state, Actor state, cache, collision, physics, retained scalars, and
-   diagnostics do not dataflow into canonical execution;
-6. the global current-head guard closes before canonical invocation and cannot
-   reopen from file existence, expected outcome, prior H0 observation, or any
-   source other than independently reverified exact H1;
+5. domain head state, operational observation, physical guard, process
+   identity, liveness, refresh state, Actor state, cache, collision, physics,
+   retained scalars, and diagnostics do not dataflow into canonical execution;
+6. the physical-current-head guard has no parameter, read, call, import,
+   callback, capability, lock, branch, exception, or data dependency in the
+   sealed Phase-1 boundary discovery/resolver/commit path, and the guard-open
+   control still commits byte-identical R1/H1;
 7. the operational head observer reads only complete committed canonical bytes
    and cannot write, select, repair, delay, or roll back canonical head;
-8. head-unconfirmed and stale local execution have no outward current-head
+8. the head-observation file/control root and every value derived from it are
+   absent from Unreal arguments, environment, inherited descriptors, roots,
+   files, commands, process bindings, projections, receipts, shared objects,
+   and adapter/probe dataflow;
+9. static call-graph/dataflow audit plus runtime input inventory proves the
+   refresh adapter reads only its exact stored process binding, refresh command,
+   and three visible bundle files; it performs no head-observation check;
+10. head-unconfirmed and stale local execution have no outward current-head
    evidence, scheduling, mutation, or truth-publication path;
-9. the authoritative-derived H1 representation constructor has exactly two
-   inputs: exact H1 and the exact role/H1 projection;
-10. only the exact three-field retained-local-state projection may cross
+11. the authoritative-derived H1 representation constructor has exactly two
+    inputs: exact H1 and the exact role/H1 projection;
+12. only the exact three-field retained-local-state projection may cross
     refresh, and it cannot reach the authoritative-derived constructor;
-11. stale Actor, cache, collision, physics, receipt, capability, and H0-derived
+13. stale Actor, cache, collision, physics, receipt, capability, and H0-derived
     representation state is discarded before H1 publication;
-12. refresh is private until one complete local publication point;
-13. the only refresh invocation is one exact line on each original stdin pipe,
+14. refresh is private until one complete local publication point;
+15. the only refresh invocation is one exact line on each original stdin pipe,
     and each fixed role-specific visible-input directory has exactly three
     regular read-only members;
-14. original child handles, macOS process-start pairs, birth bindings, and pipe
+16. the representation receipt carries no current-head or harness-head field,
+    and only the harness emits the detached head disposition;
+17. the independent physical probe reads only the immutable process binding,
+    inspection command, and live UE world Actor/components, with no adapter
+    record/candidate/receipt pointer, canonical/projection input, shared access
+    variable, or expected-state input;
+18. both original processes produce receipt-independent live `available` H0
+    and live `blocked` H1 observations before synchronized dispositions;
+19. original child handles, macOS process-start pairs, birth bindings, and pipe
     endpoints remain continuous from L0 through L4B with no replacement spawn;
-15. one domain cannot read or select from the other's proof root or local state;
-16. process, local-state perturbation, and refresh order cannot select canonical
+20. one domain cannot read or select from the other's proof root or local state;
+21. process, local-state perturbation, and refresh order cannot select canonical
     or materialized access truth; and
-17. no occupancy, movement, networking, streaming, World Partition, player,
+22. no occupancy, movement, networking, streaming, World Partition, player,
     or production abstraction is introduced under the proof fixture.
+
+## Exact release artifact DAG and self-excluding manifest
+
+This final-freeze candidate fixes the later release boundary now. The names
+below are reserved contract members, not authority to create or edit them while
+implementation authority remains `none`.
+
+### Exact evidence artifact members
+
+The implementation, if separately authorized, must populate exactly one
+directory:
+
+`proof_kernel/SimultaneousPhysicalDomainsProofRecords/`
+
+That directory must contain exactly these 44 regular files and no others:
+
+```yaml
+artifact_names:
+  - simultaneous_physical_domains_canonical_transition_run.json
+  - simultaneous_physical_domains_projection_matrix.json
+  - simultaneous_physical_domains_operation_receipt_matrix.json
+  - simultaneous_physical_domains_current_head_observation.json
+  - simultaneous_physical_domains_head_observation_fault_atomicity.json
+  - simultaneous_physical_domains_guard_open_canonical_control.json
+  - physical_W1_domain_A_H0_materialization_receipt.json
+  - physical_W1_domain_A_H0_observation.json
+  - physical_W1_domain_B_H0_materialization_receipt.json
+  - physical_W1_domain_B_H0_observation.json
+  - physical_W1_domain_A_H1_materialization_receipt.json
+  - physical_W1_domain_A_H1_observation.json
+  - physical_W1_domain_B_H1_materialization_receipt.json
+  - physical_W1_domain_B_H1_observation.json
+  - physical_W1_liveness_witness.json
+  - physical_W1_a_then_b_witness.json
+  - physical_W2_domain_A_H0_materialization_receipt.json
+  - physical_W2_domain_A_H0_observation.json
+  - physical_W2_domain_B_H0_materialization_receipt.json
+  - physical_W2_domain_B_H0_observation.json
+  - physical_W2_domain_B_H1_materialization_receipt.json
+  - physical_W2_domain_B_H1_observation.json
+  - physical_W2_domain_A_H1_materialization_receipt.json
+  - physical_W2_domain_A_H1_observation.json
+  - physical_W2_liveness_witness.json
+  - physical_W2_b_then_a_witness.json
+  - physical_W3_stale_quarantine_witness.json
+  - physical_W4_head_observation_failure_witness.json
+  - physical_W5_retention_baseline_witness.json
+  - physical_W5_retention_perturbed_witness.json
+  - physical_W5_retention_equivalence_oracle.json
+  - physical_W6_asymmetric_A_synchronized_witness.json
+  - physical_W6_asymmetric_B_synchronized_witness.json
+  - physical_W7_destroy_A_witness.json
+  - physical_W7_destroy_B_witness.json
+  - simultaneous_physical_domains_current_head_authority_failures.json
+  - simultaneous_physical_domains_refresh_fault_atomicity.json
+  - simultaneous_physical_domains_physical_observation_fault_atomicity.json
+  - simultaneous_physical_domains_unreal_visible_input_audit.json
+  - simultaneous_physical_domains_physical_rebind_oracle.json
+  - simultaneous_physical_domains_canonical_equivalence_oracle.json
+  - simultaneous_physical_domains_source_audit.json
+  - simultaneous_physical_domains_replay_oracle.json
+  - simultaneous_physical_domains_proof_run.json
+```
+
+Per-domain input inventories, binding commands, inspection commands, refresh
+commands, process-birth samples, pipe continuity, disposition receipts, fault
+results, and source-audit facts must be embedded under their exact witness or
+oracle member above. No additional log, screenshot, receipt, cache dump,
+temporary file, or optional evidence member may be added to the release
+directory. Runtime scratch output remains outside it and is not release
+evidence.
+
+### Exact role DAG
+
+```text
+sealed Phase-1 R0/H0 + exact H0-bound boundary
+        ↓
+existing sealed Phase-1 resolver only
+        ↓
+byte-identical R1/H1 + canonical-transition artifact
+
+exact A/B projection + operation-receipt matrices
+        ↓
+two suspended direct-child launches + exact binding commands
+        ↓
+H0 representation receipts + independent live available observations
+        ↓
+L0 → close physical-current-head guard → L1
+        ├─ canonical path: exact resolver commit, guard unreadable → L2
+        └─ guard-open control: exact resolver still commits R1, harness fails
+        ↓
+harness-private H1 observation / publication fault branch
+        ↓
+stale classifications + exact isolated H1 bundles + sole refresh commands
+        ↓
+W1 A→B and W2 B→A representation receipts
+        ↓
+independent live blocked observations in the same original processes
+        ↓
+L4A / L4B synchronized dispositions
+        ↓
+stale, retention, asymmetric, destruction, authority, and fault witnesses
+        ↓
+physical-rebind + canonical-equivalence + source-audit + replay oracles
+        ↓
+proof run + evidence document
+        ↓
+self-excluding exact-member SHA-256 manifest
+        ↓
+release verifier checks the exact set, hashes, DAG relations, and all semantics
+```
+
+No node outside this DAG is part of the proof. In particular, the private head
+observation has no edge into Unreal, and the physical guard has no edge into
+the canonical path.
+
+### Exact source and governing member set
+
+The manifest member set is the union of the exact 44 artifact paths above and
+the following exact relative paths: 110 manifest entries total, excluding the
+manifest itself.
+
+```yaml
+governing_and_predecessor_members:
+  - README.md
+  - Resolution Semantics Law - v0.1.1.md
+  - Record-Relative Chronological Resolution Proof Evidence - v0.1.0.md
+  - Integrated Unreal Promotion-Unload-Repromotion Proof Evidence - v0.1.0.md
+  - Concurrent External Evidence Arbitration Proof Evidence - v0.1.0.md
+  - Canonical Spatial Topology Identity Proof - Draft.md
+  - Canonical Spatial Topology Identity Proof Evidence - v0.1.0.md
+  - Canonical Spatial Topology Identity Proof - v0.1.0 SHA256SUMS.txt
+  - Canonical Occupancy Transition Proof Evidence - v0.1.0.md
+  - Simultaneous Physical Domains Proof - Draft.md
+  - Simultaneous Physical Domains Proof Evidence - v0.1.0.md
+  - Co-op Open-City FPS Simulation - v0.7 Working Continuation.md
+  - THE_CITY Development Capacity and Progress Note - v0.1.11.md
+  - THE_CITY Developer Snapshot - v0.1.0.md
+  - THE_CITY Current Proof State and Repo-Agent Instruction - v0.1.0.md
+
+sealed_canonical_input_members:
+  - proof_kernel/CanonicalSpatialTopologyIdentityProofRecords/canonical_topology_R0.json
+  - proof_kernel/CanonicalSpatialTopologyIdentityProofRecords/canonical_topology_boundary_H0.json
+  - proof_kernel/CanonicalSpatialTopologyIdentityProofRecords/canonical_topology_R1.json
+
+python_source_members:
+  - proof_kernel/kernel.py
+  - proof_kernel/canonical_spatial_topology_identity.py
+  - proof_kernel/simultaneous_physical_domains.py
+  - proof_kernel/simultaneous_physical_domains_harness.py
+  - proof_kernel/test_simultaneous_physical_domains.py
+  - proof_kernel/verify_simultaneous_physical_domains_release.py
+
+unreal_project_members:
+  - CityMaterializationProof/CityMaterializationProof.uproject
+  - CityMaterializationProof/Config/DefaultEngine.ini
+  - CityMaterializationProof/Config/DefaultGame.ini
+  - CityMaterializationProof/Config/DefaultInput.ini
+  - CityMaterializationProof/README.md
+  - CityMaterializationProof/Source/CityMaterializationProof.Target.cs
+  - CityMaterializationProof/Source/CityMaterializationProofEditor.Target.cs
+  - CityMaterializationProof/Source/CityMaterializationProof/CityMaterializationProof.Build.cs
+  - CityMaterializationProof/Source/CityMaterializationProof/CityMaterializationProof.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/CityMaterializationProof.h
+  - CityMaterializationProof/Source/CityMaterializationProof/CityProofGameMode.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/CityProofGameMode.h
+  - CityMaterializationProof/Source/CityMaterializationProof/BridgeAccessPoint.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/BridgeAccessPoint.h
+  - CityMaterializationProof/Source/CityMaterializationProof/CanonicalSpatialTopologyProofAdapter.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/CanonicalSpatialTopologyProofAdapter.h
+  - CityMaterializationProof/Source/CityMaterializationProof/CanonicalTopologyRepresentationActor.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/CanonicalTopologyRepresentationActor.h
+  - CityMaterializationProof/Source/CityMaterializationProof/CityMaterializationActor.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/CityMaterializationActor.h
+  - CityMaterializationProof/Source/CityMaterializationProof/CityProofCharacter.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/CityProofCharacter.h
+  - CityMaterializationProof/Source/CityMaterializationProof/ConcurrentEvidenceSurface.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/ConcurrentEvidenceSurface.h
+  - CityMaterializationProof/Source/CityMaterializationProof/ConcurrentExternalEvidenceProofAdapter.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/ConcurrentExternalEvidenceProofAdapter.h
+  - CityMaterializationProof/Source/CityMaterializationProof/CrewOperationPoint.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/CrewOperationPoint.h
+  - CityMaterializationProof/Source/CityMaterializationProof/IntegratedGateTokenPoint.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/IntegratedGateTokenPoint.h
+  - CityMaterializationProof/Source/CityMaterializationProof/IntegratedUnrealProofAdapter.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/IntegratedUnrealProofAdapter.h
+  - CityMaterializationProof/Source/CityMaterializationProof/LiveCommitmentRelayPoint.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/LiveCommitmentRelayPoint.h
+  - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainCommandRouter.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainCommandRouter.h
+  - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainProofAdapter.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainProofAdapter.h
+  - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainRepresentationActor.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalDomainRepresentationActor.h
+  - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalRebindProbe.cpp
+  - CityMaterializationProof/Source/CityMaterializationProof/SimultaneousPhysicalRebindProbe.h
+```
+
+The eight `SimultaneousPhysical*` Unreal source paths, four Phase-3 Python
+implementation/test/verifier paths, evidence document, artifact directory, and
+manifest are prospective members only. They do not exist by authority of this
+draft. If implementation is later authorized, only those new source paths plus
+the bounded Phase-3 dispatch branch in
+`CityMaterializationProof/Source/CityMaterializationProof/CityProofGameMode.cpp`
+may change. Every other existing source/project/config member above is a
+hash-bound dependency and must remain unchanged. Governing documents may change
+only to record the eventual reviewed freeze, evidence, seal, and capacity
+decision. Any other created or modified source path requires a return to
+specification review and a revised exact member set.
+
+### Self-excluding manifest contract
+
+The eventual manifest path is exactly:
+
+`Simultaneous Physical Domains Proof - v0.1.0 SHA256SUMS.txt`
+
+It must exclude itself. Its 110 member lines must be the complete union above,
+sorted by raw UTF-8 relative-path bytes, each encoded exactly as lowercase
+64-hex SHA-256, two ASCII spaces, the repository-relative path, and LF. Every
+member must be one regular non-symlink file whose realpath remains beneath the
+repository root. Hashes are written only after every member is final.
+
+The release verifier carries the same frozen ordered path list in source and
+must reject a missing, additional, duplicated, reordered, absolute,
+parent-traversing, non-regular, symlinked, unreadable, or checksum-mismatched
+member. It must also reject any additional member in the exact artifact
+directory, regenerate the 44 artifact roles in an isolated temporary root,
+recompute canonical artifacts byte-for-byte, validate operational artifacts by
+their frozen semantic relations, rerun the complete proof tests, and reperform
+the source/dataflow audits rather than trust checked-in pass booleans. Manifest
+verification is an exit gate only; it grants no successor or production
+authority.
+
+The manifest proves the exact release commit, not every later working-tree
+amendment. After a seal, any continuation, README, snapshot, or handover change
+must not rewrite the historical manifest. Historical verification must export
+or check out the recorded seal commit into an isolated root and run that
+commit's verifier there. A live-tree mismatch caused solely by later governing-
+document advancement is not proof failure; substituting current files into the
+sealed member set or regenerating the historical manifest is forbidden.
 
 ## Explicit exclusions
 
@@ -1322,7 +1889,7 @@ This proof does not authorize or prove:
 This draft may freeze only after review establishes:
 
 ```yaml
-freeze_review:
+final_freeze_review:
   proof_question: exact
   canonical_R0_R1_artifacts: exact_and_byte_bound
   phase_1_physical_lifecycle_noninheritance: explicit
@@ -1338,8 +1905,13 @@ freeze_review:
   refresh_invocation: exact_original_stdin_pipe_single_canonical_json_line
   refresh_visible_inputs: exact_role_specific_three_file_read_only_bundle
   alternate_refresh_mechanisms: prohibited
+  unreal_visible_input_closure: exact_and_head_observation_free
+  unreal_head_observation_dependency: prohibited
   current_head_observer_schema: exact
-  current_head_guard_and_publication_order: exact
+  physical_current_head_guard_scope: claims_receipt_acceptance_and_refresh_only
+  physical_guard_dataflow_into_canonical_execution: prohibited
+  guard_open_canonical_control: exact_R1_commit_and_harness_protocol_failure
+  current_head_guard_and_publication_order: exact_physical_protocol
   current_head_observation_failure_atomicity: exact_nine_fault_points
   post_commit_prepublication_failure_witness: exact
   physical_head_state_machine: exhaustive
@@ -1351,6 +1923,10 @@ freeze_review:
   actor_cache_collision_physics_retention: prohibited
   retention_perturbation_witness: exact
   physical_refresh_publication_boundary: exact
+  independent_live_UE_physical_rebind_oracle: exact
+  H0_physical_observation: available_in_both_original_processes
+  H1_physical_observation: blocked_in_both_original_processes
+  physical_probe_receipt_and_JSON_independence: source_audited
   asymmetric_witnesses: exact_and_symmetric
   current_head_authority_failures: exhaustive
   failure_atomicity: fault_points_frozen
@@ -1358,20 +1934,28 @@ freeze_review:
   canonical_equivalence: exact
   provenance_and_replay: exact
   source_audit: exact
-  release_manifest: self_excluding_and_mechanically_verified
+  release_artifact_DAG: exact
+  release_artifact_directory_members: exact_44
+  release_source_and_governing_members: exhaustive
+  release_manifest: exact_self_excluding_and_mechanically_verified
+  post_seal_verification: exact_recorded_seal_commit_export
   exclusions: exact
 ```
 
-Draft.1 resolves the prior refresh-transport dependency with the original
-per-domain stdin pipe plus exact isolated three-file bundle. It also resolves
-head-observation failure atomicity, retention/reconstruction semantics, and
-uninterrupted process-liveness identity for freeze review.
+Draft.2 removes the private head-observation dependency from Unreal, proves the
+physical-current-head guard cannot gate canonical execution, adds a receipt-
+independent live-UE H0/H1 rebind oracle, and fixes the complete release DAG,
+44-member artifact directory, source/governing set, and self-excluding manifest
+contract. It retains draft.1's exact refresh channel, retention law, observer
+failure atomicity, and uninterrupted process-liveness identity.
 
-Freeze review must still reject any optional projection member, alternate
-refresh channel, incomplete head-observation gate, ambiguous
-head-unconfirmed/stale/invalid disposition, retained authoritative-derived H0
-state, replaceable process identity, or unspecified local publication
-boundary. Passing review is not itself implementation authority.
+Final freeze review must reject any hidden head-observation input, canonical
+dependency on the physical guard, receipt-only physical acceptance,
+non-independent probe, optional release member, alternate projection or refresh
+channel, ambiguous head-unconfirmed/stale/invalid disposition, retained
+authoritative-derived H0 state, replaceable process identity, or unspecified
+local publication boundary. Passing review is not itself implementation
+authority.
 
 ## Candidate acceptance statement
 
@@ -1385,15 +1969,33 @@ only:
 > is mechanically stale, may continue only quarantined nonconsequential local
 > execution, and cannot exercise current-head evidence, scheduling, mutation,
 > or truth authority. Failure to prove operational observation of committed H1
-> closes every current-head path rather than creating another head, refresh
-> reconstructs every authoritative-derived fact solely from H1 plus the exact
-> projection, and uninterrupted process-birth evidence proves neither physical
+> closes every physical current-head path rather than creating another head;
+> that observation never enters Unreal; the physical guard cannot affect the
+> canonical transaction; refresh reconstructs every authoritative-derived fact
+> solely from H1 plus the exact projection; independent live-UE component
+> inspection observes available at H0 and blocked after H1 in both original
+> processes; and uninterrupted process-birth evidence proves neither physical
 > domain exited or was replaced across the commit.**
 
 It may not establish multiplayer, networking, occupancy materialization,
 movement, streaming, or production physical-domain architecture.
 
 ## Draft review history
+
+### 0.1.0-draft.2 — 2026-08-28
+
+- Removed all private head-observation inputs and checks from the Unreal
+  adapter/probe boundary and fixed the complete Unreal-visible input closure.
+- Restricted the physical-current-head guard to physical claim/receipt
+  acceptance and refresh eligibility, with an exact guard-open control proving
+  the sealed Phase-1 resolver still commits byte-identical R1/H1.
+- Added exact independent live-UE mesh/label observations of `available` at H0
+  and `blocked` after H1 refresh in each original process, plus failure
+  atomicity and source-audit independence from receipt/JSON paths.
+- Fixed the exact release DAG, 44-member artifact directory, complete
+  source/governing member set, and self-excluding manifest/verifier contract.
+- Advanced to final freeze review without freezing the proof or granting code,
+  Unreal, capacity, or successor authority.
 
 ### 0.1.0-draft.1 — 2026-08-28
 
@@ -1421,9 +2023,9 @@ movement, streaming, or production physical-domain architecture.
 ## Current decision record
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.1
+working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.2
 successor_selected: true
-specification_status: freeze_review
+specification_status: final_freeze_review
 freeze_status: not_frozen
 implementation_authority: none
 canonical_capacity_change: none

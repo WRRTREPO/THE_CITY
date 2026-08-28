@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.69`
+**Governing continuation:** `0.7.0-draft.70`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -112,14 +112,14 @@ phase_2_canonical_occupancy_transition:
 
 phase_3_simultaneous_physical_domains:
   selected: true
-  specification: v0.1.0-draft.1_freeze_review
+  specification: v0.1.0-draft.2_final_freeze_review
   frozen: false
   implementation: prohibited
 ```
 
 Phase 1 established what canonical places and their relation are. Phase 2
 established how one subject's settled occupancy can lawfully change between
-them. Phase 3 is now selected and in freeze review, but is not frozen. It asks
+them. Phase 3 is now selected and in final freeze review, but is not frozen. It asks
 whether
 two process-isolated Unreal representation domains can remain simultaneously
 alive against one canonical head, survive the exact sealed Phase-1 H0-to-H1
@@ -133,16 +133,21 @@ detached-representation-scoped to `topology_site_0001`, domain B to
 `topology_site_0002`, and both projections include
 `topology_route_0001`. Site scope is not canonical occupancy.
 
-Draft.1 closes four material review seams without granting implementation:
+Draft.2 closes the remaining material review seams without granting
+implementation:
 
-- a global current-head guard fails closed as `head_unconfirmed` unless exact
-  committed H1 is atomically observed and independently reverified;
+- the exact H1 observer is harness-private and no derived head input reaches
+  Unreal;
+- the physical-current-head guard controls only physical acceptance and
+  refresh, while a guard-open control proves canonical R1 still commits;
 - refresh reconstructs every authoritative-derived fact from exact H1 plus the
   exact projection, retaining only three detached scalar local values;
 - original child handles, macOS process-start pairs, process bindings, and
   control/output pipes prove uninterrupted A/B liveness across L0–L4B; and
-- refresh uses exactly one canonical-JSON command on each original stdin pipe
-  plus one isolated role-specific read-only three-file H1 bundle.
+- an independent live-UE probe observes `available` at H0 and `blocked` after
+  H1 without consuming receipt/JSON state; and
+- the exact visible-input closure, release DAG, 44 artifact members, complete
+  110-entry release set, and self-excluding manifest contract are fixed.
 
 ## Exact current proof envelope
 
@@ -194,20 +199,22 @@ The current corpus does not establish:
 ## Development frontier
 
 The active working unit is [Simultaneous Physical Domains Proof —
-v0.1.0-draft.1](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
-freeze review but not frozen. Review must verify its exact detached
-projections, fail-closed current-head observation, H1-only reconstruction and
-retention whitelist, uninterrupted process-birth witness, fixed local refresh
-mechanism, physical head-state machine, stale local execution quarantine,
-refresh publication boundary, asymmetric failure, isolation, provenance,
-replay, and current-head rejection surface before freeze may be considered.
+v0.1.0-draft.2](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
+final freeze review but not frozen. Review must verify its exact detached
+projections, harness-private current-head observation, canonically inert
+physical guard, H1-only reconstruction and retention whitelist, independent
+live-UE rebind oracle, uninterrupted process-birth witness, fixed visible-input
+and refresh mechanism, exact release DAG/member/manifest contract, physical
+head-state machine, stale local execution quarantine, refresh publication
+boundary, asymmetric failure, isolation, provenance, replay, and current-head
+rejection surface before freeze may be considered.
 
 Current authority:
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.1
+working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.2
 successor_selected: true
-specification_status: freeze_review
+specification_status: final_freeze_review
 freeze_status: not_frozen
 implementation_authority: none
 governing_record_change_from_this_note: none
