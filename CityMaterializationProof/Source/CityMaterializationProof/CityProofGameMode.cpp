@@ -5,6 +5,7 @@
 #include "CanonicalSpatialTopologyProofAdapter.h"
 #include "ConcurrentExternalEvidenceProofAdapter.h"
 #include "IntegratedUnrealProofAdapter.h"
+#include "SimultaneousPhysicalDomainCommandRouter.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
@@ -37,6 +38,13 @@ void ACityProofGameMode::BeginPlay()
     const FString CommandLine(FCommandLine::Get());
     const bool bTopologyProofRequested = CommandLine.Contains(TEXT("CanonicalTopologyProof"));
     const bool bConcurrentProofRequested = CommandLine.Contains(TEXT("ConcurrentEvidence"));
+    // Phase 3 deliberately has no truth-bearing argv selector.  Its frozen
+    // launch surface is the only existing proof launch with -Multiprocess and
+    // without a named topology, concurrent-evidence, or integrated payload.
+    // The router still begins unbound and can acquire proof semantics only
+    // from its one exact process-binding command on the original stdin pipe.
+    const bool bSimultaneousPhysicalDomainProcess = CommandLine.Contains(TEXT("-Multiprocess")) &&
+        !bTopologyProofRequested && !bConcurrentProofRequested && IntegratedPayloadPath.IsEmpty();
     if (bTopologyProofRequested)
     {
         GetWorld()->SpawnActor<ACanonicalSpatialTopologyProofAdapter>(ACanonicalSpatialTopologyProofAdapter::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
@@ -44,6 +52,10 @@ void ACityProofGameMode::BeginPlay()
     else if (bConcurrentProofRequested)
     {
         GetWorld()->SpawnActor<AConcurrentExternalEvidenceProofAdapter>(AConcurrentExternalEvidenceProofAdapter::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+    }
+    else if (bSimultaneousPhysicalDomainProcess)
+    {
+        GetWorld()->SpawnActor<ASimultaneousPhysicalDomainCommandRouter>(ASimultaneousPhysicalDomainCommandRouter::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
     }
     else if (IntegratedPayloadPath.IsEmpty())
     {

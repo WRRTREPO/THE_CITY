@@ -7,7 +7,7 @@ strategic authority.
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
 **Current sealed proof record:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md).
-The governing continuation is [v0.7.0-draft.74](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+The governing continuation is [v0.7.0-draft.75](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 [Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md)
 is frozen under `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. It
 reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
@@ -20,11 +20,12 @@ rebuilds canonical-derived representation facts only from exact H1 plus the exac
 separate live-UE probe must observe `available` at H0 and `blocked` after H1.
 The exact process-liveness, proof-semantic-input, release-DAG, member-set, and
 manifest contracts are frozen and pass the exact structural document validator
-plus its 29 adversarial self-tests. Implementation authority is limited to the
-exact named Phase-3 paths and bounded dispatch branch. Evidence remains
-unsealed, no Phase-3 runtime behavior is yet proven, and implementation passage
-is paused pending review of the forward validator correction. Development
-Capacity v0.1.11 is unchanged.
+plus its 29 adversarial self-tests. The exact bounded implementation is now
+complete: 33/33 focused tests and 215/215 predecessor regressions pass, the UE
+5.8 editor builds, all 11 frozen live-process witnesses pass, the exact 44
+artifacts exist, and the self-excluding 110-member release verifies. Evidence
+remains unsealed pending independent review. Development Capacity v0.1.11 is
+unchanged and Phase 4 remains closed.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -99,6 +100,17 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   python3 proof_kernel/validate_simultaneous_physical_domains_spec.py
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   python3 proof_kernel/validate_simultaneous_physical_domains_spec.py --self-test
+```
+
+Run the focused Phase-3 suite and verify its unsealed release candidate:
+
+```sh
+cd "/Users/boandersson/Desktop/Games/THE_CITY/proof_kernel"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
+  python3 -m unittest -v test_simultaneous_physical_domains.py
+cd ..
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
+  python3 proof_kernel/verify_simultaneous_physical_domains_release.py verify
 ```
 
 Run the complete Python regression record:

@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.74`
+**Governing continuation:** `0.7.0-draft.75`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -122,8 +122,8 @@ phase_3_simultaneous_physical_domains:
 
 Phase 1 established what canonical places and their relation are. Phase 2
 established how one subject's settled occupancy can lawfully change between
-them. Phase 3 is frozen for exact bounded implementation, with evidence still
-unsealed. It asks whether
+them. Phase 3's exact bounded implementation and release candidate are
+complete, with evidence still unsealed. It asks whether
 two process-isolated Unreal representation domains can remain simultaneously
 alive against one canonical head, survive the exact sealed Phase-1 H0-to-H1
 access transition without participating in it, and independently rebind while
@@ -204,8 +204,8 @@ The current corpus does not establish:
   distance, speed, or production travel time;
 - route occupancy, capacity, traffic, congestion, collision, interruption,
   rerouting, recovery, or mid-transition topology mutation;
-- multiple subjects, split crews, simultaneous physical domains, concurrent
-  occupancy, or site/route contention;
+- sealed simultaneous-physical-domain evidence, multiple subjects, split
+  crews, concurrent occupancy, or site/route contention;
 - live network transport, multiplayer arbitration, rollback, reconciliation,
   save/load, host migration, or shared multi-owner persistence;
 - proximity-driven promotion, World Partition, production streaming, city
@@ -215,21 +215,22 @@ The current corpus does not establish:
 
 ## Development frontier
 
-The active working unit is the bounded implementation of [Simultaneous Physical
-Domains Proof — v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md).
+The active working unit is independent evidence review of [Simultaneous
+Physical Domains Proof — v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md).
 Its specification is frozen under `SimultaneousPhysicalDomainsProof.v1` /
 `0.7.0-draft.72`; evidence is unsealed. Authority is limited to the four named
 Python paths, eight named Unreal paths, bounded `CityProofGameMode.cpp`
 dispatch branch, evidence path, 44-member artifact directory, and
 self-excluding 110-member manifest. The corrected validator rejects all 29
-declared adversarial mutations. No runtime behavior or capacity advancement is
-yet proven, and implementation passage is paused pending review of the forward
-validator correction.
+declared adversarial mutations. The implementation candidate passes 33/33
+focused tests, 215/215 predecessor regressions, the UE 5.8 build, all 11 live
+witnesses, and release verification. Evidence remains unsealed and no capacity
+advancement follows before separate review.
 
 Current authority:
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0 bounded implementation
+working_unit: Simultaneous Physical Domains Proof v0.1.0 evidence review
 successor_selected: true
 specification_status: frozen
 freeze_status: frozen

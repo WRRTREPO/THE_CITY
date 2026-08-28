@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-28)\
 **Date:** 2026-08-28\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.74`\
+**Governing continuation:** `0.7.0-draft.75`\
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
@@ -86,8 +86,10 @@ document validator and 29 adversarial in-memory self-tests pass. Exact bounded
 implementation authority now covers only the four named Python paths, eight
 named Unreal paths, bounded `CityProofGameMode.cpp` dispatch branch, evidence
 path, 44-member artifact directory, and self-excluding 110-member manifest.
-Evidence remains unsealed; no Phase-3 runtime behavior or capacity advancement
-is proven.
+The exact bounded implementation now passes 33/33 focused tests, 215/215
+predecessor regressions, the UE 5.8 build, all 11 frozen live-process witnesses,
+and exact 44/110 release verification. Evidence remains unsealed pending
+independent review; no capacity advancement is established.
 
 ## Current proof progression
 
@@ -121,7 +123,7 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Simultaneous Physical Domains
-                FROZEN SPECIFICATION / BOUNDED IMPLEMENTATION AUTHORIZED / EVIDENCE UNSEALED
+                IMPLEMENTED / EVIDENCE CANDIDATE UNSEALED / SEAL REVIEW REQUIRED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -455,7 +457,7 @@ streaming identity
 
 9. Simultaneous physical domains
    ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-   FROZEN SPECIFICATION / BOUNDED IMPLEMENTATION AUTHORIZED / EVIDENCE UNSEALED
+   IMPLEMENTED / EVIDENCE CANDIDATE UNSEALED / SEAL REVIEW REQUIRED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -498,8 +500,8 @@ strategic authority
 
 That is now proven evidence.
 
-The frozen Phase 3 specification is not proven evidence and does not advance
-this machine summary.
+The Phase-3 implementation candidate is not sealed evidence and does not yet
+advance this machine summary.
 
 # Repo-agent instruction
 
@@ -509,7 +511,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.74
+  version: 0.7.0-draft.75
 
 latest_capacity_record:
   version: 0.1.11
@@ -527,7 +529,7 @@ active_proof:
   frozen_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1/0.7.0-draft.72
   canonical_source_payload: CanonicalSpatialTopologyIdentityPayload.v1
   canonical_source_simulation_identity: 0.7.0-draft.61
-  status: frozen_specification
+  status: implemented_evidence_candidate_unsealed
   freeze_status: frozen
   implementation: bounded_phase_3_proof_only
   evidence_status: unsealed
@@ -793,17 +795,14 @@ The blocked-access control, dense/jump equivalence, singular occupancy,
 reservation closure, record-relative completion, failure atomicity, replay,
 source audit, and release package are sealed predecessor evidence.
 
-Simultaneous Physical Domains v0.1.0 bounded implementation is the sole current
-working unit. The specification is frozen and evidence is unsealed. Work may
-change only its exact four Python paths, eight Unreal paths, bounded
-`CityProofGameMode.cpp` dispatch branch, evidence path, 44-member artifact
-directory, self-excluding 110-member manifest, and governing records needed to
-record implementation, evidence, and seal. Every hash-bound dependency must
-remain unchanged. The exact structural validator and all 29 adversarial
-self-tests remain hard gates. Implementation passage is paused pending review
-of the forward validator correction.
+Simultaneous Physical Domains v0.1.0 evidence review is the sole current
+working unit. The specification is frozen, the bounded implementation and
+exact 44/110 release candidate are complete, and evidence is unsealed. The
+exact structural validator and all 29 adversarial self-tests remain hard
+gates. No implementation expansion, capacity advancement, or successor work is
+authorized before independent evidence review and seal.
 
-> **Implement only the frozen Phase 3 boundary. Do not infer physical movement,
-> occupancy materialization, evidence arbitration, multiplayer, networking,
-> streaming, capacity advancement, or adjacent spatial architecture from this
-> bounded authority.**
+> **Review only the frozen Phase-3 implementation and evidence candidate. Do
+> not infer physical movement, occupancy materialization, evidence arbitration,
+> multiplayer, networking, streaming, capacity advancement, or adjacent spatial
+> architecture from this bounded result.**
