@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-28)\
 **Date:** 2026-08-28\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.73`\
+**Governing continuation:** `0.7.0-draft.74`\
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
@@ -82,7 +82,7 @@ defines terminal guard-open failure and representation-only claim semantics,
 requires a separate live-UE available/blocked oracle, audits the
 proof-semantic process-input closure, and preserves the exact release DAG,
 member set, and self-excluding manifest. Its structurally exact non-release
-document validator and 25 adversarial in-memory self-tests pass. Exact bounded
+document validator and 29 adversarial in-memory self-tests pass. Exact bounded
 implementation authority now covers only the four named Python paths, eight
 named Unreal paths, bounded `CityProofGameMode.cpp` dispatch branch, evidence
 path, 44-member artifact directory, and self-excluding 110-member manifest.
@@ -121,7 +121,7 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Simultaneous Physical Domains
-                FINAL FREEZE REVIEW / NOT FROZEN
+                FROZEN SPECIFICATION / BOUNDED IMPLEMENTATION AUTHORIZED / EVIDENCE UNSEALED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -455,7 +455,7 @@ streaming identity
 
 9. Simultaneous physical domains
    ▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒
-   FINAL FREEZE REVIEW / NOT FROZEN
+   FROZEN SPECIFICATION / BOUNDED IMPLEMENTATION AUTHORIZED / EVIDENCE UNSEALED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -509,7 +509,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.73
+  version: 0.7.0-draft.74
 
 latest_capacity_record:
   version: 0.1.11
@@ -644,7 +644,7 @@ dispositions. The exact release DAG, 44 artifact-directory members, complete
 The non-release
 `proof_kernel/validate_simultaneous_physical_domains_spec.py` document validator
 must pass in default and `--self-test` modes, remains outside the 110-member
-release set, and proves no Phase-3 runtime behavior. Its 25 in-memory
+release set, and proves no Phase-3 runtime behavior. Its 29 in-memory
 adversaries close the authority, guard, semantic-input, permission, artifact,
 manifest, lifecycle, source-surface, and self-inclusion structures. The exact
 bounded implementation paths declared by the frozen specification are now
@@ -799,8 +799,9 @@ change only its exact four Python paths, eight Unreal paths, bounded
 `CityProofGameMode.cpp` dispatch branch, evidence path, 44-member artifact
 directory, self-excluding 110-member manifest, and governing records needed to
 record implementation, evidence, and seal. Every hash-bound dependency must
-remain unchanged. The exact structural validator and all 25 adversarial
-self-tests remain hard gates.
+remain unchanged. The exact structural validator and all 29 adversarial
+self-tests remain hard gates. Implementation passage is paused pending review
+of the forward validator correction.
 
 > **Implement only the frozen Phase 3 boundary. Do not infer physical movement,
 > occupancy materialization, evidence arbitration, multiplayer, networking,

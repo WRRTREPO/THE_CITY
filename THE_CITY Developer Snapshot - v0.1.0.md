@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.73`
+**Governing continuation:** `0.7.0-draft.74`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -221,9 +221,10 @@ Its specification is frozen under `SimultaneousPhysicalDomainsProof.v1` /
 `0.7.0-draft.72`; evidence is unsealed. Authority is limited to the four named
 Python paths, eight named Unreal paths, bounded `CityProofGameMode.cpp`
 dispatch branch, evidence path, 44-member artifact directory, and
-self-excluding 110-member manifest. The frozen validator rejects all 25
+self-excluding 110-member manifest. The corrected validator rejects all 29
 declared adversarial mutations. No runtime behavior or capacity advancement is
-yet proven.
+yet proven, and implementation passage is paused pending review of the forward
+validator correction.
 
 Current authority:
 

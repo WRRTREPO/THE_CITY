@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.73
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. Only its exact four Python paths, eight Unreal paths, bounded `CityProofGameMode.cpp` dispatch branch, evidence path, 44-member artifact directory, and self-excluding 110-member manifest are authorized for implementation, evidence, and release verification. Evidence remains unsealed; no Phase-3 behavior or capacity advancement is claimed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.74
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) remains frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`, with exact bounded implementation authority and unsealed evidence. A forward non-release validator correction now closes the frozen status header, opening authority prose, terminal authority prose, and EOF against four authority-escalation mutations; 29/29 declared adversaries are rejected. No Phase-3 implementation has started, and passage remains paused pending review of this corrective record. Capacity and every frozen contract boundary remain unchanged. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -99,10 +99,11 @@ the exact guard close/reopen/failed states and guard-open terminal disposition,
 aligns synchronized representation-only claims, audits the exact proof-semantic
 process inputs, requires independent live-UE component observation after each
 materialization, and preserves the exact release boundary. Its review-only
-validator structurally binds those active blocks and rejects 25 declared
+validator structurally binds those active blocks and rejects 29 declared
 in-memory adversarial mutations. Only the exact bounded implementation surface
 named by the frozen contract is authorized. Evidence is unsealed, Phase-3
-runtime behavior is not yet proven, and capacity remains unchanged.
+runtime behavior is not yet proven, capacity remains unchanged, and
+implementation passage is paused pending review of the validator correction.
 
 ## Product framing
 
@@ -182,6 +183,23 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.74 — 2026-08-28
+
+- Corrected the non-release specification validator forward without modifying
+  the frozen Phase-3 contract. Exact checks now close the frozen status header,
+  opening bounded-authority section, terminal bounded-authority section, and
+  EOF boundary.
+- Added four named in-memory adversaries for unbounded/sealed header authority,
+  unbounded opening prose, terminal capacity/production authority, and an
+  appended active authority override. All 29 declared mutations are rejected.
+- Synchronized the handover's two stale Phase-3 informational statuses to
+  `FROZEN SPECIFICATION / BOUNDED IMPLEMENTATION AUTHORIZED / EVIDENCE
+  UNSEALED`.
+- Started no Phase-3 implementation, changed no frozen proof semantics or
+  implementation/release boundary, and kept Development Capacity v0.1.11
+  governing. Implementation passage remains paused pending review of this
+  corrective record.
 
 ### 0.7.0-draft.73 — 2026-08-28
 
@@ -991,6 +1009,8 @@ bounded canonical scope.
 
 Simultaneous Physical Domains Proof v0.1.0 bounded implementation is the sole
 current working unit. The specification is frozen; evidence remains unsealed.
+Implementation passage is paused pending review of the forward validator
+correction recorded in `0.7.0-draft.74`.
 Implementation must stay within its exact four Python paths, eight Unreal
 paths, bounded `CityProofGameMode.cpp` dispatch branch, evidence path,
 44-member artifact directory, and self-excluding 110-member manifest. It must

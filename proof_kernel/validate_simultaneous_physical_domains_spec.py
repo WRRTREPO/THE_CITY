@@ -21,6 +21,24 @@ SPEC = ROOT / "Simultaneous Physical Domains Proof - Draft.md"
 ARTIFACT_ROOT = "proof_kernel/SimultaneousPhysicalDomainsProofRecords"
 MANIFEST = "Simultaneous Physical Domains Proof - v0.1.0 SHA256SUMS.txt"
 THIS_VALIDATOR = "proof_kernel/validate_simultaneous_physical_domains_spec.py"
+EXPECTED_VERSION_HEADER = "**Version:** 0.1.0"
+EXPECTED_STATUS_HEADER = (
+    "**Status:** Frozen specification; exact bounded Phase-3 implementation, "
+    "evidence, and release verification authorized; evidence unsealed"
+)
+EXPECTED_OPENING_AUTHORITY_PROSE = (
+    "This reviewed freeze authorizes only the exact bounded Phase-3 proof, "
+    "Unreal-adapter, harness, test, evidence, artifact, and release-verification "
+    "surface declared below. It authorizes no capacity advancement, production "
+    "architecture, or adjacent scope."
+)
+EXPECTED_TERMINAL_AUTHORITY_PROSE = (
+    "The specification is frozen. Implementation authority is limited to the exact "
+    "Phase-3 proof paths and bounded dispatch branch declared by this contract. It "
+    "permits the named proof implementation, Unreal adapter, harness, tests, "
+    "evidence, artifacts, and release verification only. It grants no capacity "
+    "advancement, production architecture, or adjacent spatial scope."
+)
 
 EXPECTED_SELECTION = (
     ("phase", "3"),
@@ -288,6 +306,30 @@ def prefreeze_runtime_obligation_clauses(text: str) -> list[str]:
     ]
 
 
+def normalized_prose_after_fenced_block(
+    text: str,
+    marker: str,
+    next_marker: str | None,
+) -> str:
+    marker_offset = text.find(marker)
+    if marker_offset < 0:
+        raise ValidationError(f"missing authority section marker: {marker}")
+    fence_start = text.find("```yaml\n", marker_offset)
+    if fence_start < 0:
+        raise ValidationError(f"missing authority fence after: {marker}")
+    fence_end = text.find("\n```", fence_start + len("```yaml\n"))
+    if fence_end < 0:
+        raise ValidationError(f"unterminated authority fence after: {marker}")
+    prose_start = fence_end + len("\n```")
+    if next_marker is None:
+        prose_end = len(text)
+    else:
+        prose_end = text.find(next_marker, prose_start)
+        if prose_end < 0:
+            raise ValidationError(f"missing authority section terminator: {next_marker}")
+    return re.sub(r"\s+", " ", text[prose_start:prose_end].strip())
+
+
 def validate_text(text: str) -> list[str]:
     checks: list[str] = []
 
@@ -299,9 +341,13 @@ def validate_text(text: str) -> list[str]:
     decision = parse_flat_mapping(decision_block, "current decision")
     if tuple(decision) != EXPECTED_CURRENT_DECISION:
         raise ValidationError(f"current decision {decision!r} != {EXPECTED_CURRENT_DECISION!r}")
-    if "**Version:** 0.1.0" not in text:
-        raise ValidationError("active version header is not frozen v0.1.0")
-    checks.append("authority: frozen v0.1.0; bounded implementation; capacity none")
+    version_headers = re.findall(r"^\*\*Version:\*\* .+$", text, re.MULTILINE)
+    if version_headers != [EXPECTED_VERSION_HEADER]:
+        raise ValidationError(f"version header is not exact: {version_headers!r}")
+    status_headers = re.findall(r"^\*\*Status:\*\* .+$", text, re.MULTILINE)
+    if status_headers != [EXPECTED_STATUS_HEADER]:
+        raise ValidationError(f"status header is not exact: {status_headers!r}")
+    checks.append("authority state: exact frozen header/selection/decision; capacity none")
 
     authority_surface = fenced_block_after(text, "The exact bounded implementation surface is:")
     if top_level_keys(authority_surface) != ["frozen_implementation_authority"]:
@@ -419,12 +465,20 @@ def validate_text(text: str) -> list[str]:
         )
     checks.append("release manifest: exact 44 + 66 = 110 set; self-exclusions enforced")
 
-    required_frozen_authority = (
-        "The specification is frozen. Implementation authority is limited to the exact "
-        "Phase-3 proof paths and bounded dispatch branch declared by this contract."
+    opening_authority = normalized_prose_after_fenced_block(
+        text,
+        "## Selection and authority state",
+        "## Governing predecessor boundary",
     )
-    if normalized_text.count(required_frozen_authority) != 1:
-        raise ValidationError("frozen bounded-authority sentence must occur exactly once")
+    if opening_authority != EXPECTED_OPENING_AUTHORITY_PROSE:
+        raise ValidationError("opening bounded-authority prose is not exact")
+    terminal_authority = normalized_prose_after_fenced_block(
+        text,
+        "## Current decision record",
+        None,
+    )
+    if terminal_authority != EXPECTED_TERMINAL_AUTHORITY_PROSE:
+        raise ValidationError("terminal bounded-authority prose or EOF closure is not exact")
     if (
         "The review-time document validator is the sole pre-freeze QA-code exception."
         in normalized_text
@@ -432,7 +486,7 @@ def validate_text(text: str) -> list[str]:
         raise ValidationError("obsolete pre-freeze validator exception remains active")
     if "No code may be written for this proof until" in text:
         raise ValidationError("obsolete pre-freeze no-code sentence remains")
-    checks.append("authority prose: frozen bounded implementation and unsealed evidence aligned")
+    checks.append("authority prose closure: exact opening and EOF terminal; evidence unsealed")
 
     return checks
 
@@ -549,6 +603,48 @@ def self_test_mutations(text: str) -> list[tuple[str, str]]:
                 "  new_python_paths:\n",
                 "  new_python_paths:\n    - proof_kernel/forbidden_extra_runtime.py\n",
             ),
+        )
+    )
+    mutations.append(
+        (
+            "unbounded_status_header_and_sealed_evidence",
+            replace_once(
+                text,
+                EXPECTED_STATUS_HEADER,
+                "**Status:** Frozen specification; unbounded production implementation "
+                "authorized; evidence sealed",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "unbounded_opening_authority_prose",
+            replace_once(
+                text,
+                "This reviewed freeze authorizes only the exact bounded Phase-3 proof,",
+                "This reviewed freeze authorizes unbounded Phase-3 production runtime,",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "terminal_capacity_and_production_grant",
+            replace_once(
+                text,
+                "It grants no capacity\n"
+                "advancement, production architecture, or adjacent spatial scope.",
+                "It grants capacity advancement and production architecture.",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "appended_active_authority_override",
+            text
+            + "\n## Active authority override\n\n"
+            + "implementation_authority: unbounded_production_runtime\n"
+            + "evidence_status: sealed\n"
+            + "capacity_advancement: authorized\n",
         )
     )
     mutations.append(
