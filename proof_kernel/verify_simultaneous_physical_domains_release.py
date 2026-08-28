@@ -26,15 +26,22 @@ from simultaneous_physical_domains import (
     REFRESH_FAULT_STAGES,
     WITNESS_IDS,
     artifact_role_set_valid,
+    bind_invocation,
     canonical_records,
     canonical_json,
     canonical_transition_run,
+    current_head_authority_failures,
     current_head_observation,
+    fault_arm_invocation,
     guard_open_control,
     head_observation_failure_witness,
     head_observation_fault_atomicity,
+    inspection_invocation,
     operation_receipt_matrix,
+    operational_process_instance_id,
+    process_binding,
     projection_matrix,
+    refresh_invocation,
     retention_equivalence_oracle,
     retention_witness,
     sha256_value,
@@ -141,6 +148,117 @@ NON_ARTIFACT_MEMBERS = (
     + PYTHON_SOURCE_MEMBERS
     + UNREAL_PROJECT_MEMBERS
 )
+
+
+AUTHORITY_EXECUTION_EXPECTATIONS = (
+    ("validate_materialization_receipt", "materialization_receipt_emission", "representation_digest_mismatch"),
+    ("validate_projection", "projection_verification", "projection_matrix_mismatch"),
+    ("head_disposition", "disposition", "synchronized_head_mismatch"),
+    ("require_physical_capability", "current_head_authority_guard", "canonical_scheduling_disabled"),
+    ("require_physical_capability", "current_head_authority_guard", "canonical_mutation_disabled"),
+    ("head_disposition", "disposition", "synchronized_head_mismatch"),
+    ("validate_physical_observation", "live_mesh_visibility_and_material_parameter_read", "live_mesh_surface_mismatch"),
+    ("authoritative_representation", "sealed_canonical_payload_validation", "CanonicalTopologyRejected"),
+    ("authoritative_representation", "sealed_canonical_payload_validation", "CanonicalTopologyRejected"),
+    ("validate_physical_observation", "immutable_process_binding_verification", "physical_observation_binding_mismatch"),
+    (
+        "canonical_transition_run_signature_and_two_normal_order_replays",
+        "canonical_transition_run_signature_and_two_normal_order_replays",
+        "undeclared_order_argument_rejected_by_signature",
+    ),
+    ("validate_projection/two_redirected_fields", "validate_projection/two_redirected_fields", "live_or_bound_adversary_rejected"),
+    ("validate_projection", "projection_verification", "projection_matrix_mismatch"),
+    ("validate_projection", "projection_verification", "projection_matrix_mismatch"),
+    ("validate_materialization_receipt", "process_binding_identity_verification", "receipt_binding_mismatch"),
+    ("compiled_refresh_fault/local_atomic_publication/after", "compiled_refresh_fault/local_atomic_publication/after", "live_or_bound_adversary_rejected"),
+    (
+        "live_W6_refresh_failure_plus_live_W7_destruction_then_sealed_resolver_signature",
+        "live_W6_refresh_failure_plus_live_W7_destruction_then_sealed_resolver_signature",
+        "undeclared_canonical_input_rejected_by_signature",
+    ),
+    ("canonical_records_signature", "canonical_records_signature", "undeclared_canonical_input_rejected_by_signature"),
+    (
+        "guard_open_control_and_live_W8_exact_canonical_commit",
+        "phase3_physical_harness_protocol_after_exact_canonical_commit",
+        "guard_open_commit_terminal_protocol_invalid",
+    ),
+    ("verify_current_head_observation", "head_observation", "head_observation_mismatch"),
+    ("PhysicalCurrentHeadGuard", "physical_guard_transition", "refresh_before_durable_stale_open"),
+    ("PhysicalCurrentHeadGuard.assert_refresh_eligible", "PhysicalCurrentHeadGuard.assert_refresh_eligible", "live_or_bound_adversary_rejected"),
+    ("validate_physical_observation", "live_world_actor_enumeration", "nonlive_observation_source"),
+    ("validate_projection", "projection_verification", "projection_matrix_mismatch"),
+    ("two_live_W5_adapter_refreshes_and_H1_projection_comparison", "two_live_W5_adapter_refreshes_and_H1_projection_comparison", "live_or_bound_adversary_rejected"),
+    ("validate_materialization_receipt", "process_binding_identity_verification", "receipt_binding_mismatch"),
+    ("two_fresh_live_router_processes", "two_fresh_live_router_processes", "live_or_bound_adversary_rejected"),
+    ("live_W6_corrupt_receipt_bundle_to_UE_adapter", "live_W6_corrupt_receipt_bundle_to_UE_adapter", "live_or_bound_adversary_rejected"),
+    ("ASimultaneousPhysicalDomainCommandRouter::HandleLine", "ASimultaneousPhysicalDomainCommandRouter::HandleLine", "live_or_bound_adversary_rejected"),
+    (
+        "canonical_records_and_canonical_transition_run_signatures",
+        "canonical_records_and_canonical_transition_run_signatures",
+        "guard_and_head_arguments_rejected_by_signature",
+    ),
+    ("head_disposition", "disposition", "synchronized_prerequisite_missing"),
+    ("validate_physical_observation", "live_world_actor_enumeration", "nonlive_observation_source"),
+    (
+        "live_W1_probe_observation_mutation_rejections_and_24_live_probe_faults",
+        "live_W1_probe_observation_mutation_rejections_and_24_live_probe_faults",
+        "live_or_bound_adversary_rejected",
+    ),
+    ("ASimultaneousPhysicalDomainCommandRouter::HandleLine", "ASimultaneousPhysicalDomainCommandRouter::HandleLine", "live_or_bound_adversary_rejected"),
+    ("head_disposition", "disposition", "synchronized_prerequisite_missing"),
+    ("require_physical_capability", "current_head_authority_guard", "current_head_materialization_claim_disabled"),
+    ("ASimultaneousPhysicalDomainCommandRouter::HandleLine", "ASimultaneousPhysicalDomainCommandRouter::HandleLine", "live_or_bound_adversary_rejected"),
+)
+
+
+AUTHORITY_DESCRIPTION_INPUTS = {
+    1: "H0 receipt claims H1 with H0 bytes",
+    2: "H0 projection claims H1",
+    3: "H0 cache publishes current receipt",
+    4: "H0 scheduler capability against H1",
+    5: "H0 mutation capability against H1",
+    6: "stale diagnostic relabeled synchronized",
+    7: "stale available route claimed current",
+    8: "local state rewrites canonical route",
+    9: "local state constructs competing successor",
+    10: "other-domain state used as head oracle",
+    13: "shared route omitted",
+    14: "projection supplies route access",
+    15: "replacement process claims original binding",
+    20: "bad head observation reopens eligibility",
+    21: "publication failure does not fail closed",
+    23: "observation derived from domain",
+    24: "retained scalar selects H1 fact",
+    26: "PID reuse accepted as liveness",
+    31: "receipt-only rebind accepted",
+    32: "probe derives result from adapter data",
+    35: "synchronized disposition lacks prerequisites",
+    36: "non-synchronized claim enabled",
+}
+
+
+AUTHORITY_CASE_12_REDIRECTED_INPUTS = [
+    {
+        "actual_validation_path": "validate_projection",
+        "canonical_H1_unchanged": True,
+        "canonical_authority_acquired": False,
+        "case_id": 11,
+        "description": "physical order selects canonical outcome",
+        "reason_code": "projection_matrix_mismatch",
+        "rejected": True,
+        "rejection_stage": "projection_verification",
+    },
+    {
+        "actual_validation_path": "validate_projection",
+        "canonical_H1_unchanged": True,
+        "canonical_authority_acquired": False,
+        "case_id": 12,
+        "description": "projection site or route redirected",
+        "reason_code": "projection_matrix_mismatch",
+        "rejected": True,
+        "rejection_stage": "projection_verification",
+    },
+]
 
 
 def artifact_paths() -> tuple[str, ...]:
@@ -327,12 +445,282 @@ def _verify_fault_result(
         raise ValueError("live fault result is not bound to its command/process/boundary")
 
 
+def _is_sha256_text(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def _validated_process_binding(
+    value: Any,
+    *,
+    expected_role: str,
+    expected_witness_id: str,
+) -> tuple[dict[str, Any], str, str, tuple[int, int, int]]:
+    if not isinstance(value, dict):
+        raise ValueError("process binding evidence is absent")
+    raw = dict(value)
+    if raw.pop("binding_schema", None) != "SimultaneousPhysicalDomainProcessBinding.v1":
+        raise ValueError("process binding schema drift")
+    validated = process_binding(raw)
+    if (
+        validated != value
+        or value.get("domain_role") != expected_role
+        or value.get("witness_id") != expected_witness_id
+    ):
+        raise ValueError("process binding identity/role/witness drift")
+    instance_id = operational_process_instance_id(value)
+    binding_digest = sha256_value(value)
+    start = value["macos_process_start"]
+    birth = (value["pid"], start["seconds"], start["microseconds"])
+    return validated, instance_id, binding_digest, birth
+
+
+def _verify_domain_evidence(
+    value: Any,
+    *,
+    expected_role: str,
+    expected_witness_id: str,
+) -> tuple[dict[str, Any], str, str, tuple[int, int, int]]:
+    required = {
+        "binding", "binding_command", "head_observation_visible_to_unreal",
+        "inherited_descriptor_map", "launch_argv", "launch_environment_audit",
+        "launch_input_inventory", "other_domain_root_visible_to_unreal",
+        "physical_guard_visible_to_unreal", "refresh_input_inventory_after",
+        "refresh_input_inventory_before", "stdin_commands",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise ValueError("fault domain evidence exact member set drift")
+    binding, instance_id, binding_digest, birth = _validated_process_binding(
+        value["binding"],
+        expected_role=expected_role,
+        expected_witness_id=expected_witness_id,
+    )
+    if (
+        value.get("binding_command") != bind_invocation(binding)
+        or hashlib.sha256(canonical_json(value.get("launch_argv")).encode("utf-8")).hexdigest()
+        != binding.get("launch_argv_raw_sha256")
+        or sha256_value(value.get("launch_environment_audit"))
+        != binding.get("launch_environment_audit_raw_sha256")
+        or sha256_value(value.get("inherited_descriptor_map"))
+        != binding.get("inherited_descriptor_map_raw_sha256")
+        or value.get("head_observation_visible_to_unreal") is not False
+        or value.get("physical_guard_visible_to_unreal") is not False
+        or value.get("other_domain_root_visible_to_unreal") is not False
+        or not isinstance(value.get("stdin_commands"), list)
+    ):
+        raise ValueError("fault domain evidence is not bound to its process/input closure")
+    return binding, instance_id, binding_digest, birth
+
+
+def _verify_liveness_sample(
+    value: Any,
+    *,
+    expected_role: str,
+    expected_checkpoint: str | None,
+    binding: Mapping[str, Any] | None = None,
+    instance_id: str | None = None,
+) -> tuple[str, str, tuple[int, int, int]]:
+    required = {
+        "checkpoint", "control_pipe_unexpected_eof", "direct_child_ppid_matches_harness",
+        "domain_role", "macos_process_start", "operational_process_instance_id",
+        "original_child_handle_exit_observed", "pid", "process_binding_raw_sha256",
+        "replacement_spawn_count", "structured_output_pipe_unexpected_eof",
+        "wait_status_available",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise ValueError("process liveness evidence exact member set drift")
+    start = value.get("macos_process_start")
+    if (
+        value.get("domain_role") != expected_role
+        or (expected_checkpoint is not None and value.get("checkpoint") != expected_checkpoint)
+        or not isinstance(value.get("checkpoint"), str)
+        or not value.get("checkpoint")
+        or type(value.get("pid")) is not int
+        or value["pid"] <= 0
+        or not isinstance(start, dict)
+        or set(start) != {"seconds", "microseconds"}
+        or type(start.get("seconds")) is not int
+        or type(start.get("microseconds")) is not int
+        or start["seconds"] < 0
+        or not 0 <= start["microseconds"] <= 999999
+        or not _is_sha256_text(value.get("operational_process_instance_id"))
+        or not _is_sha256_text(value.get("process_binding_raw_sha256"))
+        or value.get("direct_child_ppid_matches_harness") is not True
+        or value.get("original_child_handle_exit_observed") is not False
+        or value.get("control_pipe_unexpected_eof") is not False
+        or value.get("structured_output_pipe_unexpected_eof") is not False
+        or value.get("replacement_spawn_count") != 0
+        or value.get("wait_status_available") is not False
+    ):
+        raise ValueError("process liveness evidence is not a live original process")
+    if binding is not None:
+        expected_instance = operational_process_instance_id(binding)
+        if (
+            value["pid"] != binding.get("pid")
+            or start != binding.get("macos_process_start")
+            or value["operational_process_instance_id"] != expected_instance
+            or value["process_binding_raw_sha256"] != sha256_value(binding)
+            or (instance_id is not None and instance_id != expected_instance)
+        ):
+            raise ValueError("process liveness evidence does not bind the declared process")
+    birth = (value["pid"], start["seconds"], start["microseconds"])
+    return (
+        value["operational_process_instance_id"],
+        value["process_binding_raw_sha256"],
+        birth,
+    )
+
+
+def _verify_fault_case_binding(
+    case: Mapping[str, Any],
+    *,
+    surface: str,
+    stage: str,
+    edge: str,
+    head_role: str,
+    result_key: str,
+    owner_key: str,
+    expected_owner: str,
+) -> dict[str, Any]:
+    command = case.get("fault_arm_command")
+    receipt = case.get("fault_arm_receipt")
+    result = case.get(result_key)
+    expected_command = fault_arm_invocation(
+        surface=surface,
+        stage=stage,
+        edge=edge,
+        head_role=head_role,
+    )
+    expected_run_id = expected_command["fault_run_id"]
+    expected_case_schema = (
+        "SimultaneousPhysicalDomainsLiveRefreshFaultCase.v1"
+        if surface == "refresh"
+        else "SimultaneousPhysicalDomainsLivePhysicalObservationFaultCase.v1"
+    )
+    expected_input_origin = (
+        "fresh_original_UE_process_exact_H1_bundle_and_stdin_fault_arm"
+        if surface == "refresh"
+        else "fresh_original_UE_process_live_representation_and_exact_stdin_fault_arm"
+    )
+    if (
+        not isinstance(command, dict)
+        or command != expected_command
+        or case.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+        or case.get("case_schema") != expected_case_schema
+        or case.get("input_origin") != expected_input_origin
+        or case.get("fault_stage") != stage
+        or case.get("fault_edge") != edge
+        or case.get("fault_run_id") != expected_run_id
+        or (surface == "physical_observation" and case.get("head_role") != head_role)
+        or case.get(owner_key) != expected_owner
+    ):
+        raise ValueError("fault row label/owner is not bound to its exact command")
+
+    target_evidence = case.get("target_domain_evidence")
+    peer_evidence = case.get("peer_domain_evidence")
+    target_binding, target_id, target_digest, target_birth = _verify_domain_evidence(
+        target_evidence,
+        expected_role="domain_A",
+        expected_witness_id=("f_refresh_fault" if surface == "refresh" else "f_physical_observation_fault"),
+    )
+    peer_binding, peer_id, peer_digest, peer_birth = _verify_domain_evidence(
+        peer_evidence,
+        expected_role="domain_B",
+        expected_witness_id=("f_refresh_fault" if surface == "refresh" else "f_physical_observation_fault"),
+    )
+    if (
+        case.get("target_process_binding") != target_binding
+        or case.get("target_executable_raw_sha256") != target_binding.get("executable_raw_sha256")
+    ):
+        raise ValueError("fault target row does not embed its exact process binding")
+
+    target_commands = target_evidence["stdin_commands"]
+    peer_commands = peer_evidence["stdin_commands"]
+    expected_target_operations = (
+        ["bind_process_once", "inspect_published_route_once", "arm_exact_fault_once", "refresh_once"]
+        if surface == "refresh"
+        else (
+            ["bind_process_once", "arm_exact_fault_once", "inspect_published_route_once"]
+            if head_role == "H0"
+            else [
+                "bind_process_once", "inspect_published_route_once", "refresh_once",
+                "arm_exact_fault_once", "inspect_published_route_once",
+            ]
+        )
+    )
+    if (
+        [member.get("operation") for member in target_commands] != expected_target_operations
+        or target_commands.count(command) != 1
+        or target_commands[0] != bind_invocation(target_binding)
+        or [member.get("operation") for member in peer_commands]
+        != ["bind_process_once", "inspect_published_route_once"]
+        or peer_commands[0] != bind_invocation(peer_binding)
+        or any(member.get("operation") == "arm_exact_fault_once" for member in peer_commands)
+    ):
+        raise ValueError("fault command is not bound to the exact target/peer stdin histories")
+
+    if not isinstance(receipt, dict) or not isinstance(result, dict):
+        raise ValueError("fault receipt/result evidence is absent")
+    validate_fault_arm_receipt(receipt, command=command, binding=target_binding)
+    _verify_fault_result(result, command, target_binding)
+    peer_checkpoint = (
+        f"refresh_fault/{stage}/{edge}/peer_alive"
+        if surface == "refresh"
+        else f"physical_observation_fault/{head_role}/{stage}/peer_alive"
+    )
+    _verify_liveness_sample(
+        case.get("peer_original_process_alive"),
+        expected_role="domain_B",
+        expected_checkpoint=peer_checkpoint,
+        binding=peer_binding,
+        instance_id=peer_id,
+    )
+    return {
+        "target_id": target_id,
+        "target_digest": target_digest,
+        "target_birth": target_birth,
+        "peer_id": peer_id,
+        "peer_digest": peer_digest,
+        "peer_birth": peer_birth,
+        "result_digest": sha256_value(result),
+        "target_evidence_digest": sha256_value(target_evidence),
+        "peer_evidence_digest": sha256_value(peer_evidence),
+    }
+
+
+def _verify_fresh_fault_matrix(rows: list[Mapping[str, Any]], *, label: str) -> None:
+    count = len(rows)
+    for key in (
+        "target_id", "target_digest", "target_birth", "peer_id", "peer_digest",
+        "peer_birth", "result_digest", "target_evidence_digest", "peer_evidence_digest",
+    ):
+        if len({row[key] for row in rows}) != count:
+            raise ValueError(f"{label} reused matrix evidence: {key}")
+    if (
+        not {row["target_id"] for row in rows}.isdisjoint(row["peer_id"] for row in rows)
+        or not {row["target_digest"] for row in rows}.isdisjoint(row["peer_digest"] for row in rows)
+        or len({row["target_birth"] for row in rows} | {row["peer_birth"] for row in rows}) != count * 2
+    ):
+        raise ValueError(f"{label} target/peer process identity was reused")
+
+
 def _verify_refresh_fault_payload(value: Mapping[str, Any]) -> None:
+    if set(value) != {
+        "all_fail_closed_without_canonical_effect", "all_faults_executed",
+        "case_count", "cases", "execution_surface", "fault_edges", "fault_stages",
+        "oracle_schema", "proof_scenario",
+    }:
+        raise ValueError("refresh fault matrix exact member set drift")
     cases = value.get("cases")
     expected_pairs = [(stage, edge) for stage in REFRESH_FAULT_STAGES for edge in ("before", "after")]
     actual_pairs = [(case.get("fault_stage"), case.get("fault_edge")) for case in cases or []]
     if (
-        value.get("fault_stages") != list(REFRESH_FAULT_STAGES)
+        value.get("oracle_schema") != "SimultaneousPhysicalDomainsRefreshFaultAtomicity.v1"
+        or value.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+        or value.get("fault_stages") != list(REFRESH_FAULT_STAGES)
         or value.get("fault_edges") != ["before", "after"]
         or value.get("case_count") != 36
         or value.get("execution_surface") != "36_fresh_compiled_UE_adapter_or_router_boundaries"
@@ -341,28 +729,62 @@ def _verify_refresh_fault_payload(value: Mapping[str, Any]) -> None:
         or value.get("all_fail_closed_without_canonical_effect") is not True
     ):
         raise ValueError("exact live refresh fault matrix drift")
+    required_case_members = {
+        "canonical_H1_unchanged", "canonical_before_after_measurement",
+        "canonical_transition", "case_schema", "compiled_boundary_owner",
+        "compiled_boundary_result", "emitted_materialization_receipt_not_accepted",
+        "fault_arm_command", "fault_arm_receipt", "fault_edge", "fault_run_id",
+        "fault_stage", "guard_machine", "head_publication", "input_origin",
+        "launch_acceptance", "peer_domain_evidence", "peer_original_process_alive",
+        "proof_scenario", "resulting_disposition", "retry_permitted",
+        "target_domain_evidence", "target_executable_raw_sha256",
+        "target_process_binding",
+    }
+    verified_rows: list[Mapping[str, Any]] = []
     for case in cases:
+        if set(case) != required_case_members:
+            raise ValueError("refresh fault row exact member set drift")
         binding = case.get("target_process_binding")
         command = case.get("fault_arm_command")
         arm_receipt = case.get("fault_arm_receipt")
         result = case.get("compiled_boundary_result")
         if not all(isinstance(member, dict) for member in (binding, command, arm_receipt, result)):
             raise ValueError("Python-only refresh fault row lacks compiled UE binding evidence")
-        if case.get("target_executable_raw_sha256") != binding.get("executable_raw_sha256"):
-            raise ValueError("refresh fault executable identity drift")
-        validate_fault_arm_receipt(arm_receipt, command=command, binding=binding)
-        _verify_fault_result(result, command, binding)
+        owner = (
+            "ASimultaneousPhysicalDomainCommandRouter"
+            if case["fault_stage"] in ("invocation_read", "materialization_receipt_emission")
+            else "ASimultaneousPhysicalDomainProofAdapter"
+        )
+        verified_rows.append(_verify_fault_case_binding(
+            case,
+            surface="refresh",
+            stage=case["fault_stage"],
+            edge=case["fault_edge"],
+            head_role="H1",
+            result_key="compiled_boundary_result",
+            owner_key="compiled_boundary_owner",
+            expected_owner=owner,
+        ))
         _verify_canonical_relation(case.get("canonical_before_after_measurement"), "unchanged_H1")
         if case.get("canonical_H1_unchanged") is not True:
             raise ValueError("refresh fault hard-coded/false canonical relation")
+    _verify_fresh_fault_matrix(verified_rows, label="refresh fault")
 
 
 def _verify_physical_fault_payload(value: Mapping[str, Any]) -> None:
+    if set(value) != {
+        "all_fail_closed_without_canonical_effect", "all_faults_executed", "cases",
+        "execution_surface", "fault_stages", "head_role_case_count", "head_roles",
+        "oracle_schema", "proof_scenario",
+    }:
+        raise ValueError("physical-observation fault matrix exact member set drift")
     cases = value.get("cases")
     expected_pairs = [(stage, head) for stage in PHYSICAL_OBSERVATION_FAULT_STAGES for head in ("H0", "H1")]
     actual_pairs = [(case.get("fault_stage"), case.get("head_role")) for case in cases or []]
     if (
-        value.get("fault_stages") != list(PHYSICAL_OBSERVATION_FAULT_STAGES)
+        value.get("oracle_schema") != "SimultaneousPhysicalDomainsPhysicalObservationFaultAtomicity.v1"
+        or value.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+        or value.get("fault_stages") != list(PHYSICAL_OBSERVATION_FAULT_STAGES)
         or value.get("head_roles") != ["H0", "H1"]
         or value.get("head_role_case_count") != 24
         or value.get("execution_surface")
@@ -372,32 +794,358 @@ def _verify_physical_fault_payload(value: Mapping[str, Any]) -> None:
         or value.get("all_fail_closed_without_canonical_effect") is not True
     ):
         raise ValueError("exact live physical-observation fault matrix drift")
+    required_case_members = {
+        "accepted_physical_observation", "boundary_result",
+        "canonical_before_after_measurement", "canonical_transition", "canonical_unchanged",
+        "case_schema", "compiled_or_harness_boundary_owner", "fault_arm_command",
+        "fault_arm_receipt", "fault_edge", "fault_run_id", "fault_stage",
+        "guard_machine", "head_publication", "head_role", "input_origin",
+        "live_observation_emitted_but_not_accepted", "peer_domain_evidence",
+        "peer_launch_acceptance", "peer_original_process_alive", "proof_scenario",
+        "resulting_disposition", "target_domain_evidence", "target_executable_raw_sha256",
+        "target_materialization_receipt", "target_process_binding",
+    }
+    verified_rows: list[Mapping[str, Any]] = []
     for case in cases:
+        if set(case) != required_case_members:
+            raise ValueError("physical-observation fault row exact member set drift")
         binding = case.get("target_process_binding")
         command = case.get("fault_arm_command")
         arm_receipt = case.get("fault_arm_receipt")
         result = case.get("boundary_result")
         if not all(isinstance(member, dict) for member in (binding, command, arm_receipt, result)):
             raise ValueError("Python-only observation fault row lacks original UE binding evidence")
-        if case.get("target_executable_raw_sha256") != binding.get("executable_raw_sha256"):
-            raise ValueError("observation fault executable identity drift")
-        validate_fault_arm_receipt(arm_receipt, command=command, binding=binding)
-        _verify_fault_result(result, command, binding)
+        if case["fault_stage"] in ("inspection_invocation_read", "physical_observation_emission"):
+            owner = "ASimultaneousPhysicalDomainCommandRouter"
+        elif case["fault_stage"] == "harness_receipt_observation_head_cross_check":
+            owner = "python_harness_receipt_observation_head_cross_check"
+        else:
+            owner = "ASimultaneousPhysicalRebindProbe"
+        verified_rows.append(_verify_fault_case_binding(
+            case,
+            surface="physical_observation",
+            stage=case["fault_stage"],
+            edge="at",
+            head_role=case["head_role"],
+            result_key="boundary_result",
+            owner_key="compiled_or_harness_boundary_owner",
+            expected_owner=owner,
+        ))
         _verify_canonical_relation(
             case.get("canonical_before_after_measurement"),
             "unchanged_H0" if case["head_role"] == "H0" else "unchanged_H1",
         )
         if case.get("accepted_physical_observation") is not None:
             raise ValueError("faulted physical observation was accepted")
+    _verify_fresh_fault_matrix(verified_rows, label="physical-observation fault")
+
+
+def _verify_live_authority_attack(
+    value: Any,
+    *,
+    attack: str,
+) -> dict[str, Any]:
+    required = {
+        "actual_command", "actual_validation_path", "attack",
+        "canonical_before_after_measurement", "canonical_transition",
+        "canonical_unchanged", "live_stdin_command_count_delta",
+        "peer_alive_after_rejection", "rejection", "target_alive_after_rejection",
+        "target_executable_raw_sha256", "target_process_binding",
+    }
+    if not isinstance(value, dict) or set(value) != required or value.get("attack") != attack:
+        raise ValueError(f"authority live attack exact member/identity drift: {attack}")
+
+    expected_command: dict[str, Any]
+    if attack == "inspection_expected_outcome":
+        expected_command = inspection_invocation("domain_A", "launch_physical_0001")
+        expected_command["expected_access_state"] = "available"
+    elif attack == "undeclared_semantic_input":
+        expected_command = {
+            "command_schema": "UndeclaredPhase3SemanticInput.v1",
+            "proof_scenario": "simultaneous-physical-domains-v1.1",
+            "domain_role": "domain_A",
+            "environment_selector": "undeclared",
+            "alternate_channel": "stdin_attempt",
+        }
+    else:
+        expected_command = refresh_invocation("domain_A")
+        if attack == "alternate_refresh":
+            expected_command["alternate_channel"] = "directory_poll"
+        elif attack == "refresh_head_field":
+            expected_command["current_head_observation"] = current_head_observation()
+        elif attack not in ("refresh_before_head_observation", "second_refresh"):
+            raise ValueError(f"unknown authority live attack contract: {attack}")
+
+    expectations = {
+        "refresh_before_head_observation": (
+            "PhysicalCurrentHeadGuard.assert_refresh_eligible", 1,
+            "HarnessPhysicalCurrentHeadGuardRejection.v1", "physical_guard_transition",
+            "refresh_before_durable_stale_open", "unchanged_H1", None,
+        ),
+        "alternate_refresh": (
+            "ASimultaneousPhysicalDomainCommandRouter::HandleLine", 2,
+            "SimultaneousPhysicalDomainFailure.v1", "invocation_read",
+            "invalid_duplicate_or_out_of_order_refresh", "unchanged_H1", H0,
+        ),
+        "second_refresh": (
+            "ASimultaneousPhysicalDomainCommandRouter::HandleLine", 3,
+            "SimultaneousPhysicalDomainFailure.v1", "invocation_read",
+            "invalid_duplicate_or_out_of_order_refresh", "unchanged_H1", H1,
+        ),
+        "refresh_head_field": (
+            "ASimultaneousPhysicalDomainCommandRouter::HandleLine", 2,
+            "SimultaneousPhysicalDomainFailure.v1", "invocation_read",
+            "invalid_duplicate_or_out_of_order_refresh", "unchanged_H1", H0,
+        ),
+        "inspection_expected_outcome": (
+            "ASimultaneousPhysicalDomainCommandRouter::HandleLine", 1,
+            "SimultaneousPhysicalDomainFailure.v1", "inspection_invocation_read",
+            "invalid_inspection_command", "unchanged_H0", H0,
+        ),
+        "undeclared_semantic_input": (
+            "ASimultaneousPhysicalDomainCommandRouter::HandleLine", 1,
+            "SimultaneousPhysicalDomainFailure.v1", "invocation_read",
+            "unknown_command_schema", "unchanged_H0", H0,
+        ),
+    }
+    path, command_delta, schema, stage, reason, relation, represented_hash = expectations[attack]
+    if (
+        value.get("actual_command") != expected_command
+        or value.get("actual_validation_path") != path
+        or value.get("live_stdin_command_count_delta") != command_delta
+        or value.get("canonical_unchanged") is not True
+    ):
+        raise ValueError(f"authority live command/path/count drift: {attack}")
+    _verify_canonical_relation(value.get("canonical_before_after_measurement"), relation)
+    expected_transition = canonical_transition_run() if relation == "unchanged_H1" else None
+    if value.get("canonical_transition") != expected_transition:
+        raise ValueError(f"authority live transition binding drift: {attack}")
+
+    binding, target_id, target_digest, target_birth = _validated_process_binding(
+        value.get("target_process_binding"),
+        expected_role="domain_A",
+        expected_witness_id="f_refresh_fault",
+    )
+    if value.get("target_executable_raw_sha256") != binding.get("executable_raw_sha256"):
+        raise ValueError(f"authority live executable binding drift: {attack}")
+    _verify_liveness_sample(
+        value.get("target_alive_after_rejection"),
+        expected_role="domain_A",
+        expected_checkpoint=None,
+        binding=binding,
+        instance_id=target_id,
+    )
+    peer_id, peer_digest, peer_birth = _verify_liveness_sample(
+        value.get("peer_alive_after_rejection"),
+        expected_role="domain_B",
+        expected_checkpoint=None,
+    )
+    if target_id == peer_id or target_digest == peer_digest or target_birth == peer_birth:
+        raise ValueError(f"authority live target/peer identity collision: {attack}")
+
+    rejection = value.get("rejection")
+    if not isinstance(rejection, dict) or rejection.get("diagnostic_schema") != schema:
+        raise ValueError(f"authority live rejection schema drift: {attack}")
+    if (
+        rejection.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+        or rejection.get("domain_role") != "domain_A"
+        or rejection.get("local_publication_stage") != stage
+        or rejection.get("reason_code") != reason
+    ):
+        raise ValueError(f"authority live rejection path/reason drift: {attack}")
+    if schema == "HarnessPhysicalCurrentHeadGuardRejection.v1":
+        if (
+            set(rejection) != {
+                "diagnostic_schema", "proof_scenario", "domain_role",
+                "local_publication_stage", "reason_code", "refresh_command_delivered_to_unreal",
+            }
+            or rejection.get("refresh_command_delivered_to_unreal") is not False
+        ):
+            raise ValueError(f"authority harness rejection structure drift: {attack}")
+    elif (
+        set(rejection) != {
+            "diagnostic_schema", "proof_scenario", "domain_role", "operational_process_instance_id",
+            "process_binding_raw_sha256", "represented_hash_if_known",
+            "local_publication_stage", "reason_code",
+        }
+        or rejection.get("operational_process_instance_id") != target_id
+        or rejection.get("process_binding_raw_sha256") != target_digest
+        or rejection.get("represented_hash_if_known") != represented_hash
+    ):
+        raise ValueError(f"authority UE rejection process/state binding drift: {attack}")
+    return {
+        "target_id": target_id,
+        "target_digest": target_digest,
+        "target_birth": target_birth,
+        "peer_id": peer_id,
+        "peer_digest": peer_digest,
+        "peer_birth": peer_birth,
+        "execution_digest": sha256_value(value),
+    }
+
+
+def _require_signature_rejection(call: Any, *, label: str) -> None:
+    try:
+        call()
+    except TypeError:
+        return
+    raise ValueError(f"authority signature unexpectedly accepted: {label}")
+
+
+def _verify_authority_concrete_execution(
+    case: Mapping[str, Any],
+    *,
+    live_executions: list[dict[str, Any]],
+) -> None:
+    case_id = case["case_id"]
+    concrete = case.get("concrete_input_and_bound_execution")
+    if case_id in AUTHORITY_DESCRIPTION_INPUTS:
+        baseline = {
+            member["case_id"]: member
+            for member in current_head_authority_failures()["cases"]
+        }[case_id]
+        if (
+            concrete != AUTHORITY_DESCRIPTION_INPUTS[case_id]
+            or baseline.get("description") != concrete
+            or baseline.get("actual_validation_path") != case.get("actual_validation_path")
+            or baseline.get("rejection_stage") != case.get("rejection_stage")
+            or baseline.get("reason_code") != case.get("reason_code")
+            or baseline.get("rejected") is not True
+            or baseline.get("canonical_authority_acquired") is not False
+        ):
+            raise ValueError(f"authority deterministic concrete input drift: {case_id}")
+        return
+    if case_id == 11:
+        if concrete != {"physical_refresh_order": ["domain_B", "domain_A"]}:
+            raise ValueError("authority case 11 concrete order drift")
+        _require_signature_rejection(
+            lambda: canonical_transition_run(physical_refresh_order=["domain_B", "domain_A"]),  # type: ignore[call-arg]
+            label="case_11_physical_refresh_order",
+        )
+        if stored_json_bytes(canonical_transition_run()) != stored_json_bytes(canonical_transition_run()):
+            raise ValueError("authority case 11 normal canonical replay drift")
+    elif case_id == 12:
+        if concrete != AUTHORITY_CASE_12_REDIRECTED_INPUTS:
+            raise ValueError("authority case 12 redirected-field executions drift")
+    elif case_id == 16:
+        refresh = _load("simultaneous_physical_domains_refresh_fault_atomicity.json")
+        expected = next(
+            row for row in refresh["cases"]
+            if row["fault_stage"] == "local_atomic_publication" and row["fault_edge"] == "after"
+        )
+        if concrete != expected:
+            raise ValueError("authority case 16 is not bound to the exact compiled refresh fault")
+    elif case_id == 17:
+        expected = {
+            "W6_A": _load("physical_W6_asymmetric_A_synchronized_witness.json"),
+            "W6_B": _load("physical_W6_asymmetric_B_synchronized_witness.json"),
+            "W7_A": _load("physical_W7_destroy_A_witness.json"),
+            "W7_B": _load("physical_W7_destroy_B_witness.json"),
+            "attempted_H1_change": "canonical_records(domain_destruction_or_refresh_failure=...) rejected",
+        }
+        if concrete != expected:
+            raise ValueError("authority case 17 live destruction/refresh evidence drift")
+        _require_signature_rejection(
+            lambda: canonical_records(domain_destruction_or_refresh_failure=concrete),  # type: ignore[call-arg]
+            label="case_17_domain_destruction_or_refresh_failure",
+        )
+    elif case_id == 18:
+        if concrete != {"local_state": {"route_access_cache": "available"}}:
+            raise ValueError("authority case 18 local-state input drift")
+        _require_signature_rejection(
+            lambda: canonical_records(local_state=concrete),  # type: ignore[call-arg]
+            label="case_18_local_state",
+        )
+    elif case_id == 19:
+        guard = _load("simultaneous_physical_domains_guard_open_canonical_control.json")
+        expected = {
+            "canonical_control": {key: value for key, value in guard.items() if key != "physical_witness"},
+            "live_physical_control": guard["physical_witness"],
+        }
+        if concrete != expected:
+            raise ValueError("authority case 19 canonical/live guard control drift")
+    elif case_id == 22:
+        live_executions.append(_verify_live_authority_attack(
+            concrete, attack="refresh_before_head_observation",
+        ))
+    elif case_id == 25:
+        expected = {
+            "baseline": _load("physical_W5_retention_baseline_witness.json")["physical_witness"],
+            "perturbed": _load("physical_W5_retention_perturbed_witness.json")["physical_witness"],
+        }
+        if concrete != expected:
+            raise ValueError("authority case 25 live retention evidence drift")
+    elif case_id == 27:
+        if not isinstance(concrete, dict) or set(concrete) != {"alternate_refresh", "second_refresh"}:
+            raise ValueError("authority case 27 exact two-command evidence drift")
+        live_executions.append(_verify_live_authority_attack(
+            concrete["alternate_refresh"], attack="alternate_refresh",
+        ))
+        live_executions.append(_verify_live_authority_attack(
+            concrete["second_refresh"], attack="second_refresh",
+        ))
+    elif case_id == 28:
+        expected = {
+            "A_failure": _load("physical_W6_asymmetric_B_synchronized_witness.json")["refresh_failures"]["domain_A"],
+            "B_failure": _load("physical_W6_asymmetric_A_synchronized_witness.json")["refresh_failures"]["domain_B"],
+        }
+        if concrete != expected:
+            raise ValueError("authority case 28 corrupt-bundle live failures drift")
+    elif case_id == 29:
+        live_executions.append(_verify_live_authority_attack(
+            concrete, attack="refresh_head_field",
+        ))
+    elif case_id == 30:
+        expected = {
+            "physical_guard": "open_for_H1",
+            "current_head_observation": current_head_observation(),
+        }
+        if concrete != expected:
+            raise ValueError("authority case 30 guard/head input drift")
+        _require_signature_rejection(
+            lambda: canonical_transition_run(
+                physical_guard="open_for_H1", current_head=current_head_observation(),  # type: ignore[call-arg]
+            ),
+            label="case_30_guard_and_head",
+        )
+    elif case_id == 33:
+        w1 = _load("physical_W1_a_then_b_witness.json")
+        expected = {
+            "live_H0": w1["launch_observations"]["domain_A"],
+            "live_H1": w1["refresh_observations"]["domain_A"],
+            "live_fault_case_count": 24,
+        }
+        if concrete != expected:
+            raise ValueError("authority case 33 live probe/fault evidence drift")
+    elif case_id == 34:
+        live_executions.append(_verify_live_authority_attack(
+            concrete, attack="inspection_expected_outcome",
+        ))
+    elif case_id == 37:
+        live_executions.append(_verify_live_authority_attack(
+            concrete, attack="undeclared_semantic_input",
+        ))
+    else:
+        raise ValueError(f"authority concrete execution contract missing: {case_id}")
 
 
 def _verify_authority_payload(value: Mapping[str, Any]) -> None:
+    if set(value) != {
+        "all_canonical_measurements_recomputed", "all_real_validation_paths_executed",
+        "all_rejected_or_protocol_invalid_as_frozen", "authority_case_actions",
+        "case_count", "cases", "oracle_schema", "proof_scenario",
+    }:
+        raise ValueError("authority oracle exact member set drift")
     exact_table = {
         str(index): action for index, action in enumerate(AUTHORITY_CASE_ACTIONS, start=1)
     }
     cases = value.get("cases")
     if (
-        value.get("authority_case_actions") != exact_table
+        len(AUTHORITY_EXECUTION_EXPECTATIONS) != 37
+        or value.get("oracle_schema")
+        != "SimultaneousPhysicalDomainsCurrentHeadAuthorityFailures.v1.1"
+        or value.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+        or value.get("authority_case_actions") != exact_table
         or value.get("case_count") != 37
         or [case.get("case_id") for case in cases or []] != list(range(1, 38))
         or [case.get("action_id") for case in cases or []] != list(AUTHORITY_CASE_ACTIONS)
@@ -406,18 +1154,30 @@ def _verify_authority_payload(value: Mapping[str, Any]) -> None:
         or value.get("all_canonical_measurements_recomputed") is not True
     ):
         raise ValueError("37-row authority case/action table drift")
+    live_executions: list[dict[str, Any]] = []
+    required_case_members = {
+        "action_id", "actual_validation_path", "canonical_H1_unchanged",
+        "canonical_authority_acquired", "canonical_before_after_measurement", "case_id",
+        "concrete_input_and_bound_execution", "exact_H0_to_H1_committed", "reason_code",
+        "rejected_or_protocol_invalid_as_frozen", "rejection_stage",
+    }
     for case in cases:
+        if set(case) != required_case_members:
+            raise ValueError("authority case exact member set drift")
         case_id = case["case_id"]
+        expected_path, expected_stage, expected_reason = AUTHORITY_EXECUTION_EXPECTATIONS[case_id - 1]
         expected_relation = "exact_H0_to_H1" if case_id == 19 else "unchanged_H1"
         _verify_canonical_relation(case.get("canonical_before_after_measurement"), expected_relation)
         if (
-            not case.get("actual_validation_path")
+            case.get("actual_validation_path") != expected_path
+            or case.get("rejection_stage") != expected_stage
+            or case.get("reason_code") != expected_reason
             or "concrete_input_and_bound_execution" not in case
-            or not case.get("reason_code")
             or case.get("canonical_authority_acquired") is not False
             or case.get("rejected_or_protocol_invalid_as_frozen") is not True
         ):
             raise ValueError(f"authority case execution evidence drift: {case_id}")
+        _verify_authority_concrete_execution(case, live_executions=live_executions)
         if case_id == 19:
             concrete = case["concrete_input_and_bound_execution"]
             control = concrete["canonical_control"]
@@ -433,6 +1193,27 @@ def _verify_authority_payload(value: Mapping[str, Any]) -> None:
                 raise ValueError("authority case 19 exact canonical commit/protocol failure drift")
         elif case.get("canonical_H1_unchanged") is not True:
             raise ValueError(f"authority case {case_id} unchanged summary not derived")
+    if len(live_executions) != 6:
+        raise ValueError("authority live execution count drift")
+    for key in (
+        "target_id", "target_digest", "target_birth", "peer_id", "peer_digest",
+        "peer_birth", "execution_digest",
+    ):
+        if len({execution[key] for execution in live_executions}) != len(live_executions):
+            raise ValueError(f"authority live execution reused evidence: {key}")
+    if (
+        not {execution["target_id"] for execution in live_executions}.isdisjoint(
+            execution["peer_id"] for execution in live_executions
+        )
+        or not {execution["target_digest"] for execution in live_executions}.isdisjoint(
+            execution["peer_digest"] for execution in live_executions
+        )
+        or len(
+            {execution["target_birth"] for execution in live_executions}
+            | {execution["peer_birth"] for execution in live_executions}
+        ) != len(live_executions) * 2
+    ):
+        raise ValueError("authority live target/peer process identities collide")
 
 
 def _verify_other_witnesses() -> None:
@@ -607,17 +1388,60 @@ def _isolated_role_regeneration() -> None:
 def _run_verifier_negative_tests() -> int:
     rejected = 0
 
+    def reject(label: str, payload: Mapping[str, Any], verifier: Any) -> None:
+        nonlocal rejected
+        try:
+            verifier(payload)
+        except (ValueError, KeyError, TypeError, AssertionError):
+            rejected += 1
+        else:
+            raise ValueError(f"negative verifier accepted adversary: {label}")
+
+    def rebind_target(
+        case: dict[str, Any],
+        binding: Mapping[str, Any],
+        *,
+        result_key: str,
+        evidence: Mapping[str, Any] | None = None,
+    ) -> None:
+        if evidence is not None:
+            case["target_domain_evidence"] = copy.deepcopy(evidence)
+        target = case["target_domain_evidence"]
+        target["binding"] = copy.deepcopy(binding)
+        target["binding_command"] = bind_invocation(binding)
+        target["stdin_commands"][0] = bind_invocation(binding)
+        for index, command in enumerate(target["stdin_commands"]):
+            if command.get("operation") == "arm_exact_fault_once":
+                target["stdin_commands"][index] = copy.deepcopy(case["fault_arm_command"])
+        instance_id = operational_process_instance_id(binding)
+        binding_digest = sha256_value(binding)
+        case["target_process_binding"] = copy.deepcopy(binding)
+        case["target_executable_raw_sha256"] = binding["executable_raw_sha256"]
+        for member in (case["fault_arm_receipt"], case[result_key]):
+            member["operational_process_instance_id"] = instance_id
+            member["process_binding_raw_sha256"] = binding_digest
+            member["executable_raw_sha256"] = binding["executable_raw_sha256"]
+
+    def rebind_peer_birth(case: dict[str, Any], source_birth: Mapping[str, Any]) -> None:
+        peer = case["peer_domain_evidence"]
+        binding = copy.deepcopy(peer["binding"])
+        binding["pid"] = source_birth["pid"]
+        binding["macos_process_start"] = copy.deepcopy(source_birth["macos_process_start"])
+        peer["binding"] = binding
+        peer["binding_command"] = bind_invocation(binding)
+        peer["stdin_commands"][0] = bind_invocation(binding)
+        alive = case["peer_original_process_alive"]
+        alive["pid"] = binding["pid"]
+        alive["macos_process_start"] = copy.deepcopy(binding["macos_process_start"])
+        alive["operational_process_instance_id"] = operational_process_instance_id(binding)
+        alive["process_binding_raw_sha256"] = sha256_value(binding)
+
     cpu_only_w3 = copy.deepcopy(_load("physical_W3_stale_quarantine_witness.json"))
     for sample in cpu_only_w3["observed_domain_samples"].values():
         sample.pop("exact_local_step_command", None)
         sample.pop("exact_local_step_observation", None)
         sample["supplemental_total_cpu_nanoseconds_delta"] = 1
-    try:
-        _verify_w3_payload(cpu_only_w3)
-    except (ValueError, KeyError, TypeError):
-        rejected += 1
-    else:
-        raise ValueError("negative verifier accepted CPU-only W3 evidence")
+    reject("cpu_only_W3", cpu_only_w3, _verify_w3_payload)
 
     python_only_faults = copy.deepcopy(
         _load("simultaneous_physical_domains_refresh_fault_atomicity.json")
@@ -626,12 +1450,7 @@ def _run_verifier_negative_tests() -> int:
     python_only_faults["cases"][0].pop("target_process_binding", None)
     python_only_faults["cases"][0].pop("fault_arm_receipt", None)
     python_only_faults["cases"][0].pop("compiled_boundary_result", None)
-    try:
-        _verify_refresh_fault_payload(python_only_faults)
-    except (ValueError, KeyError, TypeError):
-        rejected += 1
-    else:
-        raise ValueError("negative verifier accepted Python-only live fault matrix")
+    reject("python_only_refresh_matrix", python_only_faults, _verify_refresh_fault_payload)
 
     swapped_authority = copy.deepcopy(
         _load("simultaneous_physical_domains_current_head_authority_failures.json")
@@ -640,12 +1459,7 @@ def _run_verifier_negative_tests() -> int:
         swapped_authority["cases"][16]["action_id"],
         swapped_authority["cases"][10]["action_id"],
     )
-    try:
-        _verify_authority_payload(swapped_authority)
-    except (ValueError, KeyError, TypeError):
-        rejected += 1
-    else:
-        raise ValueError("negative verifier accepted swapped authority labels/actions")
+    reject("swapped_authority_action_labels", swapped_authority, _verify_authority_payload)
 
     hard_coded_unchanged = copy.deepcopy(
         _load("simultaneous_physical_domains_refresh_fault_atomicity.json")
@@ -654,14 +1468,120 @@ def _run_verifier_negative_tests() -> int:
     relation["after"]["authoritative_ledger_entry_count"] += 1
     relation["relation_verified"] = True
     hard_coded_unchanged["cases"][0]["canonical_H1_unchanged"] = True
-    try:
-        _verify_refresh_fault_payload(hard_coded_unchanged)
-    except (ValueError, KeyError, TypeError):
-        rejected += 1
-    else:
-        raise ValueError("negative verifier accepted hard-coded unchanged canonical history")
+    reject("hard_coded_unchanged_history", hard_coded_unchanged, _verify_refresh_fault_payload)
 
-    if rejected != 4:
+    refresh_source = _load("simultaneous_physical_domains_refresh_fault_atomicity.json")
+    for label, field, replacement in (
+        ("refresh_command_stage_mismatch", "fault_stage", "projection_verification"),
+        ("refresh_command_edge_mismatch", "fault_edge", "after"),
+        ("refresh_command_head_mismatch", "target_head_role", "H0"),
+        ("refresh_command_run_id_mismatch", "fault_run_id", "refresh/H1/wrong/before/domain_A"),
+    ):
+        payload = copy.deepcopy(refresh_source)
+        payload["cases"][0]["fault_arm_command"][field] = replacement
+        reject(label, payload, _verify_refresh_fault_payload)
+    payload = copy.deepcopy(refresh_source)
+    payload["cases"][0]["compiled_boundary_result"] = copy.deepcopy(
+        payload["cases"][2]["compiled_boundary_result"]
+    )
+    reject("refresh_reused_bound_result", payload, _verify_refresh_fault_payload)
+    payload = copy.deepcopy(refresh_source)
+    source_case, target_case = payload["cases"][0], payload["cases"][2]
+    rebind_target(
+        target_case,
+        source_case["target_process_binding"],
+        result_key="compiled_boundary_result",
+        evidence=source_case["target_domain_evidence"],
+    )
+    reject("refresh_reused_target_process", payload, _verify_refresh_fault_payload)
+    payload = copy.deepcopy(refresh_source)
+    source_case, target_case = payload["cases"][0], payload["cases"][2]
+    binding = copy.deepcopy(target_case["target_process_binding"])
+    binding["pid"] = source_case["target_process_binding"]["pid"]
+    binding["macos_process_start"] = copy.deepcopy(
+        source_case["target_process_binding"]["macos_process_start"]
+    )
+    rebind_target(target_case, binding, result_key="compiled_boundary_result")
+    reject("refresh_reused_target_birth_tuple", payload, _verify_refresh_fault_payload)
+    payload = copy.deepcopy(refresh_source)
+    payload["cases"][0].pop("peer_domain_evidence")
+    reject("refresh_missing_peer_evidence", payload, _verify_refresh_fault_payload)
+    payload = copy.deepcopy(refresh_source)
+    payload["cases"][0]["peer_original_process_alive"]["original_child_handle_exit_observed"] = True
+    reject("refresh_dead_peer", payload, _verify_refresh_fault_payload)
+    payload = copy.deepcopy(refresh_source)
+    payload["cases"][2]["peer_domain_evidence"] = copy.deepcopy(payload["cases"][0]["peer_domain_evidence"])
+    payload["cases"][2]["peer_original_process_alive"] = copy.deepcopy(payload["cases"][0]["peer_original_process_alive"])
+    reject("refresh_reused_peer_process", payload, _verify_refresh_fault_payload)
+    payload = copy.deepcopy(refresh_source)
+    rebind_peer_birth(payload["cases"][2], payload["cases"][0]["peer_domain_evidence"]["binding"])
+    reject("refresh_reused_peer_birth_tuple", payload, _verify_refresh_fault_payload)
+
+    physical_source = _load("simultaneous_physical_domains_physical_observation_fault_atomicity.json")
+    for label, field, replacement in (
+        ("observation_command_stage_mismatch", "fault_stage", "immutable_process_binding_verification"),
+        ("observation_command_edge_mismatch", "fault_edge", "before"),
+        ("observation_command_head_mismatch", "target_head_role", "H1"),
+        ("observation_command_run_id_mismatch", "fault_run_id", "physical_observation/H0/wrong/at/domain_A"),
+    ):
+        payload = copy.deepcopy(physical_source)
+        payload["cases"][0]["fault_arm_command"][field] = replacement
+        reject(label, payload, _verify_physical_fault_payload)
+    payload = copy.deepcopy(physical_source)
+    payload["cases"][0]["boundary_result"] = copy.deepcopy(payload["cases"][2]["boundary_result"])
+    reject("observation_reused_bound_result", payload, _verify_physical_fault_payload)
+    payload = copy.deepcopy(physical_source)
+    source_case, target_case = payload["cases"][0], payload["cases"][2]
+    rebind_target(
+        target_case,
+        source_case["target_process_binding"],
+        result_key="boundary_result",
+        evidence=source_case["target_domain_evidence"],
+    )
+    reject("observation_reused_target_process", payload, _verify_physical_fault_payload)
+    payload = copy.deepcopy(physical_source)
+    source_case, target_case = payload["cases"][0], payload["cases"][2]
+    binding = copy.deepcopy(target_case["target_process_binding"])
+    binding["pid"] = source_case["target_process_binding"]["pid"]
+    binding["macos_process_start"] = copy.deepcopy(
+        source_case["target_process_binding"]["macos_process_start"]
+    )
+    rebind_target(target_case, binding, result_key="boundary_result")
+    reject("observation_reused_target_birth_tuple", payload, _verify_physical_fault_payload)
+    payload = copy.deepcopy(physical_source)
+    payload["cases"][0].pop("peer_domain_evidence")
+    reject("observation_missing_peer_evidence", payload, _verify_physical_fault_payload)
+    payload = copy.deepcopy(physical_source)
+    payload["cases"][0]["peer_original_process_alive"]["control_pipe_unexpected_eof"] = True
+    reject("observation_dead_peer", payload, _verify_physical_fault_payload)
+    payload = copy.deepcopy(physical_source)
+    payload["cases"][2]["peer_domain_evidence"] = copy.deepcopy(payload["cases"][0]["peer_domain_evidence"])
+    payload["cases"][2]["peer_original_process_alive"] = copy.deepcopy(payload["cases"][0]["peer_original_process_alive"])
+    reject("observation_reused_peer_process", payload, _verify_physical_fault_payload)
+
+    authority_source = _load("simultaneous_physical_domains_current_head_authority_failures.json")
+    for label, field in (
+        ("swapped_authority_execution_paths", "actual_validation_path"),
+        ("swapped_authority_rejection_stages", "rejection_stage"),
+        ("swapped_authority_reasons", "reason_code"),
+        ("swapped_authority_concrete_inputs", "concrete_input_and_bound_execution"),
+    ):
+        payload = copy.deepcopy(authority_source)
+        payload["cases"][10][field], payload["cases"][16][field] = (
+            payload["cases"][16][field], payload["cases"][10][field]
+        )
+        reject(label, payload, _verify_authority_payload)
+    for label, field, replacement in (
+        ("arbitrary_authority_execution_path", "actual_validation_path", "nonempty_arbitrary_path"),
+        ("arbitrary_authority_rejection_stage", "rejection_stage", "nonempty_arbitrary_stage"),
+        ("arbitrary_authority_reason", "reason_code", "nonempty_arbitrary_reason"),
+        ("arbitrary_authority_concrete_input", "concrete_input_and_bound_execution", {"asserted": True}),
+    ):
+        payload = copy.deepcopy(authority_source)
+        payload["cases"][10][field] = replacement
+        reject(label, payload, _verify_authority_payload)
+
+    if rejected != 33:
         raise ValueError(f"negative verifier rejection count drift: {rejected}")
     return rejected
 
@@ -746,7 +1666,7 @@ def main() -> int:
     arguments = parser.parse_args()
     if arguments.command == "artifacts":
         verify_artifacts()
-        print("verified exact 44/44 Phase-3 artifacts; verifier adversaries 4/4 rejected; evidence remains unsealed")
+        print("verified exact 44/44 Phase-3 artifacts; verifier adversaries 33/33 rejected; evidence remains unsealed")
         return 0
     if arguments.command == "write-release":
         count = write_release()
@@ -754,7 +1674,7 @@ def main() -> int:
         if not EVIDENCE.is_file() or not MANIFEST.is_file():
             raise SystemExit("release verification unavailable: evidence document or manifest missing")
         count = verify_release()
-    print(f"verified {count}/{count} release members; verifier adversaries 4/4 rejected; manifest excludes itself; evidence remains unsealed")
+    print(f"verified {count}/{count} release members; verifier adversaries 33/33 rejected; manifest excludes itself; evidence remains unsealed")
     return 0
 
 

@@ -150,6 +150,16 @@ head-observation or guard input reaches Unreal, that the live probe is separated
 from the adapter/receipt path, and that no Phase-3 source implements occupancy,
 movement, navigation, networking, streaming, or successor publication.
 
+The release verifier independently binds every refresh and physical-observation
+row's surface, stage, edge, head role, derived run ID, command, arm receipt,
+boundary result, target process, and original live peer. It rejects reused
+target or peer identities, binding digests, birth tuples, domain evidence, or
+bound results across the 36-row and 24-row matrices. Its independent 37-row
+authority contract fixes each action's execution path, rejection stage, reason,
+and concrete live or deterministic input, including cross-references to the
+specific stored witnesses. Thirty-three isolated in-memory adversaries exercise
+these bindings; none is accepted.
+
 ## Determinism, replay, build, and release
 
 ```yaml
@@ -162,7 +172,7 @@ ue_editor_build: succeeded_with_DisableUnity
 live_witnesses: 11/11
 artifact_roles: 44/44
 release_manifest_members_excluding_manifest: 111/111
-release_verifier_adversaries: 4/4_rejected
+release_verifier_adversaries: 33/33_rejected
 manifest_self_excluding: true
 canonical_replay: byte_identical
 W1_W2_semantic_replay: equal
