@@ -3,13 +3,16 @@
 
 This is a review-time document validator. It does not import or execute a
 Phase-3 proof implementation and is intentionally outside the prospective
-release manifest.
+release manifest. ``--self-test`` mutates only in-memory document copies.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 
@@ -18,6 +21,101 @@ SPEC = ROOT / "Simultaneous Physical Domains Proof - Draft.md"
 ARTIFACT_ROOT = "proof_kernel/SimultaneousPhysicalDomainsProofRecords"
 MANIFEST = "Simultaneous Physical Domains Proof - v0.1.0 SHA256SUMS.txt"
 THIS_VALIDATOR = "proof_kernel/validate_simultaneous_physical_domains_spec.py"
+
+EXPECTED_SELECTION = (
+    ("phase", "3"),
+    ("proof", "Simultaneous Physical Domains Proof"),
+    ("version", "0.1.0-draft.4"),
+    ("status", "final_freeze_review"),
+    ("implementation_authority", "none"),
+    ("unreal_source_change_authority", "none"),
+    ("capacity_advancement", "none"),
+    ("freeze_status", "not_frozen"),
+)
+EXPECTED_CURRENT_DECISION = (
+    ("working_unit", "Simultaneous Physical Domains Proof v0.1.0-draft.4"),
+    ("successor_selected", "true"),
+    ("specification_status", "final_freeze_review"),
+    ("freeze_status", "not_frozen"),
+    ("implementation_authority", "none"),
+    ("canonical_capacity_change", "none"),
+    (
+        "latest_sealed_capacity",
+        "THE_CITY Development Capacity and Progress Note v0.1.11",
+    ),
+)
+EXPECTED_HEAD_STATES = (
+    "unbound",
+    "synchronized",
+    "head_unconfirmed",
+    "stale",
+    "invalid",
+    "protocol_invalid",
+)
+EXPECTED_GUARD_STATES = (
+    "open_for_H0",
+    "closed_for_H0_to_H1",
+    "open_for_H1",
+    "failed_closed",
+)
+EXPECTED_SEMANTIC_GROUPS = (
+    "immutable_process_binding",
+    "adapter_launch_tuple",
+    "stdin_commands_in_exact_order",
+    "adapter_refresh_tuple",
+    "probe_live_state",
+    "executable_and_project_dependencies",
+    "semantic_environment_keys",
+    "semantic_command_line_selectors",
+    "semantic_inherited_descriptors",
+    "prohibited_hidden_semantic_inputs",
+)
+EXPECTED_DISPOSITION_FIELDS = (
+    "disposition_schema",
+    "proof_scenario",
+    "domain_role",
+    "operational_process_instance_id",
+    "process_binding_raw_sha256",
+    "representation_receipt_raw_sha256",
+    "physical_observation_raw_sha256",
+    "represented_canonical_hash",
+    "harness_observed_current_canonical_hash",
+    "physical_current_head_guard_state",
+    "head_state",
+    "refresh_enabled",
+    "current_head_claim_enabled",
+    "current_head_claim_scope",
+    "canonical_evidence_enabled",
+    "canonical_scheduling_enabled",
+    "canonical_mutation_enabled",
+)
+EXPECTED_PERMISSION_TABLE = (
+    "| Head state | Required guard | Current-head representation claim | Refresh | Local execution |",
+    "| --- | --- | --- | --- | --- |",
+    "| `synchronized(H0)` | `open_for_H0` | enabled, representation-only | disabled | nonconsequential permitted |",
+    "| `head_unconfirmed(H0)` | `closed_for_H0_to_H1` or `failed_closed` | disabled | disabled | quarantined nonconsequential permitted |",
+    "| `stale(H0/H1)` | `open_for_H1` | disabled | exact H1 once | quarantined nonconsequential permitted |",
+    "| `synchronized(H1)` | `open_for_H1` | enabled, representation-only | disabled | nonconsequential permitted |",
+    "| `invalid` | any matching recorded state | disabled | disabled | halted; diagnostics/termination only |",
+    "| `protocol_invalid(H0/H1)` | `failed_closed` | disabled | disabled | halted; diagnostics/termination only |",
+)
+
+# These digests bind complete ordered structures, not selected phrases. They are
+# filled from the reviewed Draft.4 blocks and deliberately fail on any byte,
+# field, member, order, or whitespace change inside those structures.
+EXPECTED_BLOCK_SHA256 = {
+    "head_state": "40e676d86da83ea8de39c88e6507663a01c0f382d4e3337e2fe9d4ef9b91b9f8",
+    "guard": "802007f0e1a21d56b98e071a66bed25dea43410b324f2e1b5902b296382d3730",
+    "disposition": "87a3fa65127cfbd4bae85a2f5fb5c86ed62011917219a937c0e68b6f784d1b3a",
+    "semantic": "c02b3d39c7e7c290d48e68a0aa5ea1d6794197e2a521990d86cb8dafaaaf5bbc",
+    "launch": "5f9f1f13ec37217bc6c95fae1753f2074f00e7630c420f1f330ea0ec9e539f30",
+    "artifact_block": "931105d9b0f7bfbce84a3b93eef330185f19e80724e52b6a9bf17790990b2cee",
+    "member_block": "cf110b78f78c6c96df045744600435a22170f4aab4d94946fdd7fd2f84b4802b",
+}
+EXPECTED_ARTIFACT_LIST_SHA256 = "f46388d2f0842121de2a88ff6931b095f8a29eadf727833bb7f0eef4d894ac5c"
+EXPECTED_NON_ARTIFACT_MEMBER_LIST_SHA256 = (
+    "a2422bee7f6bf1d0ea70531452b640fe1b02fdd0c879894c57c172ceaa1773ef"
+)
 
 
 class ValidationError(RuntimeError):
@@ -39,6 +137,45 @@ def fenced_block_after(text: str, marker: str, language: str = "yaml") -> str:
     return text[start:end]
 
 
+def rewrite_fenced_block(
+    text: str,
+    marker: str,
+    transform: Callable[[str], str],
+    language: str = "yaml",
+) -> str:
+    marker_offset = text.find(marker)
+    if marker_offset < 0:
+        raise AssertionError(f"self-test marker missing: {marker}")
+    fence = f"```{language}\n"
+    start = text.find(fence, marker_offset)
+    if start < 0:
+        raise AssertionError(f"self-test fence missing after: {marker}")
+    start += len(fence)
+    end = text.find("\n```", start)
+    if end < 0:
+        raise AssertionError(f"self-test fence unterminated after: {marker}")
+    old_block = text[start:end]
+    new_block = transform(old_block)
+    if old_block == new_block:
+        raise AssertionError(f"self-test mutation made no change after: {marker}")
+    return text[:start] + new_block + text[end:]
+
+
+def replace_once(value: str, old: str, new: str) -> str:
+    if value.count(old) != 1:
+        raise AssertionError(f"self-test target count for {old!r} is {value.count(old)}")
+    return value.replace(old, new, 1)
+
+
+def sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def ordered_list_sha256(values: list[str]) -> str:
+    encoded = json.dumps(values, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
 def list_members(block: str) -> list[str]:
     return [match.group(1) for match in re.finditer(r"^  - (.+)$", block, re.MULTILINE)]
 
@@ -47,10 +184,63 @@ def top_level_keys(block: str) -> list[str]:
     return [match.group(1) for match in re.finditer(r"^([a-z][a-z0-9_]*):", block, re.MULTILINE)]
 
 
-def require_all(haystack: str, needles: tuple[str, ...], subject: str) -> None:
-    missing = [needle for needle in needles if needle not in haystack]
-    if missing:
-        raise ValidationError(f"{subject} missing: {', '.join(missing)}")
+def nested_mapping_keys(block: str) -> list[str]:
+    return [
+        match.group(1)
+        for match in re.finditer(r"^  ([A-Za-z][A-Za-z0-9_]*):(?: .*)?$", block, re.MULTILINE)
+    ]
+
+
+def parse_flat_mapping(block: str, subject: str, root: str | None = None) -> list[tuple[str, str]]:
+    lines = block.splitlines()
+    if root is not None:
+        if not lines or lines[0] != f"{root}:":
+            raise ValidationError(f"{subject} root must be exactly {root!r}")
+        lines = lines[1:]
+        prefix = "  "
+    else:
+        prefix = ""
+    result: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for line in lines:
+        if not line or not line.startswith(prefix):
+            raise ValidationError(f"{subject} contains malformed line: {line!r}")
+        content = line[len(prefix) :]
+        if content.startswith(" ") or ": " not in content:
+            raise ValidationError(f"{subject} contains nested or valueless line: {line!r}")
+        key, value = content.split(": ", 1)
+        if not re.fullmatch(r"[a-z][a-z0-9_]*", key):
+            raise ValidationError(f"{subject} contains invalid key: {key!r}")
+        if key in seen:
+            raise ValidationError(f"{subject} contains duplicate key: {key}")
+        seen.add(key)
+        result.append((key, value))
+    return result
+
+
+def markdown_table_after(text: str, marker: str) -> tuple[str, ...]:
+    offset = text.find(marker)
+    if offset < 0:
+        raise ValidationError(f"missing table marker: {marker}")
+    lines = text[offset:].splitlines()
+    table: list[str] = []
+    started = False
+    for line in lines[1:]:
+        if line.startswith("|"):
+            started = True
+            table.append(line)
+        elif started:
+            break
+    if not table:
+        raise ValidationError(f"missing table after: {marker}")
+    return tuple(table)
+
+
+def require_exact_digest(block: str, key: str, subject: str) -> None:
+    actual = sha256_text(block)
+    expected = EXPECTED_BLOCK_SHA256[key]
+    if actual != expected:
+        raise ValidationError(f"{subject} digest {actual} != {expected}")
 
 
 def require_unique(values: list[str], subject: str) -> None:
@@ -59,160 +249,65 @@ def require_unique(values: list[str], subject: str) -> None:
         raise ValidationError(f"{subject} has duplicates: {duplicates}")
 
 
-def validate() -> list[str]:
-    text = SPEC.read_text(encoding="utf-8")
+def validate_text(text: str) -> list[str]:
     checks: list[str] = []
 
-    require_all(
-        text,
-        (
-            "**Version:** 0.1.0-draft.3",
-            "freeze_status: not_frozen",
-            "implementation_authority: none",
-        ),
-        "authority header",
-    )
-    checks.append("authority: draft.3, not frozen, implementation none")
+    selection_block = fenced_block_after(text, "## Selection and authority state")
+    selection = parse_flat_mapping(selection_block, "selection authority", root="selection")
+    if tuple(selection) != EXPECTED_SELECTION:
+        raise ValidationError(f"selection authority {selection!r} != {EXPECTED_SELECTION!r}")
+    decision_block = fenced_block_after(text, "## Current decision record")
+    decision = parse_flat_mapping(decision_block, "current decision")
+    if tuple(decision) != EXPECTED_CURRENT_DECISION:
+        raise ValidationError(f"current decision {decision!r} != {EXPECTED_CURRENT_DECISION!r}")
+    if "**Version:** 0.1.0-draft.4" not in text:
+        raise ValidationError("active version header is not Draft.4")
+    checks.append("authority: exact Draft.4 selection and decision blocks; implementation none")
 
     state_block = fenced_block_after(text, "The only admitted head states are:")
-    expected_states = [
-        "unbound",
-        "synchronized",
-        "head_unconfirmed",
-        "stale",
-        "invalid",
-        "protocol_invalid",
-    ]
-    actual_states = top_level_keys(state_block)
-    if actual_states != expected_states:
-        raise ValidationError(f"head states {actual_states!r} != {expected_states!r}")
-    require_all(
-        text,
-        (
-            "guard open_for_H0 --> synchronized(H0)",
-            "closed_for_H0_to_H1 before commit --> head_unconfirmed(accepted H0)",
-            "then guard opens_for_H1 --> stale(accepted H0, current H1)",
-            "guard_open_at_commit)",
-            "protocol_invalid\n  -- proof-local recovery or refresh --> no transition",
-        ),
-        "head-state transitions",
-    )
-    checks.append("head state table: exact 6 states and terminal guard-open transition")
+    actual_states = tuple(top_level_keys(state_block))
+    if actual_states != EXPECTED_HEAD_STATES:
+        raise ValidationError(f"head states {actual_states!r} != {EXPECTED_HEAD_STATES!r}")
+    require_exact_digest(state_block, "head_state", "head-state block")
+    checks.append("head state table: exact ordered six-state structure")
 
     guard_block = fenced_block_after(text, "Its exact states are:")
-    require_all(
-        guard_block,
-        (
-            "open_for_H0:",
-            "closed_for_H0_to_H1:",
-            "open_for_H1:",
-            "failed_closed:",
-            "reopening: prohibited_in_this_proof",
-        ),
-        "physical guard",
-    )
-    require_all(
-        text,
-        (
-            "only normal guard reopening in the proof",
-            "classify every still-H0 affected domain as `stale(H0/H1)`",
-            "change the guard from `closed_for_H0_to_H1` to `open_for_H1`",
-            "`failed_closed` and classify both affected domains",
-            "`protocol_invalid(accepted H0, committed H1, guard_open_at_commit)`",
-        ),
-        "guard transition law",
-    )
-    checks.append("physical guard: 4 exact states, one reopening, fail-closed control")
+    guard_root = top_level_keys(guard_block)
+    if guard_root != ["physical_current_head_guard"]:
+        raise ValidationError(f"physical guard root is not exact: {guard_root!r}")
+    guard_states = tuple(nested_mapping_keys(guard_block))
+    if guard_states != EXPECTED_GUARD_STATES:
+        raise ValidationError(f"guard states {guard_states!r} != {EXPECTED_GUARD_STATES!r}")
+    require_exact_digest(guard_block, "guard", "physical guard block")
+    checks.append("physical guard: exact ordered four-state structure")
 
     disposition_block = fenced_block_after(
         text, "The harness emits a separate detached disposition"
     )
-    require_all(
-        disposition_block,
-        (
-            "head_state: head_unconfirmed | stale | synchronized | invalid | protocol_invalid",
-            "refresh_enabled: true_iff_stale_H0_against_verified_H1_and_guard_open_for_H1 | false",
-            "current_head_claim_enabled: true_iff_synchronized_to_guard_matching_privately_verified_head | false",
-            "current_head_claim_scope: disposable_representation_correspondence_only | none",
-            "canonical_evidence_enabled: false",
-            "canonical_scheduling_enabled: false",
-            "canonical_mutation_enabled: false",
-        ),
-        "disposition schema",
-    )
-    if "current_head_claim_enabled: false\n" in disposition_block:
-        raise ValidationError("disposition hardcodes every current-head claim false")
-    require_all(
-        state_block,
-        (
-            "current_head_materialization_claim: permitted_as_harness_accepted_representation_only",
-            "claim_authority: disposable_representation_correspondence_only",
-        ),
-        "synchronized state",
-    )
-    for matrix_row in (
-        "| `synchronized(H0)` | `open_for_H0` | enabled, representation-only | disabled |",
-        "| `head_unconfirmed(H0)` | `closed_for_H0_to_H1` or `failed_closed` | disabled | disabled |",
-        "| `stale(H0/H1)` | `open_for_H1` | disabled | exact H1 once |",
-        "| `synchronized(H1)` | `open_for_H1` | enabled, representation-only | disabled |",
-        "| `invalid` | any matching recorded state | disabled | disabled |",
-        "| `protocol_invalid(H0/H1)` | `failed_closed` | disabled | disabled |",
-    ):
-        if matrix_row not in text:
-            raise ValidationError(f"permission matrix missing row: {matrix_row}")
-    checks.append("disposition: synchronized representation claim aligned; authority paths false")
+    disposition = parse_flat_mapping(disposition_block, "disposition schema")
+    disposition_fields = tuple(key for key, _ in disposition)
+    if disposition_fields != EXPECTED_DISPOSITION_FIELDS:
+        raise ValidationError(
+            f"disposition fields {disposition_fields!r} != {EXPECTED_DISPOSITION_FIELDS!r}"
+        )
+    require_exact_digest(disposition_block, "disposition", "disposition schema")
+    permission_table = markdown_table_after(text, "The exact permission matrix is:")
+    if permission_table != EXPECTED_PERMISSION_TABLE:
+        raise ValidationError("permission matrix differs from exact ordered rows")
+    checks.append("disposition: exact schema and permission matrix")
 
     semantic_block = fenced_block_after(text, "The exact proof-semantic closure is:")
-    require_all(
-        semantic_block,
-        (
-            "proof_semantic_inputs:",
-            "semantic_environment_keys: []",
-            "semantic_command_line_selectors: []",
-            "prohibited_hidden_semantic_inputs:",
-            "current_head_observation_path_or_bytes",
-            "physical_current_head_guard_state",
-            "harness_head_state_classification",
-            "harness_refresh_eligibility",
-            "expected_physical_access_result",
-            "other_domain_root_or_state",
-            "project_Content_ProofRecords",
-            "environment_or_argv_proof_selector",
-            "inherited_or_runtime_opened_alternate_command_channel",
-        ),
-        "proof-semantic input closure",
-    )
-    semantic_positive = semantic_block.partition("  prohibited_hidden_semantic_inputs:")[0]
-    for forbidden_positive_input in (
-        "current_head_observation",
-        "physical_current_head_guard",
-        "harness_head_state",
-        "harness_refresh_eligibility",
-        "expected_physical_access_result",
-    ):
-        if forbidden_positive_input in semantic_positive:
-            raise ValidationError(
-                f"hidden input appears in positive semantic closure: {forbidden_positive_input}"
-            )
+    semantic_root = top_level_keys(semantic_block)
+    if semantic_root != ["proof_semantic_inputs"]:
+        raise ValidationError(f"proof-semantic root is not exact: {semantic_root!r}")
+    semantic_groups = tuple(nested_mapping_keys(semantic_block))
+    if semantic_groups != EXPECTED_SEMANTIC_GROUPS:
+        raise ValidationError(
+            f"proof-semantic groups {semantic_groups!r} != {EXPECTED_SEMANTIC_GROUPS!r}"
+        )
+    require_exact_digest(semantic_block, "semantic", "proof-semantic input block")
     launch_block = fenced_block_after(text, "The complete launch-surface audit is exact:")
-    require_all(
-        launch_block,
-        (
-            "argv_in_order:",
-            "environment:",
-            "cwd:",
-            "inherited_descriptors:",
-            "executable_project_and_runtime:",
-            "proof_semantic_key_allowlist: []",
-            "all_other_descriptors_at_exec: closed",
-            "unreal_engine_build_and_entry_map_identity: recorded_and_binding_verified",
-            "engine_and_system_loaded_image_inventory: realpath_UUID_and_raw_hash_recorded",
-            "initial_world_actor_class_inventory_before_first_materialization: recorded",
-            "non_Phase3_world_actor_reads_for_proof_semantics: prohibited",
-            "project_Content_ProofRecords_reads: prohibited",
-        ),
-        "launch-surface audit",
-    )
+    require_exact_digest(launch_block, "launch", "launch-surface block")
     for impossible_literal in (
         "other_files_or_context: none",
         "unreal_visible_inputs:",
@@ -220,21 +315,28 @@ def validate() -> list[str]:
     ):
         if impossible_literal in text:
             raise ValidationError(f"impossible process-visibility claim remains: {impossible_literal}")
-    checks.append("proof-semantic closure: launch/runtime surfaces audited; hidden inputs prohibited")
+    checks.append("proof-semantic and launch surfaces: exact ordered structures")
 
     artifact_block = fenced_block_after(
         text, "That directory must contain exactly these 44 regular files"
     )
     artifacts = list_members(artifact_block)
+    require_exact_digest(artifact_block, "artifact_block", "artifact member block")
     if len(artifacts) != 44:
         raise ValidationError(f"artifact count {len(artifacts)} != 44")
     require_unique(artifacts, "artifact names")
-    checks.append("release artifacts: 44 exact unique names")
+    artifact_digest = ordered_list_sha256(artifacts)
+    if artifact_digest != EXPECTED_ARTIFACT_LIST_SHA256:
+        raise ValidationError(
+            f"ordered artifact list digest {artifact_digest} != {EXPECTED_ARTIFACT_LIST_SHA256}"
+        )
+    checks.append("release artifacts: exact ordered 44-member set")
 
     member_block = fenced_block_after(
         text, "The manifest member set is the union of the exact 44 artifact paths above"
     )
     governing_members = list_members(member_block)
+    require_exact_digest(member_block, "member_block", "non-artifact member block")
     if len(governing_members) != 66:
         raise ValidationError(f"non-artifact manifest count {len(governing_members)} != 66")
     require_unique(governing_members, "non-artifact manifest members")
@@ -247,31 +349,300 @@ def validate() -> list[str]:
         raise ValidationError("self-excluding manifest includes itself")
     if THIS_VALIDATOR in manifest_members:
         raise ValidationError("review-time validator entered release manifest")
-    require_all(
-        text,
-        (
-            "Its 110 member lines must be the complete union above",
-            "It must exclude itself.",
-            "review-time document validator",
-            "specification QA only",
-        ),
-        "self-excluding manifest contract",
+    member_digest = ordered_list_sha256(governing_members)
+    if member_digest != EXPECTED_NON_ARTIFACT_MEMBER_LIST_SHA256:
+        raise ValidationError(
+            "ordered non-artifact member list digest "
+            f"{member_digest} != {EXPECTED_NON_ARTIFACT_MEMBER_LIST_SHA256}"
+        )
+    checks.append("release manifest: exact 44 + 66 = 110 set; self-exclusions enforced")
+
+    required_exception = (
+        "The review-time document validator is the sole pre-freeze QA-code exception."
     )
-    checks.append("release manifest: 44 + 66 = 110 unique members; manifest self-excluded")
+    if text.count(required_exception) != 1:
+        raise ValidationError("validator QA-code exception must occur exactly once")
+    if "No code may be written for this proof until" in text:
+        raise ValidationError("unqualified no-code sentence conflicts with validator exception")
+    checks.append("authority prose: sole QA-code exception and runtime prohibition aligned")
 
     return checks
 
 
-def main() -> int:
+def validate() -> list[str]:
+    return validate_text(SPEC.read_text(encoding="utf-8"))
+
+
+def mutate_block_replace(text: str, marker: str, old: str, new: str) -> str:
+    return rewrite_fenced_block(text, marker, lambda block: replace_once(block, old, new))
+
+
+def guard_without_open_h1(block: str) -> str:
+    start = block.find("  open_for_H1:\n")
+    end = block.find("  failed_closed:\n")
+    if start < 0 or end < 0 or end <= start:
+        raise AssertionError("guard self-test could not isolate open_for_H1")
+    return block[:start] + block[end:]
+
+
+def guard_reordered(block: str) -> str:
+    first = block.find("  open_for_H0:\n")
+    second = block.find("  closed_for_H0_to_H1:\n")
+    third = block.find("  open_for_H1:\n")
+    if min(first, second, third) < 0 or not first < second < third:
+        raise AssertionError("guard self-test could not isolate first two states")
+    return block[:first] + block[second:third] + block[first:second] + block[third:]
+
+
+def semantic_reordered(block: str) -> str:
+    first = block.find("  immutable_process_binding:\n")
+    second = block.find("  adapter_launch_tuple:\n")
+    third = block.find("  stdin_commands_in_exact_order:\n")
+    if min(first, second, third) < 0 or not first < second < third:
+        raise AssertionError("semantic self-test could not isolate first two groups")
+    return block[:first] + block[second:third] + block[first:second] + block[third:]
+
+
+def swap_first_two_list_members(block: str) -> str:
+    matches = list(re.finditer(r"^  - .+$", block, re.MULTILINE))
+    if len(matches) < 2:
+        raise AssertionError("list self-test needs two members")
+    first = matches[0].group(0)
+    second = matches[1].group(0)
+    return replace_once(block, f"{first}\n{second}", f"{second}\n{first}")
+
+
+def self_test_mutations(text: str) -> list[tuple[str, str]]:
+    selection_marker = "## Selection and authority state"
+    guard_marker = "Its exact states are:"
+    semantic_marker = "The exact proof-semantic closure is:"
+    artifact_marker = "That directory must contain exactly these 44 regular files"
+    member_marker = "The manifest member set is the union of the exact 44 artifact paths above"
+
+    mutations: list[tuple[str, str]] = []
+    mutations.append(
+        (
+            "extra_authority_field",
+            mutate_block_replace(
+                text,
+                selection_marker,
+                "selection:\n",
+                "selection:\n  undeclared_authority: none\n",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "missing_authority_field",
+            mutate_block_replace(text, selection_marker, "  capacity_advancement: none\n", ""),
+        )
+    )
+    mutations.append(
+        (
+            "duplicate_contradictory_authority",
+            mutate_block_replace(
+                text,
+                selection_marker,
+                "  implementation_authority: none\n",
+                "  implementation_authority: none\n  implementation_authority: phase_3_runtime\n",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "granted_implementation_authority",
+            mutate_block_replace(
+                text,
+                selection_marker,
+                "  implementation_authority: none",
+                "  implementation_authority: phase_3_runtime",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "frozen_phase_3_authority_state",
+            mutate_block_replace(
+                text,
+                selection_marker,
+                "  freeze_status: not_frozen",
+                "  freeze_status: frozen",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "reordered_authority_fields",
+            mutate_block_replace(
+                text,
+                selection_marker,
+                "  phase: 3\n  proof: Simultaneous Physical Domains Proof",
+                "  proof: Simultaneous Physical Domains Proof\n  phase: 3",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "extra_guard_state",
+            rewrite_fenced_block(
+                text,
+                guard_marker,
+                lambda block: block
+                + "\n  unexpected_guard_state:\n"
+                + "    accepted_physical_head: none\n"
+                + "    current_head_representation_claim_acceptance: false\n"
+                + "    refresh_eligibility: false",
+            ),
+        )
+    )
+    mutations.append(
+        ("missing_guard_state", rewrite_fenced_block(text, guard_marker, guard_without_open_h1))
+    )
+    mutations.append(
+        ("reordered_guard_states", rewrite_fenced_block(text, guard_marker, guard_reordered))
+    )
+    mutations.append(
+        (
+            "extra_positive_semantic_input",
+            mutate_block_replace(
+                text,
+                semantic_marker,
+                "  prohibited_hidden_semantic_inputs:\n",
+                "  undeclared_positive_input:\n"
+                "    - forbidden_context\n"
+                "  prohibited_hidden_semantic_inputs:\n",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "missing_positive_semantic_member",
+            mutate_block_replace(text, semantic_marker, "    - exact R0 bytes\n", ""),
+        )
+    )
+    mutations.append(
+        (
+            "reordered_positive_semantic_groups",
+            rewrite_fenced_block(text, semantic_marker, semantic_reordered),
+        )
+    )
+    permission_row = EXPECTED_PERMISSION_TABLE[2]
+    mutations.append(
+        (
+            "altered_permission_row",
+            replace_once(
+                text,
+                permission_row,
+                permission_row.replace("enabled, representation-only", "disabled", 1),
+            ),
+        )
+    )
+    artifacts = list_members(fenced_block_after(text, artifact_marker))
+    mutations.append(
+        (
+            "duplicate_artifact_member",
+            mutate_block_replace(text, artifact_marker, artifacts[1], artifacts[0]),
+        )
+    )
+    mutations.append(
+        (
+            "additional_artifact_member",
+            rewrite_fenced_block(
+                text,
+                artifact_marker,
+                lambda block: block + "\n  - forbidden_additional_artifact.json",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "reordered_artifact_members",
+            rewrite_fenced_block(text, artifact_marker, swap_first_two_list_members),
+        )
+    )
+    members = list_members(fenced_block_after(text, member_marker))
+    mutations.append(
+        (
+            "duplicate_manifest_member",
+            mutate_block_replace(text, member_marker, members[1], members[0]),
+        )
+    )
+    mutations.append(
+        (
+            "additional_manifest_member",
+            rewrite_fenced_block(
+                text, member_marker, lambda block: block + "\n  - forbidden/additional-member"
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "reordered_manifest_members",
+            rewrite_fenced_block(text, member_marker, swap_first_two_list_members),
+        )
+    )
+    mutations.append(
+        (
+            "validator_self_inclusion",
+            mutate_block_replace(
+                text,
+                member_marker,
+                f"  - {members[0]}",
+                f"  - {THIS_VALIDATOR}",
+            ),
+        )
+    )
+    mutations.append(
+        (
+            "manifest_self_inclusion",
+            mutate_block_replace(
+                text,
+                member_marker,
+                f"  - {members[0]}",
+                f"  - {MANIFEST}",
+            ),
+        )
+    )
+    return mutations
+
+
+def run_self_tests() -> list[str]:
+    text = SPEC.read_text(encoding="utf-8")
+    validate_text(text)
+    results = ["baseline active document accepted"]
+    for name, mutated in self_test_mutations(text):
+        if mutated == text:
+            raise AssertionError(f"self-test {name} did not mutate the document")
+        try:
+            validate_text(mutated)
+        except ValidationError:
+            results.append(f"rejected {name}")
+        else:
+            raise ValidationError(f"self-test mutation was incorrectly accepted: {name}")
+    return results
+
+
+def main(argv: list[str] | None = None) -> int:
+    arguments = list(sys.argv[1:] if argv is None else argv)
     try:
-        checks = validate()
-    except (OSError, UnicodeError, ValidationError) as exc:
+        if not arguments:
+            checks = validate()
+            for index, check in enumerate(checks, start=1):
+                print(f"PASS {index}: {check}")
+            print(f"RESULT: PASS ({len(checks)}/{len(checks)})")
+            return 0
+        if arguments == ["--self-test"]:
+            checks = run_self_tests()
+            for index, check in enumerate(checks, start=1):
+                print(f"PASS SELF-TEST {index}: {check}")
+            rejected = len(checks) - 1
+            print(f"RESULT: PASS ({rejected}/{rejected} adversarial mutations rejected)")
+            return 0
+        print("usage: validate_simultaneous_physical_domains_spec.py [--self-test]", file=sys.stderr)
+        return 2
+    except (AssertionError, OSError, UnicodeError, ValidationError) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
-    for index, check in enumerate(checks, start=1):
-        print(f"PASS {index}: {check}")
-    print(f"RESULT: PASS ({len(checks)}/{len(checks)})")
-    return 0
 
 
 if __name__ == "__main__":

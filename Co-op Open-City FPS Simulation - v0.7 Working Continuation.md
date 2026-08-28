@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.71
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and remains in final freeze review under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.71`. Draft.3 gives the canonically inert physical guard exact head-qualified states, a terminal guard-open control, aligned representation-only claim semantics, and an audited proof-semantic input closure with a passing non-release document validator. The proof is not frozen. No implementation, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.72
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains implemented, proven, and sealed under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the sole active successor and remains in final freeze review under candidate proof-harness identity `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. Draft.4 structurally closes the non-release document validator, adds 21 adversarial in-memory rejection tests, and names that validator as the sole pre-freeze QA-code exception. The proof is not frozen. No Phase-3 runtime, Unreal source change, capacity advancement, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -85,7 +85,7 @@ production topology, World Partition, streaming, networking, city expansion,
 and adjacent scope remain unauthorized.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the
+v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is the
 sole active successor and is in final freeze review. It asks
 whether two process-isolated Unreal representation domains can remain alive
 across the exact sealed Phase-1 H0-to-H1 access transition, then independently
@@ -94,12 +94,14 @@ current-head authority. Both exact detached domain projections include one
 distinct canonical site scope and the shared `topology_route_0001` access fact.
 The candidate explicitly does not inherit Phase 1's source-destruction
 lifecycle, create a new canonical payload or mutation, materialize occupancy,
-or exercise Q/BQ/BEXT. Draft.3 keeps the head observer harness-private, defines
+or exercise Q/BQ/BEXT. Draft.4 keeps the head observer harness-private, defines
 the exact guard close/reopen/failed states and guard-open terminal disposition,
 aligns synchronized representation-only claims, audits the exact proof-semantic
 process inputs, requires independent live-UE component observation after each
-materialization, and preserves the exact release boundary. It remains unfrozen;
-no implementation or Unreal source change is authorized.
+materialization, and preserves the exact release boundary. Its review-only
+validator structurally binds those active blocks and rejects its declared
+in-memory adversarial mutations. It remains unfrozen; no Phase-3 runtime or
+Unreal source change is authorized.
 
 ## Product framing
 
@@ -179,6 +181,24 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.72 — 2026-08-28
+
+- Advanced [Simultaneous Physical Domains Proof —
+  v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) in
+  final freeze review under candidate identity
+  `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`; the proof remains
+  unfrozen and implementation authority remains `none`.
+- Hardened the non-release specification validator from presence checks to
+  exact structural authority parsing and exact ordered block/list identities.
+  It now closes the head-state table, guard, disposition, permission matrix,
+  proof-semantic inputs, launch surface, artifact list, and manifest members.
+- Added `--self-test`, which mutates only in-memory document copies and rejects
+  21 forbidden missing, extra, duplicate, reordered, contradictory, granted,
+  altered, or self-included cases.
+- Named the validator as the sole pre-freeze QA-code exception. Phase-3 runtime,
+  Unreal, adapter, harness, proof-test, evidence, artifact, release, capacity,
+  and adjacent implementation remain prohibited.
 
 ### 0.7.0-draft.71 — 2026-08-28
 
@@ -950,7 +970,7 @@ predecessor evidence.
 Canonical Occupancy Transition Proof v0.1.0 is complete and sealed in its exact
 bounded canonical scope.
 
-Simultaneous Physical Domains Proof v0.1.0-draft.3 is the sole current working
+Simultaneous Physical Domains Proof v0.1.0-draft.4 is the sole current working
 unit. It is in final freeze review and is not frozen. Review must verify the exact sealed
 Phase-1 H0/H1 reuse, noninheritance of Phase 1's physical lifecycle, two live
 process-isolated domain projections, shared-route representation, operational
@@ -961,8 +981,8 @@ independent live-UE available/blocked oracle, uninterrupted L0–L4B process-
 birth evidence, exact proof-semantic input closure and stdin/three-file refresh
 mechanism, exact release DAG/member set/manifest, quarantined stale execution,
 atomic refresh boundary, asymmetric failure, isolation, current-head rejection
-surface, replay, provenance, and source audit before freeze or implementation
-may be considered.
+surface, replay, provenance, source audit, structurally exact validator, and
+adversarial self-tests before freeze or implementation may be considered.
 
 Do not implement the candidate or begin stochastic identity, 2+2 player
 topology, networking, live input collection, transport semantics, physical

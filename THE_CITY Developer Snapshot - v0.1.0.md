@@ -5,7 +5,7 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.71`
+**Governing continuation:** `0.7.0-draft.72`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
@@ -112,7 +112,7 @@ phase_2_canonical_occupancy_transition:
 
 phase_3_simultaneous_physical_domains:
   selected: true
-  specification: v0.1.0-draft.3_final_freeze_review
+  specification: v0.1.0-draft.4_final_freeze_review
   frozen: false
   implementation: prohibited
 ```
@@ -133,7 +133,7 @@ detached-representation-scoped to `topology_site_0001`, domain B to
 `topology_site_0002`, and both projections include
 `topology_route_0001`. Site scope is not canonical occupancy.
 
-Draft.3 resolves the latest material review seams without granting
+Draft.4 preserves the resolved contract and hardens review QA without granting
 implementation:
 
 - the exact H1 observer is harness-private and no derived head input reaches
@@ -152,9 +152,13 @@ implementation:
   H1 without consuming receipt/JSON state;
 - the exact proof-semantic input closure audits argv, environment, cwd,
   descriptors, executable/project/runtime dependencies, stdin, and bundle
-  files; and
+  files;
 - the release DAG, 44 artifact members, complete 110-entry release set, and
-  self-excluding manifest contract pass the non-release document validator.
+  self-excluding manifest contract pass the exact structural non-release
+  document validator;
+- the validator's in-memory self-test rejects 21 extra, missing, duplicate,
+  reordered, contradictory, granted, altered, or self-included mutations. It is
+  the sole pre-freeze QA-code exception and implements no Phase-3 runtime.
 
 ## Exact current proof envelope
 
@@ -206,7 +210,7 @@ The current corpus does not establish:
 ## Development frontier
 
 The active working unit is [Simultaneous Physical Domains Proof —
-v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
+v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md), in
 final freeze review but not frozen. Review must verify its exact detached
 projections, harness-private current-head observation, canonically inert
 physical guard, H1-only reconstruction and retention whitelist, independent
@@ -215,11 +219,12 @@ proof-semantic-input and refresh mechanism, exact release DAG/member/manifest co
 head-state machine, stale local execution quarantine, refresh publication
 boundary, asymmetric failure, isolation, provenance, replay, and current-head
 rejection surface before freeze may be considered.
+The exact document validator and all 21 adversarial self-tests must also pass.
 
 Current authority:
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.3
+working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.4
 successor_selected: true
 specification_status: final_freeze_review
 freeze_status: not_frozen

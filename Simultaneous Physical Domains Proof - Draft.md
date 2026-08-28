@@ -1,13 +1,13 @@
 # Simultaneous Physical Domains Proof
 
-**Version:** 0.1.0-draft.3
+**Version:** 0.1.0-draft.4
 **Status:** Final freeze review; not frozen; implementation prohibited
 **Selected:** 2026-08-28
 **Advanced to freeze review:** 2026-08-28
 **Parent continuation:** [Co-op Open-City FPS Simulation — v0.7 Working Continuation](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md)
 **Latest sealed predecessor:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md)
 **Canonical source payload:** `CanonicalSpatialTopologyIdentityPayload.v1` / `0.7.0-draft.61`, reused byte-for-byte
-**Candidate proof-harness identity:** `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.71` — not frozen
+**Candidate proof-harness identity:** `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72` — not frozen
 
 ## Question
 
@@ -59,7 +59,7 @@ sealed Phase-1 H0/H1 transition with a new physical-lifecycle question.
 selection:
   phase: 3
   proof: Simultaneous Physical Domains Proof
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   status: final_freeze_review
   implementation_authority: none
   unreal_source_change_authority: none
@@ -1892,6 +1892,11 @@ artifact directory, 110-member release manifest, or release DAG. The eventual
 prospective release verifier remains the separately frozen
 `proof_kernel/verify_simultaneous_physical_domains_release.py` member.
 
+Its default mode validates the active document. Its `--self-test` mode operates
+only on in-memory copies of the same document and must prove that missing,
+extra, duplicate, reordered, contradictory, granted, altered, and self-included
+contract mutations are rejected without writing a file.
+
 ### Exact evidence artifact members
 
 The implementation, if separately authorized, must populate exactly one
@@ -2217,27 +2222,26 @@ final_freeze_review:
   release_artifact_directory_members: exact_44
   release_source_and_governing_members: exhaustive
   release_manifest: exact_self_excluding_and_mechanically_verified
-  review_time_document_validator: passing_and_non_release
+  review_time_document_validator: structurally_exact_passing_and_non_release
+  review_time_validator_self_tests: exact_adversarial_mutations_all_rejected
   post_seal_verification: exact_recorded_seal_commit_export
   exclusions: exact
 ```
 
-Draft.3 defines the guard as a head-qualified physical protocol, gives the
-guard-open canonical control an exact `failed_closed` / terminal
-`protocol_invalid` result, and fixes the only normal reopening point. It aligns
-synchronized representation-claim permission with the disposition schema,
-replaces literal process-context closure with an exact audited proof-semantic
-input closure, and adds a non-release mechanical document validator. It retains
-draft.2's canonically inert guard, independent live-UE oracle, and exact 44/110
-release contract.
+Draft.4 hardens the non-release document validator so its authority blocks,
+guard/state/disposition structures, permission matrix, proof-semantic closure,
+launch surface, artifact set, and manifest member set are exact rather than
+presence-only. Its in-memory self-test must reject every declared forbidden
+mutation. Draft.4 also names that validator as the sole pre-freeze QA-code
+exception. It retains draft.3's resolved physical guard, claim, input-closure,
+live-UE oracle, and exact 44/110 release contract without freezing the proof.
 
 Final freeze review must reject any hidden head-observation input, canonical
 dependency on the physical guard, receipt-only physical acceptance,
 non-independent probe, optional release member, alternate projection or refresh
 channel, ambiguous head-unconfirmed/stale/invalid/protocol-invalid disposition,
 misaligned synchronized claim permission, hidden proof-semantic process input,
-retained
-authoritative-derived H0 state, replaceable process identity, or unspecified
+retained authoritative-derived H0 state, replaceable process identity, or unspecified
 local publication boundary. Passing review is not itself implementation
 authority.
 
@@ -2265,6 +2269,22 @@ It may not establish multiplayer, networking, occupancy materialization,
 movement, streaming, or production physical-domain architecture.
 
 ## Draft review history
+
+### 0.1.0-draft.4 — 2026-08-28
+
+- Replaced presence-only document checks with exact structural authority-block
+  parsing and exact ordered block/list identities for the head-state table,
+  four-state guard, disposition, permission matrix, proof-semantic closure,
+  launch surface, 44 artifacts, and 66 non-artifact manifest members.
+- Added `--self-test` in-memory adversaries for missing, extra, duplicate, or
+  reordered guard/authority/input/list structure, contradictory or granted
+  implementation authority, a falsely frozen Phase-3 state, altered permission
+  rows, and validator/manifest self-inclusion.
+- Named the review-time document validator as the sole pre-freeze QA-code
+  exception while keeping every Phase-3 runtime, Unreal, proof, test, evidence,
+  artifact, and release implementation prohibited.
+- Kept final freeze review open, the proof unfrozen, capacity unchanged, and
+  implementation authority `none`.
 
 ### 0.1.0-draft.3 — 2026-08-28
 
@@ -2327,7 +2347,7 @@ movement, streaming, or production physical-domain architecture.
 ## Current decision record
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.3
+working_unit: Simultaneous Physical Domains Proof v0.1.0-draft.4
 successor_selected: true
 specification_status: final_freeze_review
 freeze_status: not_frozen
@@ -2336,5 +2356,8 @@ canonical_capacity_change: none
 latest_sealed_capacity: THE_CITY Development Capacity and Progress Note v0.1.11
 ```
 
-No code may be written for this proof until a separately reviewed freeze fixes
-the complete contract and explicitly grants bounded implementation authority.
+The review-time document validator is the sole pre-freeze QA-code exception.
+No Phase-3 runtime, Unreal, adapter, harness, proof test, evidence, artifact,
+release-manifest, or production code may be written until a separately reviewed
+freeze fixes the complete contract and explicitly grants bounded implementation
+authority.

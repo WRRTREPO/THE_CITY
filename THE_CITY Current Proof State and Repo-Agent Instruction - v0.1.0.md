@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-28)\
 **Date:** 2026-08-28\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.71`\
+**Governing continuation:** `0.7.0-draft.72`\
 **Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
@@ -72,18 +72,19 @@ Unreal occupancy, contention, simultaneous domains, networking, streaming,
 Phase 3, or adjacent architecture.
 
 [Simultaneous Physical Domains Proof —
-v0.1.0-draft.3](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is now
+v0.1.0-draft.4](Simultaneous%20Physical%20Domains%20Proof%20-%20Draft.md) is now
 the sole active successor. It is in final freeze review under candidate
 proof-harness identity `SimultaneousPhysicalDomainsProof.v1` /
-`0.7.0-draft.71`. It reuses the exact sealed Phase-1 H0/H1 payload and
+`0.7.0-draft.72`. It reuses the exact sealed Phase-1 H0/H1 payload and
 access-only canonical transition, but explicitly does not inherit Phase 1's
-source-destruction physical lifecycle. Draft.3 keeps head observation private
+source-destruction physical lifecycle. Draft.4 keeps head observation private
 to the harness, makes the exact head-qualified physical guard canonically inert,
 defines terminal guard-open failure and representation-only claim semantics,
 requires a separate live-UE available/blocked oracle, audits the
 proof-semantic process-input closure, and preserves the exact release DAG,
-member set, and self-excluding manifest. Its non-release document validator
-passes. It is not frozen. No implementation, Unreal source
+member set, and self-excluding manifest. Its structurally exact non-release
+document validator and 21 adversarial in-memory self-tests pass. That validator
+is the sole pre-freeze QA-code exception. It is not frozen. No Phase-3 runtime, Unreal source
 change, capacity advancement, or adjacent scope is authorized.
 
 ## Current proof progression
@@ -506,7 +507,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.71
+  version: 0.7.0-draft.72
 
 latest_capacity_record:
   version: 0.1.11
@@ -520,7 +521,7 @@ latest_sealed_proof:
 
 active_proof:
   name: Simultaneous Physical Domains Proof
-  version: 0.1.0-draft.3
+  version: 0.1.0-draft.4
   candidate_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1
   canonical_source_payload: CanonicalSpatialTopologyIdentityPayload.v1
   canonical_source_simulation_identity: 0.7.0-draft.61
@@ -572,7 +573,7 @@ traversal, derived travel time, Unreal occupancy materialization, multiple
 occupancy, contention, simultaneous physical domains, or Phase 3, and it
 authorizes no successor implementation.
 
-Simultaneous Physical Domains v0.1.0-draft.3 is selected only for final freeze
+Simultaneous Physical Domains v0.1.0-draft.4 is selected only for final freeze
 review and is not frozen. It reuses the exact sealed Phase-1 R0/H0 and R1/H1
 canonical payloads and their sole access-state mutation. It does not create a
 new canonical payload or materialize Phase-2 occupancy. Its novelty is the
@@ -590,7 +591,7 @@ scheduling, mutation, and truth claims are prohibited. A refresh rejected
 before local publication leaves the domain stale. An unprovable partial local
 publication makes it invalid and halts local execution.
 
-Draft.3 keeps `current_head_observation.json` and every derived head value
+Draft.4 keeps `current_head_observation.json` and every derived head value
 strictly harness-private. The Unreal adapter reads only its exact process
 binding, declared command, and declared three-file tuple. The physical-current-
 head guard controls only physical current-head representation-claim/receipt
@@ -638,8 +639,12 @@ dispositions. The exact release DAG, 44 artifact-directory members, complete
 110-entry release set, and self-excluding manifest/verifier contract are fixed
 for final review. The review-time
 `proof_kernel/validate_simultaneous_physical_domains_spec.py` document validator
-must pass, remains outside the 110-member release set, and proves no Phase-3
-runtime behavior.
+must pass in default and `--self-test` modes, remains outside the 110-member
+release set, and proves no Phase-3 runtime behavior. Its 21 in-memory
+adversaries close the authority, guard, semantic-input, permission, artifact,
+manifest, and self-inclusion structures. It is the sole pre-freeze QA-code
+exception; every Phase-3 runtime, Unreal, proof, evidence, artifact, and release
+implementation remains prohibited.
 
 Do not begin any of the following without a separately reviewed freeze and
 explicit implementation authority:
@@ -784,7 +789,7 @@ The blocked-access control, dense/jump equivalence, singular occupancy,
 reservation closure, record-relative completion, failure atomicity, replay,
 source audit, and release package are sealed predecessor evidence.
 
-Simultaneous Physical Domains v0.1.0-draft.3 is the sole current working unit
+Simultaneous Physical Domains v0.1.0-draft.4 is the sole current working unit
 and is in final freeze review but not frozen. Review the exact Phase-1 H0/H1 reuse,
 noninheritance of Phase 1's physical lifecycle, detached A/B site-and-route
 projections, harness-private current-head observation, canonically inert
@@ -797,7 +802,8 @@ closure and stdin/three-file refresh mechanism, exact release DAG/member/
 manifest contract, quarantined stale execution, atomic refresh boundary,
 A-synchronized/B-stale asymmetric failure and symmetric branch, isolation,
 current-head rejection surface, canonical equivalence, replay, provenance, and
-source audit.
+source audit. Require the exact structural document validator and all 21
+adversarial self-tests before considering freeze.
 
 > **Do not implement the Phase 3 candidate until a separately reviewed freeze
 > explicitly grants its bounded implementation. Do not infer physical movement,
