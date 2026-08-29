@@ -1,6 +1,6 @@
 # THE_CITY Session Handover
 
-**Generated:** 2026-08-29T18:30:53Z
+**Generated:** 2026-08-29T19:02:28Z
 
 **Repository:** `/Users/boandersson/Desktop/Games/THE_CITY`
 
@@ -8,10 +8,72 @@
 
 **Authority:** Committed informational successor only; this file is not a proof contract, seal, capacity record, release member, or implementation authorization
 
+## Phase-4 specification-review opening — 2026-08-29
+
+This is the current operational record. It supersedes the successor-selection,
+Phase-4, current-working-unit, and next-gate statements in every later
+historical section of this handover.
+
+```yaml
+selection_commit: b31c2895aec82c9688f6525219598b9ac1a274cc
+selection_tree: 5bc3b0701973731d67a27ab7700f9b2935f96554
+selection_subject: Open cross-domain occupancy materialization review
+governing_continuation: 0.7.0-draft.79
+working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.0
+phase: 4
+candidate_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1
+candidate_simulation_identity: 0.7.0-draft.79
+specification_status: specification_review_only
+freeze_status: not_frozen
+independent_review_status: pending
+implementation_authority: none
+unreal_source_change_authority: none
+evidence_authority: none
+release_authority: none
+capacity_record: THE_CITY Development Capacity and Progress Note v0.1.11
+capacity_advancement: none
+phase_5: closed
+push_performed: false
+next_gate: independent_specification_review_of_exact_selection_commit
+```
+
+The candidate asks whether the exact sealed Phase-2 R0 → Rtransit → Rfinal
+occupancy chain can be represented across the same two original,
+simultaneously live Phase-3 Unreal domains while canonical records retain sole
+occupancy, transition, completion, reservation, ledger, ancestry, and successor
+authority. The proposed exhaustive endpoint representation is:
+
+```text
+                 domain A    domain B    total subject Actors
+R0                  0           1                  1
+Rtransit            0           0                  0
+Rfinal              1           0                  1
+```
+
+The Rtransit zero is not accepted as bare absence. Each domain must publish one
+positive exact-head anchor, and a separate live-world probe must independently
+census zero subject Actors. The draft also binds two canonical commits, two
+stale/refresh cycles in the same original A/B processes, all four refresh-order
+combinations, immediate-successor-only refresh, atomic anchor/Actor
+publication, asymmetric failures at both cycles, canonical-independence
+controls, field-bound identity and authority adversaries, source/dataflow
+closure, and a future exact release contract.
+
+The selection commit changes only the new proof draft and four current
+governing documents. It changes no Python, Unreal, capacity, Phase-3 artifact,
+or Phase-3 manifest byte. The three Phase-2 canonical artifacts match their
+sealed raw SHA-256 identities. An isolated export of Phase-3 seal commit
+`f72d6fbb87bcc5a047db0ab12f7447614ebee1fc` verifies 111/111 release members
+with all 41 verifier adversaries rejected. No independent Phase-4 verdict has
+yet been rendered. Review exact selection commit
+`b31c2895aec82c9688f6525219598b9ac1a274cc`; do not review this later excluded
+handover commit as though it were the candidate.
+
 ## Phase-3 forward seal — 2026-08-29
 
-This is the current operational record. It supersedes the candidate-status and
-next-gate statements in every later historical section of this handover.
+This remains the authoritative Phase-3 seal record. Its successor-selection,
+Phase-4, and next-gate fields describe the moment of sealing and are superseded
+by the current section above.
 
 ```yaml
 sealed_candidate_commit: 4e14b39a01ba712bfe559d004b0383fc7d9db7d6
@@ -46,7 +108,7 @@ unsealed` output does not self-authorize or negate the later governing seal.
 This handover remains excluded from the 111-member release. The exact sealed
 release is commit `f72d6fbb87bcc5a047db0ab12f7447614ebee1fc`, tree
 `5916ade67e25bf004d12df74b980fde4ec39bfaa`. No push occurred. No successor or
-Phase-4 work is authorized.
+Phase-4 work was authorized by that seal itself.
 
 ## Current corrected candidate — 2026-08-29
 
