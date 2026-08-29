@@ -1,12 +1,65 @@
 # THE_CITY Session Handover
 
-**Generated:** 2026-08-29T19:02:28Z
+**Generated:** 2026-08-29T20:33:52Z
 
 **Repository:** `/Users/boandersson/Desktop/Games/THE_CITY`
 
 **Purpose:** Semantic and executable handover for the next repository session
 
 **Authority:** Committed informational successor only; this file is not a proof contract, seal, capacity record, release member, or implementation authorization
+
+## Phase-4 corrective final-freeze candidate — 2026-08-29
+
+This is the current operational record. It supersedes the Phase-4 candidate,
+review-status, current-working-unit, and next-gate statements in every later
+historical section of this handover.
+
+```yaml
+corrective_candidate_commit: 299aa865c5757fb63aeef27a9c4eb48554dcea6f
+corrective_candidate_tree: 666bf7c70f04a4b1294c08aa5e003b97ff5fd836
+corrective_candidate_subject: Close Phase 4 specification review findings
+corrective_spec_sha256: ec06d6ed4b0fa9b4bd5eb9f2c2fd09048218ef20bc54dac9d7567d116359a3f3
+review_validator_sha256: d8ceb6c20e96c03e2cd89a22ba566b37ab236a38cfe6205f30eff0158db91b44
+governing_continuation: 0.7.0-draft.80
+working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1
+phase: 4
+candidate_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1
+candidate_simulation_identity: 0.7.0-draft.80
+specification_status: final_freeze_review_candidate
+freeze_status: not_frozen
+initial_independent_verdict: STOP_WITH_FINDINGS
+residual_contract_audit: ACCEPT_FOR_CORRECTIVE_COMMIT
+final_freeze_review_status: pending
+review_validator: 20/20_checks_and_32/32_mutations_rejected
+predecessor_regressions: 215/215
+implementation_authority: none
+unreal_source_change_authority: none
+evidence_authority: none
+release_authority: none
+capacity_record: THE_CITY Development Capacity and Progress Note v0.1.11
+capacity_advancement: none
+phase_5: closed
+push_performed: false
+next_gate: independent_final_freeze_review_of_exact_corrective_candidate
+```
+
+The first independent exact-candidate review stopped commit `b31c289` on 21
+contract findings. Corrective draft.1 closes that ledger with byte-bound
+projections, an independent expectation oracle and exhaustive live census, the
+ordered 22-field binding, nine L0–L8 inspections, a seven-state guard including
+the exact C1 terminal completion close, split process/harness fault channels,
+the authenticated after-M16 C3 receipt-only control, complete adversary/source
+matrices, and an exact prospective 82-artifact/172-member release. The residual
+read-only audit accepted this exact corrective tree for commit after all prior
+and newly discovered contradictions were resolved.
+
+The candidate changes only five governing/specification documents and the
+non-release review validator. It changes no Phase-4 runtime Python, Unreal
+source, evidence, artifact, manifest, capacity record, or sealed predecessor
+byte. Review commit `299aa865c5757fb63aeef27a9c4eb48554dcea6f` and tree
+`666bf7c70f04a4b1294c08aa5e003b97ff5fd836`, not this later excluded handover
+commit. No implementation, freeze, evidence, release, capacity advancement,
+Phase 5, or push follows from this record.
 
 ## Phase-4 specification-review opening — 2026-08-29
 
