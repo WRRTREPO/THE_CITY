@@ -4,9 +4,10 @@
 **Date:** 2026-08-29
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
-**Snapshot basis:** Independently accepted Phase-3 candidate commit `4e14b39`
-and its forward seal record
-**Governing continuation:** `0.7.0-draft.78`
+**Snapshot basis:** Independently accepted Phase-3 candidate commit `4e14b39`,
+its forward seal record, and the 2026-08-29 Phase-4 specification-review
+selection
+**Governing continuation:** `0.7.0-draft.79`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Simultaneous Physical Domains Proof v0.1.1`
@@ -123,8 +124,15 @@ phase_3_simultaneous_physical_domains:
   implementation: sealed_bounded_phase_3_proof_only
   evidence: passed_and_sealed
   capacity_advancement: none
-  successor_selected: false
-  phase_4: closed
+
+phase_4_cross_domain_canonical_occupancy_materialization:
+  selected: true
+  specification: v0.1.0-draft.0_review_only
+  candidate_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1/0.7.0-draft.79
+  frozen: false
+  implementation: prohibited
+  evidence: not_created
+  capacity_advancement: none
 ```
 
 Phase 1 established what canonical places and their relation are. Phase 2
@@ -176,12 +184,29 @@ named bounded implementation surface:
   reordered, contradictory, unbounded, altered, lifecycle-invalid,
   source-surface, or self-included mutations; and
 - only the exact four Python paths, eight Unreal paths, bounded dispatch branch,
-  evidence path, artifact directory, and manifest are authorized. Capacity and
+  evidence path, artifact directory, and manifest formed the authorized
+  Phase-3 surface. That work is now sealed historical scope. Capacity and
   adjacent scope remain closed.
 
-## Exact current proof envelope
+Phase 4 now selects one exact composition question for specification review:
+can the sealed Phase-2 R0 → Rtransit → Rfinal occupancy chain be represented in
+the same two original, simultaneously live Phase-3 Unreal domains without
+granting physical state occupancy or completion authority? The draft requires
+two canonical commits, two stale/refresh cycles, six exact domain/head
+projections, and an exact positive head anchor plus independent live-world
+subject-Actor census at every synchronized checkpoint. Its central negative
+state is proved positively: at Rtransit, both domains must anchor exact
+Rtransit and independently census zero subject Actors. A receipt or an empty
+query alone cannot satisfy that obligation.
 
-The newest proof remains deliberately small:
+This selection is not a freeze. It authorizes specification review only; no
+Python, Unreal, adapter, Actor, test, evidence, artifact, release, manifest,
+capacity, or Phase-5 work is open.
+
+## Exact sealed Phase-2 canonical envelope
+
+The canonical source proof reused by the active candidate remains deliberately
+small:
 
 ```yaml
 canonical_subjects: 1
@@ -224,39 +249,50 @@ The current corpus does not establish:
 - proximity-driven promotion, World Partition, production streaming, city
   population, traffic simulation, or city-scale performance;
 - stochastic identity, generalized planning, production topology, or a
-  generalized movement/occupancy system.
+  generalized movement/occupancy system; or
+- proven cross-domain canonical occupancy materialization; the current
+  Phase-4 draft is a review candidate, not evidence.
 
 ## Development frontier
 
-There is no active working unit. [Simultaneous Physical Domains Proof —
+[Simultaneous Physical Domains Proof —
 v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md)
-is sealed under `SimultaneousPhysicalDomainsProof.v1.1` /
+is the latest sealed proof under `SimultaneousPhysicalDomainsProof.v1.1` /
 `0.7.0-draft.77`. Independent review accepted exact candidate commit
 `4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree
 `9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`, without findings. Its 41/41
 focused tests, 215/215 predecessor regressions, UE 5.8 build, all 11 live
 witnesses, exact fault and authority surfaces, 44 artifacts, and self-excluding
-111-member release are sealed predecessor evidence. Capacity remains v0.1.11;
-no successor is selected and Phase 4 remains closed.
+111-member release are sealed predecessor evidence.
+
+[Cross-Domain Canonical Occupancy Materialization Proof —
+v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is the sole active working unit for Phase-4 specification review. Capacity
+remains v0.1.11. The draft is not frozen and no implementation or evidence is
+authorized.
 
 Current authority:
 
 ```yaml
-working_unit: none
-successor_selected: false
-specification_status: frozen
-freeze_status: frozen
-implementation_authority: sealed_historical_scope_only
-evidence_status: passed_and_sealed
+working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.0
+phase: 4
+successor_selected: true
+specification_status: specification_review_only
+freeze_status: not_frozen
+implementation_authority: none
+unreal_source_change_authority: none
+evidence_status: not_created
 governing_record_change_from_this_note: none
 capacity_change_from_this_note: none
-phase_4: closed
+phase_4: specification_review_only
 ```
 
 ## Record discipline
 
-This snapshot is a manifest-bound informational member of the exact Phase-3
-seal. It does not supersede the continuation, evidence, capacity record, or
-proof contract. Its purpose is to give developers a readable statement of what
-the machine can now demonstrably do, what it still cannot claim, and where
+The version of this snapshot captured at the exact Phase-3 seal is a historical
+manifest-bound member. This current amendment is a successor-governance record
+and is not absorbed into or evidence for that historical manifest. It does not
+supersede the continuation, sealed evidence, capacity record, or proof
+contracts. Its purpose is to give developers a readable statement of what the
+machine can now demonstrably do, what it still cannot claim, and where
 authority currently stops.

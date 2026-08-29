@@ -7,7 +7,7 @@ strategic authority.
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
 **Current sealed proof record:** [Simultaneous Physical Domains Proof — v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md).
-The governing continuation is [v0.7.0-draft.78](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+The governing continuation is [v0.7.0-draft.79](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md)
 is sealed under `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. It
 reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
@@ -31,9 +31,21 @@ previously unclassified reachable-reader calls, and a direct environment read
 caught by the complete C++ call-surface and exact source-byte censuses,
 the exact 44 artifacts exist, and the self-excluding 111-member release
 verifies. Independent review accepted exact candidate commit `4e14b39` without
-findings, and that candidate is now sealed by a forward release record.
-Development Capacity v0.1.11 is unchanged, no successor is selected, and Phase
-4 remains closed.
+findings, and that candidate is now sealed by a forward release record. That
+seal advanced no capacity and selected no successor.
+
+[Cross-Domain Canonical Occupancy Materialization Proof
+v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is now the sole active Phase-4 successor for specification review only. It asks
+whether the exact sealed Phase-2 R0 → Rtransit → Rfinal occupancy chain can be
+represented across the same two original, simultaneously live Phase-3 Unreal
+domains while the canonical record remains the sole authority for occupancy,
+transition, and completion. The candidate requires an exact positive head
+anchor plus an independent live-world subject-Actor census at all six
+domain/head projections, including positive proof that both domains contain
+zero subject Actors at Rtransit. It authorizes no implementation, evidence,
+release, Unreal source change, or capacity advancement. Development Capacity
+remains v0.1.11.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -100,14 +112,23 @@ The current capacity record is [THE_CITY Development Capacity and Progress Note 
 
 ## Verification
 
-Verify the sealed Phase-3 release package. The non-release specification
-validator belongs to the accepted candidate and is not the post-seal command:
+Verify the sealed Phase-3 release package from an isolated export of its exact
+forward-seal commit. The live working tree now contains successor-governance
+amendments and therefore must not be used to verify the historical manifest:
 
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
+phase3_seal_dir="$(mktemp -d /private/tmp/thecity-phase3-seal.XXXXXX)"
+git archive f72d6fbb87bcc5a047db0ab12f7447614ebee1fc | tar -x -C "$phase3_seal_dir"
 PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
-  python3 proof_kernel/verify_simultaneous_physical_domains_release.py verify
+  python3 "$phase3_seal_dir/proof_kernel/verify_simultaneous_physical_domains_release.py" verify
+rm -rf -- "$phase3_seal_dir"
 ```
+
+This verifies **111/111** sealed members. The verifier's frozen
+`evidence remains unsealed` wording records acquisition-time candidate state;
+the governing seal is commit `f72d6fbb87bcc5a047db0ab12f7447614ebee1fc`.
+Do not rewrite the historical manifest to absorb later current-state records.
 
 Run the complete Python regression record:
 
@@ -157,9 +178,9 @@ This is not a production-scale city simulation. The record does not yet prove:
   rollback, save/load, or host migration;
 - stale intelligence, agent memory, learning, generalized planning, or multi-agent strategy;
 - economy, civilians, traffic, repair, damage gradation, or production content density;
-- physical or generalized multi-subject occupancy/movement, directionality,
-  distance, derived travel time, pathfinding, production Bridge topology,
-  proven simultaneous live-domain rebinding, or a generalized city graph;
+- cross-domain canonical occupancy materialization, physical or generalized
+  multi-subject occupancy/movement, directionality, distance, derived travel
+  time, pathfinding, production Bridge topology, or a generalized city graph;
 - that the demonstrated opportunity pressure remains readable and fun at scale.
 
 Each future capability requires a separately selected, frozen, and verified

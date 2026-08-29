@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.78
-**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) is implemented, proven, and sealed under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. Its independently accepted exact candidate is commit `4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree `9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`; the seal binds the exact 44 artifacts and self-excluding 111-member release. Development Capacity v0.1.11 remains governing, no successor is selected, and Phase 4 and every adjacent production scope remain closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.79
+**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) remains the latest sealed proof and Development Capacity v0.1.11 remains governing. [Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md) is the sole active successor and is open for Phase-4 specification review only under candidate proof-harness identity `CrossDomainCanonicalOccupancyMaterializationProof.v1` / `0.7.0-draft.79`. It composes the exact sealed Phase-2 R0 → Rtransit → Rfinal chain with the exact sealed Phase-3 two-original-process lifecycle and requires positive head anchors plus independent live-world subject censuses. No implementation, Unreal source change, evidence acquisition, capacity advancement, Phase 5, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -113,7 +113,18 @@ successful three-stage and injected-fault-prefix obligations. Its 44/111
 release passes verification. Independent review accepted exact candidate
 commit `4e14b39a01ba712bfe559d004b0383fc7d9db7d6` without findings, and the
 candidate is sealed by the forward release record. Capacity remains v0.1.11;
-no successor is selected and Phase 4 remains closed.
+the seal itself selected no successor and granted no Phase-4 authority.
+
+[Cross-Domain Canonical Occupancy Materialization Proof —
+v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is now the sole active successor and is open for Phase-4 specification review
+only. It asks whether the exact sealed Phase-2 R0 → Rtransit → Rfinal occupancy
+chain can be represented in the same two original, simultaneously live Phase-3
+Unreal processes while canonical records remain the sole authority for
+occupancy and completion. The candidate requires one positive head anchor in
+each synchronized domain plus an independent exhaustive live-world subject
+Actor census, so lawful zero-subject Rtransit materialization cannot pass as
+mere absence. No implementation or Unreal source change is authorized.
 
 ## Product framing
 
@@ -193,6 +204,30 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.79 — 2026-08-29
+
+- Selected [Cross-Domain Canonical Occupancy Materialization Proof —
+  v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+  for Phase-4 specification review only under candidate proof-harness identity
+  `CrossDomainCanonicalOccupancyMaterializationProof.v1` /
+  `0.7.0-draft.79`.
+- Bound the candidate to the exact sealed Phase-2 R0, Rtransit, and Rfinal
+  artifacts and the exact sealed Phase-3 two-original-process liveness,
+  staleness, atomic-refresh, provenance, and independent-probe laws.
+- Proposed an exhaustive six-row domain/head projection matrix. R0 represents
+  the subject only in domain B, Rtransit represents it in neither endpoint
+  domain, and Rfinal represents it only in domain A.
+- Required a positive head anchor and independent live-world Actor census in
+  each synchronized domain. Zero subject Actors without the exact anchor is
+  invalid, preventing failed materialization from masquerading as lawful
+  Rtransit absence.
+- Kept Phase-2 start and freshly rediscovered completion entirely independent
+  of physical guard, liveness, refresh, Actor, receipt, transform, timer,
+  collision, animation, or navigation state.
+- Authorized no implementation, Unreal source change, evidence, artifact,
+  release, capacity advancement, movement, multiple subjects, 2+2 player
+  topology, networking, streaming, Phase 5, or production architecture.
 
 ### 0.7.0-draft.78 — 2026-08-29
 
@@ -1119,13 +1154,23 @@ bounded two-live-domain scope. Its Phase-1 H0/H1 reuse, physical-lifecycle
 noninheritance, projections, head-state/guard laws, H1-only refresh, live-UE
 oracle, continuous process-birth evidence, proof-semantic closure, faults,
 isolation, replay, provenance, source audit, and exact 44/111 release are now
-sealed predecessor evidence. There is no current working unit and no successor
-proof is selected.
+sealed predecessor evidence.
 
-Do not advance capacity or begin stochastic identity, 2+2 player topology,
-networking, live input collection, transport semantics, physical
+Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.0 is the
+sole current working unit and remains specification review only. Review must
+bind the exact Phase-2 R0/Rtransit/Rfinal bytes and two canonical boundaries,
+the Phase-3 two-original-process L0–L8 lifecycle, six domain/head projections,
+exhaustive occupancy dispositions, positive head anchors, independent live
+subject censuses, two atomic stale/refresh cycles, four refresh-order witnesses,
+canonical-independence controls, asymmetric failures, fault surfaces,
+provenance, source/dataflow closure, and exact release boundary before any
+implementation may be considered.
+
+Do not implement this Phase-4 candidate or advance capacity. Do not begin
+stochastic identity, 2+2 player topology, networking, live input collection,
+transport semantics, physical
 movement, derived travel time, navigation, pathfinding, production topology,
 World Partition, streaming, autonomous batch members, retry/re-admission,
 randomness, generalized resolver behavior, additional input classes,
 production Bridge topology, or city-scale architecture without a separate
-reviewed specification and explicit authority.
+reviewed freeze and explicit implementation authority.
