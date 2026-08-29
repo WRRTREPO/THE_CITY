@@ -5,9 +5,9 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Independently accepted Phase-3 candidate commit `4e14b39`,
-its forward seal record, and the 2026-08-29 Phase-4 specification-review
-selection
-**Governing continuation:** `0.7.0-draft.79`
+its forward seal record, and the 2026-08-29 Phase-4 corrective final
+freeze-review candidate
+**Governing continuation:** `0.7.0-draft.80`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Simultaneous Physical Domains Proof v0.1.1`
@@ -127,11 +127,14 @@ phase_3_simultaneous_physical_domains:
 
 phase_4_cross_domain_canonical_occupancy_materialization:
   selected: true
-  specification: v0.1.0-draft.0_review_only
-  candidate_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1/0.7.0-draft.79
+  specification: v0.1.0-draft.1_final_freeze_review_candidate
+  candidate_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1/0.7.0-draft.80
   frozen: false
   implementation: prohibited
   evidence: not_created
+  review_validator: 20/20_checks_and_32/32_mutations_rejected
+  prospective_artifact_members: 82
+  prospective_manifest_members_excluding_manifest: 172
   capacity_advancement: none
 ```
 
@@ -188,20 +191,25 @@ named bounded implementation surface:
   Phase-3 surface. That work is now sealed historical scope. Capacity and
   adjacent scope remain closed.
 
-Phase 4 now selects one exact composition question for specification review:
-can the sealed Phase-2 R0 → Rtransit → Rfinal occupancy chain be represented in
-the same two original, simultaneously live Phase-3 Unreal domains without
-granting physical state occupancy or completion authority? The draft requires
-two canonical commits, two stale/refresh cycles, six exact domain/head
-projections, and an exact positive head anchor plus independent live-world
-subject-Actor census at every synchronized checkpoint. Its central negative
-state is proved positively: at Rtransit, both domains must anchor exact
-Rtransit and independently census zero subject Actors. A receipt or an empty
-query alone cannot satisfy that obligation.
+Phase 4 now has one corrective final freeze-review candidate for the exact
+composition question: can the sealed Phase-2 R0 → Rtransit → Rfinal occupancy
+chain be represented in the same two original, simultaneously live Phase-3
+Unreal domains without granting physical state occupancy or completion
+authority? The candidate freezes two canonical commits, two stale/refresh
+cycles, six byte-exact domain/head projections, an ordered 22-field process
+binding, exact invocation channels, and separate expectation, receipt,
+exhaustive live census, private-head, guard, and harness-disposition records.
+Its central negative state is proved positively: at Rtransit, both domains must
+anchor exact Rtransit and independently census zero subject Actors. Neither a
+receipt nor an empty query can satisfy that obligation.
 
-This selection is not a freeze. It authorizes specification review only; no
-Python, Unreal, adapter, Actor, test, evidence, artifact, release, manifest,
-capacity, or Phase-5 work is open.
+The corrective candidate also closes the exact controls, asymmetric failures,
+40 authority cases / 121 subcases, 18 head faults, 138 materialization faults,
+36 observation faults, 23 binding adversaries, six liveness adversaries, 30
+source checks, 18 source mutations, and the prospective 82-artifact/172-member
+release. The review-only validator passes 20/20 checks and rejects 32/32
+in-memory mutations. This is not a freeze. No Python, Unreal, adapter, Actor,
+test, evidence, artifact, release, manifest, capacity, or Phase-5 work is open.
 
 ## Exact sealed Phase-2 canonical envelope
 
@@ -266,25 +274,29 @@ witnesses, exact fault and authority surfaces, 44 artifacts, and self-excluding
 111-member release are sealed predecessor evidence.
 
 [Cross-Domain Canonical Occupancy Materialization Proof —
-v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is the sole active working unit for Phase-4 specification review. Capacity
-remains v0.1.11. The draft is not frozen and no implementation or evidence is
-authorized.
+v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is the sole active working unit and corrective Phase-4 final freeze-review
+candidate. Capacity remains v0.1.11. The draft is not frozen and no
+implementation or evidence is authorized.
 
 Current authority:
 
 ```yaml
-working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.0
+working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1
 phase: 4
 successor_selected: true
-specification_status: specification_review_only
+candidate_simulation_identity: 0.7.0-draft.80
+specification_status: final_freeze_review_candidate
 freeze_status: not_frozen
 implementation_authority: none
 unreal_source_change_authority: none
 evidence_status: not_created
+prospective_artifact_members: 82
+prospective_manifest_members_excluding_manifest: 172
+review_validator: 20/20_checks_and_32/32_mutations_rejected
 governing_record_change_from_this_note: none
 capacity_change_from_this_note: none
-phase_4: specification_review_only
+phase_4: final_freeze_review_only
 ```
 
 ## Record discipline

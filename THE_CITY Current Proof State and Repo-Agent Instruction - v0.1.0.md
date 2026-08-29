@@ -3,7 +3,7 @@
 **Version:** 0.1.0 (current amendment: 2026-08-29)\
 **Date:** 2026-08-29\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.79`\
+**Governing continuation:** `0.7.0-draft.80`\
 **Latest sealed proof:** `Simultaneous Physical Domains Proof v0.1.1`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
@@ -99,13 +99,17 @@ commit `4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree
 seal advanced no capacity and selected no successor at sealing.
 
 [Cross-Domain Canonical Occupancy Materialization Proof —
-v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is now the sole active Phase-4 successor for specification review only. It
-binds the exact sealed Phase-2 R0 → Rtransit → Rfinal occupancy chain to the
-same two original, simultaneously live Phase-3 Unreal domains. It requires a
-positive exact-head anchor and independent live-world subject-Actor census for
-all six domain/head projections, including positive proof of zero subject
-Actors in both domains at Rtransit. It grants no implementation, Unreal source,
+v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is now the sole active Phase-4 successor and corrective final freeze-review
+candidate under `CrossDomainCanonicalOccupancyMaterializationProof.v1` /
+`0.7.0-draft.80`. It binds the exact sealed Phase-2 R0 → Rtransit → Rfinal
+occupancy chain to the same two original, simultaneously live Phase-3 Unreal
+domains. Its closed contract separates independently derived expectation,
+detached receipt, exhaustive live-world census, private head observation, and
+harness disposition; freezes the exact process/input/guard/publication/fault/
+source boundaries; and fixes an 82-artifact, 172-member prospective release.
+The review-only validator passes 20/20 checks and rejects 32/32 in-memory
+mutations. The draft is not frozen and grants no implementation, Unreal source,
 evidence, release, freeze, or capacity authority.
 
 ## Current proof progression
@@ -143,7 +147,7 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Cross-Domain Canonical Occupancy Materialization
-                SPECIFICATION REVIEW ONLY
+                FINAL FREEZE REVIEW / IMPLEMENTATION PROHIBITED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -536,7 +540,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.79
+  version: 0.7.0-draft.80
 
 latest_capacity_record:
   version: 0.1.11
@@ -550,16 +554,20 @@ latest_sealed_proof:
 
 active_proof:
   name: Cross-Domain Canonical Occupancy Materialization Proof
-  version: 0.1.0-draft.0
+  version: 0.1.0-draft.1
   phase: 4
   candidate_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1
-  candidate_simulation_identity: 0.7.0-draft.79
+  candidate_simulation_identity: 0.7.0-draft.80
   canonical_source_payload: CanonicalOccupancyTransitionPayload.v1
   physical_lifecycle_source: SimultaneousPhysicalDomainsProof.v1.1
-  status: specification_review_only
+  status: final_freeze_review_candidate
   freeze_status: not_frozen
   implementation: prohibited
-  phase_4: specification_review_only
+  evidence: not_created
+  prospective_artifact_members: 82
+  prospective_manifest_members_excluding_manifest: 172
+  review_validator: 20/20_checks_and_32/32_mutations_rejected
+  phase_4: final_freeze_review_only
 ```
 
 Older continuation snapshots, README files, draft states, and superseded
@@ -679,13 +687,16 @@ bounded paths were the complete authorized Phase-3 implementation surface and
 are now sealed historical scope; every other Phase-3 or production path
 remains prohibited.
 
-## Active Phase-4 specification boundary
+## Active Phase-4 final freeze-review boundary
 
 [Cross-Domain Canonical Occupancy Materialization Proof —
-v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is the sole current working unit. The selection authorizes review and amendment
-of that governing draft only. It does not authorize implementation, tests,
-Unreal source changes, live evidence acquisition, artifact generation, release
+v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is the sole current working unit and corrective final freeze-review candidate.
+The first independent exact-candidate review returned `STOP_WITH_FINDINGS`; the
+corrective draft closes those findings but is not accepted or frozen until a
+new independent review judges its exact committed bytes. This stage authorizes
+review and amendment only. It does not authorize implementation, tests, Unreal
+source changes, live evidence acquisition, artifact generation, release
 construction, freezing, or capacity advancement.
 
 The candidate composes, without modifying, two exact predecessor laws:
@@ -708,13 +719,18 @@ that both live domains represent exact Rtransit while each contains zero
 subject Actors; `in_transition` is represented at neither endpoint and is not
 converted into route presence, transform, interpolation, or arrival authority.
 
-The specification review must close the exact six-row disposition matrix, two
-consecutive stale/refresh cycles, immediate-successor-only refresh law,
-four-order witness matrix, head-bound guard states, atomic anchor/Actor
-publication, asymmetric failure cases at both cycles, field-bound process
-identity, authority and fault adversaries, source/dataflow closure, and exact
-future release contract. Until an independent freeze review accepts every
-gate, the candidate identity remains provisional and no code may be written.
+The corrective contract closes the exact six-row byte-bound projection and
+operation matrices, two consecutive stale/refresh cycles,
+immediate-successor-only refresh law, four-order witness matrix, exhaustive
+intermediate censuses, two private canonical-head observations, seven-state
+guard with an exact C1 terminal completion close, eleven-context permissions,
+realizable local publication and harness
+acceptance, asymmetric failures at both cycles, the ordered 22-field process
+identity, complete authority/fault/source adversaries, and the exact
+82-artifact/172-member prospective release. Until an independent final freeze
+review accepts every gate and a later record explicitly grants bounded
+implementation authority, the candidate identity remains provisional and no
+code may be written.
 
 Do not begin any of the following without a separately reviewed specification and
 explicit implementation authority:
@@ -865,15 +881,15 @@ stale-domain quarantine, independent H1 refresh, fault surfaces, provenance,
 source audit, and replay are sealed predecessor evidence. Development Capacity
 remains v0.1.11.
 
-Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.0 is the
-sole current Phase-4 working unit for specification review only. Review must
-establish the exact sealed Phase-2 artifact binding, the same two original
-Phase-3 processes across two commits and two refresh cycles, all six
-domain/head dispositions, positive exact-head anchoring, independent live-world
-Actor census, exact Rtransit zero-Actor evidence, guard and publication
-atomicity, field-bound adversaries, canonical noninterference, and a frozen
-release contract. The draft is not frozen. No implementation, Unreal source
-change, evidence, artifact, manifest, capacity, or Phase-5 work is authorized.
+Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1 is the
+sole current Phase-4 working unit and final freeze-review candidate. It closes
+the exact sealed Phase-2 artifact binding, same two original Phase-3 processes,
+two commits and refresh cycles, six byte-bound projections, exhaustive live
+censuses, exact Rtransit zero-Actor evidence, guard/publication/disposition
+contracts, field-by-field adversaries, canonical noninterference, and exact
+prospective release contract. The draft is not frozen. No implementation,
+Unreal source change, evidence, artifact, manifest, capacity, or Phase-5 work
+is authorized.
 
 > **Do not infer a proven cross-domain occupancy materialization, physical
 > movement, evidence arbitration, multiplayer, networking, streaming, capacity

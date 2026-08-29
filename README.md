@@ -7,7 +7,7 @@ strategic authority.
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
 **Current sealed proof record:** [Simultaneous Physical Domains Proof — v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md).
-The governing continuation is [v0.7.0-draft.79](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+The governing continuation is [v0.7.0-draft.80](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md)
 is sealed under `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. It
 reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
@@ -35,17 +35,21 @@ findings, and that candidate is now sealed by a forward release record. That
 seal advanced no capacity and selected no successor.
 
 [Cross-Domain Canonical Occupancy Materialization Proof
-v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is now the sole active Phase-4 successor for specification review only. It asks
-whether the exact sealed Phase-2 R0 → Rtransit → Rfinal occupancy chain can be
-represented across the same two original, simultaneously live Phase-3 Unreal
-domains while the canonical record remains the sole authority for occupancy,
-transition, and completion. The candidate requires an exact positive head
-anchor plus an independent live-world subject-Actor census at all six
-domain/head projections, including positive proof that both domains contain
-zero subject Actors at Rtransit. It authorizes no implementation, evidence,
-release, Unreal source change, or capacity advancement. Development Capacity
-remains v0.1.11.
+v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is now the sole active Phase-4 successor and corrective final freeze-review
+candidate under `CrossDomainCanonicalOccupancyMaterializationProof.v1` /
+`0.7.0-draft.80`. It composes the exact sealed Phase-2 R0 → Rtransit → Rfinal
+occupancy chain with the same two original, simultaneously live Phase-3 Unreal
+domains while keeping canonical records solely authoritative for occupancy,
+transition, and completion. The closed candidate requires six byte-exact
+projections, unverified local generation publication, separately authenticated
+expectation and receipt records, an independent exhaustive live-world census,
+private canonical-head observation, and a harness-only acceptance disposition.
+Its complete binding, guard, permissions, input, witness, fault, provenance,
+source, and prospective 82-artifact/172-member release structures pass 20/20
+review-validator checks and reject 32/32 in-memory mutations. It is not frozen
+and authorizes no implementation, evidence, release, Unreal source change, or
+capacity advancement. Development Capacity remains v0.1.11.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -111,6 +115,21 @@ proposals. Unreal cannot write city truth or causal-ledger entries.
 The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.11](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.11.md).
 
 ## Verification
+
+Validate the active Phase-4 corrective specification without executing any
+Phase-4 implementation or creating evidence:
+
+```sh
+cd "/Users/boandersson/Desktop/Games/THE_CITY"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
+  python3 proof_kernel/validate_cross_domain_canonical_occupancy_materialization_spec.py
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
+  python3 proof_kernel/validate_cross_domain_canonical_occupancy_materialization_spec.py --self-test
+```
+
+These review-only commands must report **20/20** structural checks and
+**32/32** rejected in-memory mutations. The validator is outside the prospective
+Phase-4 release and proves no runtime behavior.
 
 Verify the sealed Phase-3 release package from an isolated export of its exact
 forward-seal commit. The live working tree now contains successor-governance

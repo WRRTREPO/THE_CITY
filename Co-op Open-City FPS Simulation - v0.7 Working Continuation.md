@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.79
-**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) remains the latest sealed proof and Development Capacity v0.1.11 remains governing. [Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md) is the sole active successor and is open for Phase-4 specification review only under candidate proof-harness identity `CrossDomainCanonicalOccupancyMaterializationProof.v1` / `0.7.0-draft.79`. It composes the exact sealed Phase-2 R0 → Rtransit → Rfinal chain with the exact sealed Phase-3 two-original-process lifecycle and requires positive head anchors plus independent live-world subject censuses. No implementation, Unreal source change, evidence acquisition, capacity advancement, Phase 5, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.80
+**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) remains the latest sealed proof and Development Capacity v0.1.11 remains governing. [Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md) is the sole active successor and is the corrective Phase-4 final freeze-review candidate under proof-harness identity `CrossDomainCanonicalOccupancyMaterializationProof.v1` / `0.7.0-draft.80`. It closes the independent `STOP_WITH_FINDINGS` review with exact six-projection byte identities, independent expectation/receipt/live-census comparison, a 22-field process binding, closed head/guard/disposition/input/publication contracts, executable controls, complete adversary/fault/source matrices, and an exact prospective 82-artifact/172-member release. Its review-only validator passes 20/20 structural checks and rejects 32/32 in-memory mutations. The candidate is not frozen. No implementation, Unreal source change, evidence acquisition, capacity advancement, Phase 5, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -116,15 +116,21 @@ candidate is sealed by the forward release record. Capacity remains v0.1.11;
 the seal itself selected no successor and granted no Phase-4 authority.
 
 [Cross-Domain Canonical Occupancy Materialization Proof —
-v0.1.0-draft.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is now the sole active successor and is open for Phase-4 specification review
-only. It asks whether the exact sealed Phase-2 R0 → Rtransit → Rfinal occupancy
-chain can be represented in the same two original, simultaneously live Phase-3
-Unreal processes while canonical records remain the sole authority for
-occupancy and completion. The candidate requires one positive head anchor in
-each synchronized domain plus an independent exhaustive live-world subject
-Actor census, so lawful zero-subject Rtransit materialization cannot pass as
-mere absence. No implementation or Unreal source change is authorized.
+v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is now the sole active successor and corrective Phase-4 final freeze-review
+candidate. It asks whether the exact sealed Phase-2 R0 → Rtransit → Rfinal
+occupancy chain can be represented in the same two original, simultaneously
+live Phase-3 Unreal processes while canonical records remain the sole authority
+for occupancy and completion. The candidate requires an independently derived
+expected representation, one positive unverified local head anchor, one
+detached receipt, and an independent exhaustive live-world Actor census at
+each accepted generation. Its exact matrices close process identity, two head
+observations, guard and disposition permissions, byte-bound input, publication
+linearization, controls, asymmetric failure, fault injection, provenance,
+source/dataflow, and prospective release membership. The validator passes
+20/20 checks and rejects 32/32 declared structural mutations. This is not a
+freeze; no implementation, evidence, release, Unreal source change, or capacity
+advancement is authorized.
 
 ## Product framing
 
@@ -204,6 +210,32 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.80 — 2026-08-29
+
+- Advanced [Cross-Domain Canonical Occupancy Materialization Proof —
+  v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+  to independent final freeze review after the first exact-candidate review
+  returned `STOP_WITH_FINDINGS`.
+- Replaced premature local synchronization with unverified generation
+  publication followed by separately authenticated expectation, detached
+  receipt, exhaustive live-world census, private canonical-head observation,
+  binding, and physical-guard comparison in the harness.
+- Froze the exact six projection byte identities and operation tuples, ordered
+  22-field binding, closed invocation schemas, L0–L8 mixed-state censuses,
+  two canonical-head observations, seven-state guard with an exact C1 terminal
+  completion close, eleven-context permission
+  matrix, and realizable publication/acceptance linearization.
+- Froze C1–C5, AF01–AF04, 40 authority cases / 121 subcases, 18 head faults,
+  138 materialization faults, 36 observation faults, 23 binding adversaries,
+  six liveness adversaries, 30 source checks, and 18 source mutations.
+- Bound any later accepted implementation to four new Python paths, ten new
+  Unreal paths, one bounded GameMode branch, exactly 82 artifacts, 90 other
+  members, and a self-excluding 172-member release. The non-release validator
+  passes 20/20 checks and rejects 32/32 in-memory mutations.
+- Kept the candidate unfrozen, implementation and evidence prohibited,
+  Development Capacity at v0.1.11, Phase 5 closed, and all push authority
+  unchanged.
 
 ### 0.7.0-draft.79 — 2026-08-29
 
@@ -1156,15 +1188,16 @@ oracle, continuous process-birth evidence, proof-semantic closure, faults,
 isolation, replay, provenance, source audit, and exact 44/111 release are now
 sealed predecessor evidence.
 
-Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.0 is the
-sole current working unit and remains specification review only. Review must
-bind the exact Phase-2 R0/Rtransit/Rfinal bytes and two canonical boundaries,
-the Phase-3 two-original-process L0–L8 lifecycle, six domain/head projections,
-exhaustive occupancy dispositions, positive head anchors, independent live
-subject censuses, two atomic stale/refresh cycles, four refresh-order witnesses,
-canonical-independence controls, asymmetric failures, fault surfaces,
-provenance, source/dataflow closure, and exact release boundary before any
-implementation may be considered.
+Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1 is the
+sole current working unit and final freeze-review candidate. Its corrective
+contract binds the exact Phase-2 R0/Rtransit/Rfinal bytes and two canonical
+boundaries, the Phase-3 two-original-process L0–L8 lifecycle, six byte-exact
+domain/head projections, exhaustive dispositions and live censuses, two atomic
+stale/refresh cycles, four refresh-order witnesses, canonical-independence
+controls, asymmetric failures, exact fault/adversary/source surfaces, and the
+82-artifact/172-member prospective release. The candidate remains unfrozen and
+must receive independent acceptance before any bounded implementation authority
+may be granted.
 
 Do not implement this Phase-4 candidate or advance capacity. Do not begin
 stochastic identity, 2+2 player topology, networking, live input collection,
