@@ -1,6 +1,6 @@
 # THE_CITY Session Handover
 
-**Generated:** 2026-08-29T20:33:52Z
+**Generated:** 2026-08-29T21:24:01Z
 
 **Repository:** `/Users/boandersson/Desktop/Games/THE_CITY`
 
@@ -15,11 +15,11 @@ review-status, current-working-unit, and next-gate statements in every later
 historical section of this handover.
 
 ```yaml
-corrective_candidate_commit: 299aa865c5757fb63aeef27a9c4eb48554dcea6f
-corrective_candidate_tree: 666bf7c70f04a4b1294c08aa5e003b97ff5fd836
-corrective_candidate_subject: Close Phase 4 specification review findings
-corrective_spec_sha256: ec06d6ed4b0fa9b4bd5eb9f2c2fd09048218ef20bc54dac9d7567d116359a3f3
-review_validator_sha256: d8ceb6c20e96c03e2cd89a22ba566b37ab236a38cfe6205f30eff0158db91b44
+corrective_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7
+corrective_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3
+corrective_candidate_subject: Close final Phase 4 freeze-review findings
+corrective_spec_sha256: 0914e980ac963da0046153fb8ab0385c0fb20eef631686ed2f31f539e6285be2
+review_validator_sha256: 991d8d72ee46973c1936cacca8c4addb9bf5ddfd8eae41a6a55816f520c024ca
 governing_continuation: 0.7.0-draft.80
 working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1
 phase: 4
@@ -28,8 +28,12 @@ candidate_simulation_identity: 0.7.0-draft.80
 specification_status: final_freeze_review_candidate
 freeze_status: not_frozen
 initial_independent_verdict: STOP_WITH_FINDINGS
-residual_contract_audit: ACCEPT_FOR_CORRECTIVE_COMMIT
-final_freeze_review_status: pending
+first_corrective_candidate_commit: 299aa865c5757fb63aeef27a9c4eb48554dcea6f
+first_corrective_candidate_tree: 666bf7c70f04a4b1294c08aa5e003b97ff5fd836
+first_final_freeze_review_verdict: STOP_WITH_FINDINGS
+precommit_residual_audit: ACCEPT_FOR_CORRECTIVE_COMMIT
+precommit_residual_targeted_mutations: 8/8_rejected
+final_freeze_review_status: pending_exact_commit_review
 review_validator: 20/20_checks_and_32/32_mutations_rejected
 predecessor_regressions: 215/215
 implementation_authority: none
@@ -44,20 +48,23 @@ next_gate: independent_final_freeze_review_of_exact_corrective_candidate
 ```
 
 The first independent exact-candidate review stopped commit `b31c289` on 21
-contract findings. Corrective draft.1 closes that ledger with byte-bound
-projections, an independent expectation oracle and exhaustive live census, the
-ordered 22-field binding, nine L0–L8 inspections, a seven-state guard including
-the exact C1 terminal completion close, split process/harness fault channels,
-the authenticated after-M16 C3 receipt-only control, complete adversary/source
-matrices, and an exact prospective 82-artifact/172-member release. The residual
-read-only audit accepted this exact corrective tree for commit after all prior
-and newly discovered contradictions were resolved.
+contract findings. Corrective candidate `299aa865` closed that ledger, but its
+independent final freeze review returned `STOP_WITH_FINDINGS` on three residual
+areas: successful harness-trace representation, exact liveness/asymmetric-
+failure execution rows, and stored-byte/digest identity. Candidate `fd2d62f`
+closes those findings with one detached JSON byte law, distinct logical/stored
+binding orders, harness-only liveness observation plus the separate LV03 child
+report, exact LV01–LV06 and AF01–AF04 schedules/outcomes, absorbing global-guard
+failure, and successful/fault/liveness-complete harness traces. The precommit
+residual audit returned `ACCEPT_FOR_CORRECTIVE_COMMIT` after 20/20 validator
+checks, 32/32 declared mutations, 8/8 additional targeted mutations, 215/215
+regressions, and 109/109 relative links.
 
 The candidate changes only five governing/specification documents and the
 non-release review validator. It changes no Phase-4 runtime Python, Unreal
 source, evidence, artifact, manifest, capacity record, or sealed predecessor
-byte. Review commit `299aa865c5757fb63aeef27a9c4eb48554dcea6f` and tree
-`666bf7c70f04a4b1294c08aa5e003b97ff5fd836`, not this later excluded handover
+byte. Review commit `fd2d62f404936eb961d7d1571204f1a352439bd7` and tree
+`b8b7bd6259d72c685ac5dee3c1488b19025b0fb3`, not this later excluded handover
 commit. No implementation, freeze, evidence, release, capacity advancement,
 Phase 5, or push follows from this record.
 
