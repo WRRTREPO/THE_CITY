@@ -24,6 +24,16 @@ This is a new forward corrective candidate after the independent
 `6e4a69322365f06341bd4155fff0beada55266ab`. It preserves history and does not
 accept or seal that implementation candidate.
 
+The next independently reviewed candidate,
+`990b6233af13aa27ac10a404de1355e22aa332d9`, closed those three original
+areas but was also stopped: its classified source census omitted the two live
+`lstat` reads and therefore accepted one additional reachable `lstat` branch.
+This replacement candidate records both `lstat` calls explicitly and binds
+every parenthesized identifier/callee count plus the exact source bytes in all
+Phase-3 translation units and the bounded GameMode. New or additional input
+surfaces now fail closed even when their API name has not been classified as an
+input reader or they do not use a call at all.
+
 ## Exact canonical reuse
 
 The harness imports the sealed Phase-1 validator and resolver. It recomputes the
@@ -176,13 +186,17 @@ other_domain_state_visible_to_unreal: false
 expected_physical_result_visible_to_probe: false
 ```
 
-The independently rerun function-scoped source/dataflow audit passes 38/38
-checks and rejects 12/12 source mutations. It enumerates 13 exact runtime input
+The independently rerun function-scoped source/dataflow audit passes 41/41
+checks and rejects 16/16 source mutations. It enumerates 13 exact runtime input
 read sites, 11 source-verified dispatch/dataflow edges, and an exact
-69-occurrence input-API census over every Phase-3 translation unit plus the
-bounded GameMode surface. It rejects a reachable router-level undeclared file
-read and replacement of child-observed witness identity with the declared
-binding value. It confirms that the
+71-occurrence classified input-API census over every Phase-3 translation unit
+plus the bounded GameMode surface. A second exact census binds all 2,465
+parenthesized identifier occurrences by per-file callee/count digest, and a
+third binds the exact bytes of all five source translation units. It
+rejects a reachable router-level undeclared file read, an additional `lstat`
+read, previously unclassified `readlink` and `access` calls, a direct `environ`
+read with no new call token, and replacement of child-observed witness identity
+with the declared binding value. It confirms that the
 sealed Phase-1 resolver remains the sole canonical mutation owner, that the
 authoritative constructor consumes only payload and projection, that no
 head-observation or guard input reaches Unreal, that the live probe is separated
@@ -236,7 +250,7 @@ others. The self-excluding manifest contains the frozen 67 non-artifact members
 plus those 44 artifacts, sorted by raw UTF-8 relative-path bytes. The release
 verifier rehashes every member, reconstructs deterministic artifacts, validates
 operational witness relations, reconstructs all compact child provenance,
-reconciles the 154-member unique process registry, reruns all 40 focused tests,
+reconciles the 154-member unique process registry, reruns all 41 focused tests,
 reperforms the source/dataflow audit, and rejects CPU-only W3, Python-only live
 fault matrices, swapped authority labels/actions, hard-coded unchanged-history
 claims, provenance/trace/catalog mutations, missing process rows, incomplete

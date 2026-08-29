@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
 **Version:** 0.7.0-draft.77
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains the latest sealed proof under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md) remains frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. Its latest forward-corrected bounded implementation and 44/111 release candidate are complete: 12/12 validator checks, 35/35 validator adversaries, 40/40 focused tests, 215/215 predecessor regressions, UE 5.8 build, 11/11 live-process witnesses, 154 accepted runtime-provenance closures, 22/22 single-field binding adversaries plus one coordinated relabel adversary, executable guard and fault surfaces, a 38-check source/dataflow audit with 12/12 adversaries rejected and an exact 69-occurrence input-API census, canonical equivalence, and replay pass. The release verifier rejects 41/41 adversaries, including a recomputed successful-trace deletion. Evidence remains unsealed pending independent review. Capacity and every frozen contract boundary remain unchanged; Phase 4 remains closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains the latest sealed proof under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md) remains frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. Its latest forward-corrected bounded implementation and 44/111 release candidate are complete: 12/12 validator checks, 35/35 validator adversaries, 41/41 focused tests, 215/215 predecessor regressions, UE 5.8 build, 11/11 live-process witnesses, 154 accepted runtime-provenance closures, 22/22 single-field binding adversaries plus one coordinated relabel adversary, executable guard and fault surfaces, a 41-check source/dataflow audit with 16/16 adversaries rejected, an exact 71-occurrence classified input-API census, an exact complete C++ call-surface census, and exact translation-unit byte identities, canonical equivalence, and replay pass. The release verifier rejects 41/41 adversaries, including a recomputed successful-trace deletion. Evidence remains unsealed pending independent review. Capacity and every frozen contract boundary remain unchanged; Phase 4 remains closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -217,13 +217,18 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
   inventories, descriptor kernel identities, and a contiguous runtime input
   trace. Rejected one-field mutations in 22/22 fresh Unreal processes and one
   coordinated witness/launch relabel before provenance or materialization.
-- Replaced token-only authority auditing with 38 function-scoped source/dataflow
+- Replaced token-only authority auditing with 41 function-scoped source/dataflow
   checks, 13 enumerated runtime input read sites, 11 verified call-graph edges,
-  an exact 69-occurrence input-API census, and 12/12 rejected source mutations.
+  an exact 71-occurrence classified input-API census, an exact 2,465-occurrence
+  C++ call-surface census, exact translation-unit byte identities, and 16/16
+  rejected source mutations. The new cases
+  include the reviewer-replayed `lstat` branch plus previously unclassified
+  reachable `readlink` and `access` readers plus a direct `environ` read with no
+  new call token.
   The authoritative constructor now
   consumes only exact payload and exact projection.
 - Passed the 12/12 specification validator, 35/35 specification mutations,
-  40/40 focused tests, UE 5.8 build, exact 44 artifact verification, and
+  41/41 focused tests, UE 5.8 build, exact 44 artifact verification, and
   regenerated the self-excluding 111-member unsealed release candidate.
 - Evidence remains unsealed, Development Capacity remains v0.1.11, and Phase 4
   remains closed.

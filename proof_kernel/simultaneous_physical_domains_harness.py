@@ -146,11 +146,13 @@ PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS = {
     "harness_receipt_observation_head_cross_check": 3,
 }
 
-# This census is deliberately broader than the reachable call graph: every
-# application-level input API in all Phase-3 translation units must be one of
-# these exact, counted occurrences.  A new read anywhere in the router,
-# adapter, representation actor, or probe therefore fails closed even before
-# reachability is argued.
+# This classified input census is deliberately broader than the reachable call
+# graph: every known application-level input API in all Phase-3 translation
+# units must be one of these exact, counted occurrences.  It is paired with the
+# complete parenthesized-call surface below.  The latter fails closed for a new
+# or additional callee even when that callee has not yet been classified here,
+# so an unrecognized reader cannot escape merely by being absent from this
+# table.
 PHASE3_INPUT_API_PATTERNS = {
     "command_line_get": r"\bFCommandLine::Get\s*\(",
     "ns_get_argc": r"\b_NSGetArgc\s*\(",
@@ -163,6 +165,7 @@ PHASE3_INPUT_API_PATTERNS = {
     "descriptor_stat": r"(?<![A-Za-z0-9_])fstat\s*\(",
     "descriptor_flags": r"(?<![A-Za-z0-9_])fcntl\s*\(",
     "filesystem_stat": r"(?<![A-Za-z0-9_])stat\s*\(",
+    "filesystem_lstat": r"(?<![A-Za-z0-9_])lstat\s*\(",
     "dyld_image_count": r"\b_dyld_image_count\s*\(",
     "dyld_image_name": r"\b_dyld_get_image_name\s*\(",
     "dyld_image_header": r"\b_dyld_get_image_header\s*\(",
@@ -217,6 +220,7 @@ PHASE3_INPUT_API_EXPECTED_COUNTS = {
     ("SimultaneousPhysicalDomainCommandRouter.cpp", "hash_regular_file_gateway"): 5,
     ("SimultaneousPhysicalDomainCommandRouter.cpp", "resolve_hash_file_gateway"): 2,
     ("SimultaneousPhysicalDomainProofAdapter.cpp", "descriptor_stat"): 1,
+    ("SimultaneousPhysicalDomainProofAdapter.cpp", "filesystem_lstat"): 2,
     ("SimultaneousPhysicalDomainProofAdapter.cpp", "posix_open"): 1,
     ("SimultaneousPhysicalDomainProofAdapter.cpp", "posix_read"): 1,
     ("SimultaneousPhysicalDomainProofAdapter.cpp", "directory_find_files"): 1,
@@ -227,6 +231,36 @@ PHASE3_INPUT_API_EXPECTED_COUNTS = {
     ("SimultaneousPhysicalDomainRepresentationActor.cpp", "resolve_hash_file_gateway"): 2,
     ("SimultaneousPhysicalRebindProbe.cpp", "world_actor_iteration"): 4,
 }
+
+# The call-surface census strips comments and literals, then counts every
+# identifier immediately used as a parenthesized invocation or declaration.
+# It intentionally overapproximates calls by also retaining control-flow,
+# macro, and declaration tokens.  Each translation unit is bound to its exact
+# callee/count multiset.  Any inserted input API therefore changes a digest
+# even if PHASE3_INPUT_API_PATTERNS does not recognize its name.
+PHASE3_CPP_CALL_SURFACE_EXPECTED_SHA256 = {
+    "CityProofGameMode.cpp": "ec95771460b3c7697cc6f22c18f1bd206d0530e7682d8b0797850f4536e3b35d",
+    "SimultaneousPhysicalDomainCommandRouter.cpp": "4a4c9eff679c0b67a60bbf3fc7815c67575985fa9a8548f758ff2e83f2ad97b7",
+    "SimultaneousPhysicalDomainProofAdapter.cpp": "53cca6c3324eb0e4ba70131116dd20574ec9919a2da9466256e40d9adf48d3f2",
+    "SimultaneousPhysicalDomainRepresentationActor.cpp": "c8349ac25741886bc4f6de3e0cebc103219ba0c5ee2a640bad5ad74fb25764e4",
+    "SimultaneousPhysicalRebindProbe.cpp": "ff633fdd3a0237670ba32901c03bd994c9cd5de52c5a955d5c5c56df677db63a",
+}
+
+PHASE3_CPP_SOURCE_EXPECTED_RAW_SHA256 = {
+    "CityProofGameMode.cpp": "10ebc53aa4643bf00e0c37d5fc5bfc64b099f14e06f29e66c07ed4c7b3f7081a",
+    "SimultaneousPhysicalDomainCommandRouter.cpp": "7072a6c6d26676a1b13285aded72b8db68f394e4a581c63324f292fae0693811",
+    "SimultaneousPhysicalDomainProofAdapter.cpp": "3063ae41be306201377fb6c905bd250ad73bb6842c4d05c6c057c60f019c9905",
+    "SimultaneousPhysicalDomainRepresentationActor.cpp": "a07fc0b553c2b99d4845efc86bf778379f90816f29ae72e1251b1de6ac5f367a",
+    "SimultaneousPhysicalRebindProbe.cpp": "f2360cc84101dcfdcd40e81fd74b8caf2acdff2a2a226b6fdc38fcfa823ee3f1",
+}
+
+_CPP_NON_CODE_PATTERN = re.compile(
+    r"//[^\n]*|/\*.*?\*/|\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'",
+    re.DOTALL,
+)
+_CPP_PARENTHESIZED_IDENTIFIER_PATTERN = re.compile(
+    r"\b([A-Za-z_][A-Za-z0-9_]*)\s*(?:<[^;{}()\n]*>)?\s*\("
+)
 
 _FILE_IDENTITY_CACHE: dict[tuple[str, int, int, int], dict[str, Any]] = {}
 _RUNTIME_LOADED_IMAGE_CATALOG: dict[str, dict[str, Any]] = {}
@@ -2954,6 +2988,106 @@ def _phase3_input_api_census(
     }
 
 
+def _strip_cpp_noncode(text: str) -> str:
+    def replace(match: re.Match[str]) -> str:
+        return "".join("\n" if character == "\n" else " " for character in match.group(0))
+
+    return _CPP_NON_CODE_PATTERN.sub(replace, text)
+
+
+def _phase3_cpp_call_surface_census(
+    unreal_text: Mapping[str, str],
+    game_mode: str,
+) -> dict[str, Any]:
+    sources = {
+        name: text for name, text in unreal_text.items() if name.endswith(".cpp")
+    }
+    sources["CityProofGameMode.cpp"] = game_mode
+    files: list[dict[str, Any]] = []
+    observed_digests: dict[str, str] = {}
+    total_occurrences = 0
+    for file_name, text in sorted(sources.items()):
+        code = _strip_cpp_noncode(text)
+        counts: dict[str, int] = {}
+        for match in _CPP_PARENTHESIZED_IDENTIFIER_PATTERN.finditer(code):
+            callee = match.group(1)
+            counts[callee] = counts.get(callee, 0) + 1
+        ordered_counts = {
+            callee: counts[callee] for callee in sorted(counts)
+        }
+        digest = sha256_value(ordered_counts)
+        observed_digests[file_name] = digest
+        occurrence_count = sum(ordered_counts.values())
+        total_occurrences += occurrence_count
+        files.append({
+            "source_path": (
+                "CityMaterializationProof/Source/CityMaterializationProof/"
+                f"{file_name}"
+            ),
+            "parenthesized_identifier_occurrence_count": occurrence_count,
+            "distinct_identifier_count": len(ordered_counts),
+            "callee_counts": ordered_counts,
+            "callee_count_multiset_sha256": digest,
+            "expected_callee_count_multiset_sha256": (
+                PHASE3_CPP_CALL_SURFACE_EXPECTED_SHA256.get(file_name)
+            ),
+            "exact_allowlist_match": (
+                digest == PHASE3_CPP_CALL_SURFACE_EXPECTED_SHA256.get(file_name)
+            ),
+        })
+    expected_files = set(PHASE3_CPP_CALL_SURFACE_EXPECTED_SHA256)
+    observed_files = set(sources)
+    return {
+        "census_schema": "SimultaneousPhysicalDomainsCompleteCppCallSurfaceCensus.v1",
+        "scope": "all_phase3_translation_units_plus_bounded_game_mode_overapproximation",
+        "method": "comments_and_literals_removed_then_exact_parenthesized_identifier_count_multiset",
+        "parenthesized_identifier_occurrence_count": total_occurrences,
+        "files": files,
+        "observed_file_digests": observed_digests,
+        "expected_file_digests": dict(PHASE3_CPP_CALL_SURFACE_EXPECTED_SHA256),
+        "unrecognized_or_count_drift_files": sorted(
+            file_name for file_name in expected_files | observed_files
+            if observed_digests.get(file_name)
+            != PHASE3_CPP_CALL_SURFACE_EXPECTED_SHA256.get(file_name)
+        ),
+        "exact_allowlist_match": (
+            observed_files == expected_files
+            and observed_digests == PHASE3_CPP_CALL_SURFACE_EXPECTED_SHA256
+        ),
+    }
+
+
+def _phase3_cpp_source_byte_identity_census(
+    unreal_text: Mapping[str, str],
+    game_mode: str,
+) -> dict[str, Any]:
+    sources = {
+        name: text for name, text in unreal_text.items() if name.endswith(".cpp")
+    }
+    sources["CityProofGameMode.cpp"] = game_mode
+    observed = {
+        file_name: sha256_bytes(text.encode("utf-8"))
+        for file_name, text in sorted(sources.items())
+    }
+    expected_files = set(PHASE3_CPP_SOURCE_EXPECTED_RAW_SHA256)
+    observed_files = set(observed)
+    return {
+        "census_schema": "SimultaneousPhysicalDomainsExactCppSourceByteIdentityCensus.v1",
+        "scope": "all_phase3_translation_units_plus_bounded_game_mode",
+        "observed_raw_sha256": observed,
+        "expected_raw_sha256": dict(PHASE3_CPP_SOURCE_EXPECTED_RAW_SHA256),
+        "identity_drift_files": sorted(
+            file_name for file_name in expected_files | observed_files
+            if observed.get(file_name)
+            != PHASE3_CPP_SOURCE_EXPECTED_RAW_SHA256.get(file_name)
+        ),
+        "exact_allowlist_match": (
+            observed_files == expected_files
+            and observed == PHASE3_CPP_SOURCE_EXPECTED_RAW_SHA256
+        ),
+    }
+
+
 def _phase3_source_checks(
     unreal_text: Mapping[str, str],
     game_mode: str,
@@ -2990,6 +3124,10 @@ def _phase3_source_checks(
         router, "BuildObservedBindingAndRuntimeProvenance("
     )
     input_api_census = _phase3_input_api_census(unreal_text, game_mode)
+    call_surface_census = _phase3_cpp_call_surface_census(unreal_text, game_mode)
+    source_byte_identity_census = _phase3_cpp_source_byte_identity_census(
+        unreal_text, game_mode
+    )
     declaration_at = adapter_header.find("bool BuildAuthoritativeCandidate(")
     declaration_end = adapter_header.find(") const;", declaration_at)
     declaration = (
@@ -3068,6 +3206,23 @@ def _phase3_source_checks(
             input_api_census["exact_allowlist_match"]
             and not input_api_census["unallowlisted_occurrences"]
             and not input_api_census["missing_or_count_drift"]
+        ),
+        "lstat_input_reads_are_exactly_accounted": (
+            input_api_census["actual_counts"].get(
+                "SimultaneousPhysicalDomainProofAdapter.cpp:filesystem_lstat"
+            ) == 2
+            and sum(
+                count for key, count in input_api_census["actual_counts"].items()
+                if key.endswith(":filesystem_lstat")
+            ) == 2
+        ),
+        "complete_phase3_cpp_call_surface_matches_exact_allowlist": (
+            call_surface_census["exact_allowlist_match"]
+            and not call_surface_census["unrecognized_or_count_drift_files"]
+        ),
+        "complete_phase3_cpp_source_bytes_match_exact_allowlist": (
+            source_byte_identity_census["exact_allowlist_match"]
+            and not source_byte_identity_census["identity_drift_files"]
         ),
         "runtime_provenance_emitted_before_phase3_actor_spawn": (
             accept_binding["body"].index("EmitStructuredObject(RuntimeProvenance)")
@@ -3431,6 +3586,56 @@ def _source_audit() -> dict[str, Any]:
         router,
         router_hidden_read,
     ))
+    router_lstat_read = (
+        router[:handle_line["body_start"]]
+        + '\n    struct stat UndeclaredInfo {};\n'
+          '    if (lstat("/tmp/phase3_hidden_gate", &UndeclaredInfo) == 0)\n'
+          '        bProtocolFailed = true;\n'
+        + router[handle_line["body_start"]:]
+    )
+    adversary_sources.append((
+        "router_reachable_additional_lstat_read",
+        "SimultaneousPhysicalDomainCommandRouter.cpp",
+        router,
+        router_lstat_read,
+    ))
+    router_unrecognized_readlink = (
+        router[:handle_line["body_start"]]
+        + '\n    char UndeclaredLinkTarget[256] {};\n'
+          '    if (readlink("/tmp/phase3_hidden_link", UndeclaredLinkTarget, sizeof(UndeclaredLinkTarget)) > 0)\n'
+          '        bProtocolFailed = true;\n'
+        + router[handle_line["body_start"]:]
+    )
+    adversary_sources.append((
+        "router_reachable_unrecognized_readlink",
+        "SimultaneousPhysicalDomainCommandRouter.cpp",
+        router,
+        router_unrecognized_readlink,
+    ))
+    router_unrecognized_access = (
+        router[:handle_line["body_start"]]
+        + '\n    if (access("/tmp/phase3_hidden_access", R_OK) == 0)\n'
+          '        bProtocolFailed = true;\n'
+        + router[handle_line["body_start"]:]
+    )
+    adversary_sources.append((
+        "router_reachable_unrecognized_access",
+        "SimultaneousPhysicalDomainCommandRouter.cpp",
+        router,
+        router_unrecognized_access,
+    ))
+    router_unrecognized_environment_global = (
+        router[:handle_line["body_start"]]
+        + '\n    extern char** environ;\n'
+          '    bProtocolFailed = bProtocolFailed || environ[0] != nullptr;\n'
+        + router[handle_line["body_start"]:]
+    )
+    adversary_sources.append((
+        "router_reachable_unrecognized_environment_global",
+        "SimultaneousPhysicalDomainCommandRouter.cpp",
+        router,
+        router_unrecognized_environment_global,
+    ))
     adversary_sources.append((
         "binding_witness_observation_replaced_by_declared_value",
         "SimultaneousPhysicalDomainCommandRouter.cpp",
@@ -3470,6 +3675,10 @@ def _source_audit() -> dict[str, Any]:
         "ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(",
     )
     input_api_census = _phase3_input_api_census(unreal_text, game_mode)
+    call_surface_census = _phase3_cpp_call_surface_census(unreal_text, game_mode)
+    source_byte_identity_census = _phase3_cpp_source_byte_identity_census(
+        unreal_text, game_mode
+    )
     return {
         "audit_schema": "SimultaneousPhysicalDomainsSourceAudit.v1",
         "proof_scenario": PROOF_SCENARIO,
@@ -3495,6 +3704,13 @@ def _source_audit() -> dict[str, Any]:
         "runtime_input_read_site_count": len(read_sites),
         "complete_phase3_input_api_census": input_api_census,
         "input_api_occurrence_count": input_api_census["occurrence_count"],
+        "complete_phase3_cpp_call_surface_census": call_surface_census,
+        "cpp_call_surface_occurrence_count": call_surface_census[
+            "parenthesized_identifier_occurrence_count"
+        ],
+        "complete_phase3_cpp_source_byte_identity_census": (
+            source_byte_identity_census
+        ),
         "reachable_phase3_dispatch_and_input_graph": {
             "graph_schema": "SimultaneousPhysicalDomainsSourceCallGraph.v1",
             "edges": graph_edges,
@@ -3829,12 +4045,24 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
     source_adversaries = source_audit["source_audit_adversaries"]
     source_closure = (
         source_audit["all_checks_passed"]
-        and source_audit["check_count"] == 38
-        and source_adversaries["case_count"] == 12
+        and source_audit["check_count"] == 41
+        and source_adversaries["case_count"] == 16
         and source_adversaries["all_rejected"]
-        and source_audit["input_api_occurrence_count"] == 69
+        and source_audit["input_api_occurrence_count"] == 71
         and source_audit["complete_phase3_input_api_census"][
             "exact_allowlist_match"
+        ]
+        and source_audit["complete_phase3_cpp_call_surface_census"][
+            "exact_allowlist_match"
+        ]
+        and not source_audit["complete_phase3_cpp_call_surface_census"][
+            "unrecognized_or_count_drift_files"
+        ]
+        and source_audit["complete_phase3_cpp_source_byte_identity_census"][
+            "exact_allowlist_match"
+        ]
+        and not source_audit["complete_phase3_cpp_source_byte_identity_census"][
+            "identity_drift_files"
         ]
     )
     input_audit["binding_field_adversaries"] = binding_field_adversaries

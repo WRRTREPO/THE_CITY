@@ -2034,8 +2034,8 @@ def _verify_runtime_input_audit_contract(value: Any) -> None:
         or value.get("all_refreshes_original_stdin_pipe_only") is not True
         or value.get("runtime_valid_process_expected_count") != 154
         or value.get("runtime_valid_process_observed_count") != 154
-        or value.get("source_audit_check_count") != 38
-        or value.get("source_audit_adversary_count") != 12
+        or value.get("source_audit_check_count") != 41
+        or value.get("source_audit_adversary_count") != 16
         or not _is_sha256_text(value.get("source_audit_raw_sha256"))
         or value.get("fault_process_audits") != {
             "refresh_case_count": 36,
@@ -2048,12 +2048,24 @@ def _verify_runtime_input_audit_contract(value: Any) -> None:
     if (
         value.get("source_audit_raw_sha256") != sha256_value(source_audit)
         or source_audit.get("all_checks_passed") is not True
-        or source_audit.get("check_count") != 38
-        or source_audit.get("source_audit_adversaries", {}).get("case_count") != 12
-        or source_audit.get("input_api_occurrence_count") != 69
+        or source_audit.get("check_count") != 41
+        or source_audit.get("source_audit_adversaries", {}).get("case_count") != 16
+        or source_audit.get("input_api_occurrence_count") != 71
         or source_audit.get("complete_phase3_input_api_census", {}).get(
             "exact_allowlist_match"
         ) is not True
+        or source_audit.get("complete_phase3_cpp_call_surface_census", {}).get(
+            "exact_allowlist_match"
+        ) is not True
+        or source_audit.get("complete_phase3_cpp_call_surface_census", {}).get(
+            "unrecognized_or_count_drift_files"
+        ) != []
+        or source_audit.get(
+            "complete_phase3_cpp_source_byte_identity_census", {}
+        ).get("exact_allowlist_match") is not True
+        or source_audit.get(
+            "complete_phase3_cpp_source_byte_identity_census", {}
+        ).get("identity_drift_files") != []
         or source_audit.get("source_audit_adversaries", {}).get("all_rejected")
         is not True
     ):
@@ -2699,7 +2711,7 @@ def _run_focused_tests() -> None:
         [sys.executable, "-m", "unittest", "test_simultaneous_physical_domains.py"],
         cwd=ROOT / "proof_kernel", env=environment, capture_output=True, text=True,
     )
-    if result.returncode != 0 or "Ran 40 tests" not in result.stderr or "OK" not in result.stderr:
+    if result.returncode != 0 or "Ran 41 tests" not in result.stderr or "OK" not in result.stderr:
         raise ValueError(f"focused Phase-3 tests failed:\n{result.stdout}\n{result.stderr}")
 
 

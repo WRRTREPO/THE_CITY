@@ -463,9 +463,9 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
 
     def test_34_source_audit_is_function_scoped_and_adversarial(self) -> None:
         audit = _source_audit()
-        self.assertEqual(audit["check_count"], 38)
+        self.assertEqual(audit["check_count"], 41)
         self.assertTrue(audit["all_checks_passed"])
-        self.assertEqual(audit["source_audit_adversaries"]["case_count"], 12)
+        self.assertEqual(audit["source_audit_adversaries"]["case_count"], 16)
         self.assertTrue(audit["source_audit_adversaries"]["all_rejected"])
 
     def test_35_authoritative_constructor_accepts_only_payload_projection(self) -> None:
@@ -505,6 +505,10 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
             "loaded_image_inventory_removed",
             "live_world_trace_removed",
             "router_reachable_undeclared_file_read",
+            "router_reachable_additional_lstat_read",
+            "router_reachable_unrecognized_readlink",
+            "router_reachable_unrecognized_access",
+            "router_reachable_unrecognized_environment_global",
         }.issubset(identifiers))
 
     def test_39_binding_verification_modes_are_exact_and_honest(self) -> None:
@@ -542,6 +546,50 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
         self.assertEqual(
             PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS["physical_observation_emission"],
             3,
+        )
+
+    def test_41_complete_call_surface_closes_unrecognized_readers(self) -> None:
+        audit = _source_audit()
+        input_census = audit["complete_phase3_input_api_census"]
+        self.assertEqual(audit["input_api_occurrence_count"], 71)
+        self.assertEqual(
+            input_census["actual_counts"][
+                "SimultaneousPhysicalDomainProofAdapter.cpp:filesystem_lstat"
+            ],
+            2,
+        )
+        call_surface = audit["complete_phase3_cpp_call_surface_census"]
+        self.assertTrue(call_surface["exact_allowlist_match"])
+        self.assertEqual(call_surface["unrecognized_or_count_drift_files"], [])
+        source_identity = audit[
+            "complete_phase3_cpp_source_byte_identity_census"
+        ]
+        self.assertTrue(source_identity["exact_allowlist_match"])
+        self.assertEqual(source_identity["identity_drift_files"], [])
+        cases = {
+            case["adversary_id"]: case
+            for case in audit["source_audit_adversaries"]["cases"]
+        }
+        for adversary_id in (
+            "router_reachable_unrecognized_readlink",
+            "router_reachable_unrecognized_access",
+        ):
+            self.assertEqual(
+                cases[adversary_id]["failed_checks"],
+                [
+                    "complete_phase3_cpp_call_surface_matches_exact_allowlist",
+                    "complete_phase3_cpp_source_bytes_match_exact_allowlist",
+                ],
+            )
+        self.assertEqual(
+            cases[
+                "router_reachable_unrecognized_environment_global"
+            ]["failed_checks"],
+            ["complete_phase3_cpp_source_bytes_match_exact_allowlist"],
+        )
+        self.assertIn(
+            "lstat_input_reads_are_exactly_accounted",
+            cases["router_reachable_additional_lstat_read"]["failed_checks"],
         )
 
 

@@ -21,11 +21,14 @@ separate live-UE probe must observe `available` at H0 and `blocked` after H1.
 The exact process-liveness, proof-semantic-input, release-DAG, member-set, and
 manifest contracts are frozen and pass the 12/12 exact structural document
 validator checks plus all 35 adversarial self-tests. The forward-corrected
-bounded implementation is now complete: 40/40 focused tests and 215/215
+bounded implementation is now complete: 41/41 focused tests and 215/215
 predecessor regressions pass, the UE 5.8 editor builds, all 11 frozen
 live-process witnesses pass, all frozen fault and authority surfaces execute,
 22 single-field and one coordinated binding relabel adversary fail before
-provenance or materialization,
+provenance or materialization, and the source closure passes 41/41 checks with
+all 16 source adversaries rejected, including exact `lstat` accounting, two
+previously unclassified reachable-reader calls, and a direct environment read
+caught by the complete C++ call-surface and exact source-byte censuses,
 the exact 44 artifacts exist, and the self-excluding 111-member release
 verifies. Evidence remains unsealed pending independent review. Development
 Capacity v0.1.11 is unchanged and Phase 4 remains closed.
