@@ -1,14 +1,15 @@
 # THE_CITY — Developer Snapshot
 
 **Version:** 0.1.0
-**Date:** 2026-08-28
+**Date:** 2026-08-29
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
-**Snapshot basis:** Phase 2 seal commit `638e1ac`
-**Governing continuation:** `0.7.0-draft.77`
+**Snapshot basis:** Independently accepted Phase-3 candidate commit `4e14b39`
+and its forward seal record
+**Governing continuation:** `0.7.0-draft.78`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
-**Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`
+**Latest sealed proof:** `Simultaneous Physical Domains Proof v0.1.1`
 
 ## Current position
 
@@ -69,6 +70,10 @@ The sealed proof chain establishes these bounded capabilities:
     representation.
 14. One subject can transition between those canonical sites over canonical
     time through one explicit reservation-owning commitment.
+15. Two original process-isolated UE domains can remain alive across one
+    independent canonical H0-to-H1 commit, become mechanically stale while
+    still representing H0, and independently rebind to exact H1 without
+    physical representation becoming canonical authority.
 
 ## Authority model
 
@@ -115,15 +120,17 @@ phase_3_simultaneous_physical_domains:
   specification: v0.1.1_corrective_frozen
   frozen: true
   frozen_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1.1/0.7.0-draft.77
-  implementation: bounded_phase_3_proof_only
-  evidence: unsealed
+  implementation: sealed_bounded_phase_3_proof_only
+  evidence: passed_and_sealed
   capacity_advancement: none
+  successor_selected: false
+  phase_4: closed
 ```
 
 Phase 1 established what canonical places and their relation are. Phase 2
 established how one subject's settled occupancy can lawfully change between
-them. Phase 3's exact bounded implementation and release candidate are
-complete, with evidence still unsealed. It asks whether
+them. Phase 3's exact bounded implementation and 44/111 release are complete
+and sealed. It establishes that
 two process-isolated Unreal representation domains can remain simultaneously
 alive against one canonical head, survive the exact sealed Phase-1 H0-to-H1
 access transition without participating in it, and independently rebind while
@@ -210,8 +217,8 @@ The current corpus does not establish:
   distance, speed, or production travel time;
 - route occupancy, capacity, traffic, congestion, collision, interruption,
   rerouting, recovery, or mid-transition topology mutation;
-- sealed simultaneous-physical-domain evidence, multiple subjects, split
-  crews, concurrent occupancy, or site/route contention;
+- arbitrary or dynamic physical-domain counts, multiple subjects, split crews,
+  concurrent occupancy, or site/route contention;
 - live network transport, multiplayer arbitration, rollback, reconciliation,
   save/load, host migration, or shared multi-owner persistence;
 - proximity-driven promotion, World Partition, production streaming, city
@@ -221,37 +228,35 @@ The current corpus does not establish:
 
 ## Development frontier
 
-The active working unit is independent evidence review of [Simultaneous
-Physical Domains Proof — v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md).
-Its specification is frozen under `SimultaneousPhysicalDomainsProof.v1.1` /
-`0.7.0-draft.77`; evidence is unsealed. Authority is limited to the four named
-Python paths, eight named Unreal paths, bounded `CityProofGameMode.cpp`
-dispatch branch, evidence path, 44-member artifact directory, and
-self-excluding 111-member manifest. The corrected validator binds the complete
-frozen specification bytes, passes 12/12 exact checks, and rejects all 35
-declared adversarial mutations. The forward-corrected implementation candidate
-passes 33/33 focused tests, 215/215 predecessor regressions, the UE 5.8 build,
-all 11 live witnesses, every frozen fault and authority surface, and release
-verification. Evidence remains unsealed and no capacity advancement follows
-before separate review.
+There is no active working unit. [Simultaneous Physical Domains Proof —
+v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md)
+is sealed under `SimultaneousPhysicalDomainsProof.v1.1` /
+`0.7.0-draft.77`. Independent review accepted exact candidate commit
+`4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree
+`9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`, without findings. Its 41/41
+focused tests, 215/215 predecessor regressions, UE 5.8 build, all 11 live
+witnesses, exact fault and authority surfaces, 44 artifacts, and self-excluding
+111-member release are sealed predecessor evidence. Capacity remains v0.1.11;
+no successor is selected and Phase 4 remains closed.
 
 Current authority:
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.1 evidence review
-successor_selected: true
+working_unit: none
+successor_selected: false
 specification_status: frozen
 freeze_status: frozen
-implementation_authority: bounded_phase_3_proof_only
-evidence_status: unsealed
+implementation_authority: sealed_historical_scope_only
+evidence_status: passed_and_sealed
 governing_record_change_from_this_note: none
 capacity_change_from_this_note: none
+phase_4: closed
 ```
 
 ## Record discipline
 
-This snapshot is not a member of the sealed Phase 2 release, does not supersede
-the continuation or capacity record, and does not amend any proof contract. Its
-purpose is to give developers a readable statement of what the machine can now
-demonstrably do, what it still cannot claim, and where authority currently
-stops.
+This snapshot is a manifest-bound informational member of the exact Phase-3
+seal. It does not supersede the continuation, evidence, capacity record, or
+proof contract. Its purpose is to give developers a readable statement of what
+the machine can now demonstrably do, what it still cannot claim, and where
+authority currently stops.

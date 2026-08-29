@@ -1,7 +1,7 @@
 # Simultaneous Physical Domains Proof
 
 **Version:** 0.1.1
-**Status:** Frozen corrective specification; exact bounded Phase-3 v0.1.1 implementation, evidence reacquisition, and release verification authorized; evidence unsealed
+**Status:** Frozen corrective specification. The exact bounded Phase-3 v0.1.1 implementation and reacquired evidence are proven and sealed by the [v0.1.1 evidence record](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md); no successor scope is authorized and Phase 4 remains closed.
 **Selected:** 2026-08-28
 **Advanced to freeze review:** 2026-08-28
 **Frozen:** 2026-08-28
@@ -68,7 +68,7 @@ selection:
   unreal_source_change_authority: exact_frozen_phase_3_paths_only
   capacity_advancement: none
   freeze_status: frozen
-  evidence_status: unsealed
+  evidence_status: passed_and_sealed
 ```
 
 This operator-authorized corrective freeze supersedes v0.1.0 only for the
@@ -2551,6 +2551,17 @@ movement, streaming, or production physical-domain architecture.
 
 ## Specification and draft review history
 
+### 0.1.1 seal — 2026-08-29
+
+- Sealed the independently accepted exact candidate at commit
+  `4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree
+  `9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`, through a forward,
+  history-preserving release record.
+- Bound the seal to the exact 44 artifacts and self-excluding 111-member
+  release accepted without findings by independent review.
+- Kept Development Capacity at v0.1.11, selected no successor, and kept Phase 4
+  and every adjacent production scope closed.
+
 ### 0.1.1 — 2026-08-28
 
 - Preserved the frozen v0.1.0 contract and pushed implementation history, then
@@ -2664,18 +2675,19 @@ movement, streaming, or production physical-domain architecture.
 ## Current decision record
 
 ```yaml
-working_unit: Simultaneous Physical Domains Proof v0.1.1 corrective bounded implementation
-successor_selected: true
+working_unit: none
+successor_selected: false
 specification_status: frozen
 freeze_status: frozen
 implementation_authority: bounded_phase_3_proof_only
 canonical_capacity_change: none
-evidence_status: unsealed
+evidence_status: passed_and_sealed
 latest_sealed_capacity: THE_CITY Development Capacity and Progress Note v0.1.11
+phase_4: closed
 ```
 
-The specification is frozen. Implementation authority is limited to the exact
-Phase-3 proof paths and bounded dispatch branch declared by this contract. It
-permits the named proof implementation, Unreal adapter, harness, tests,
-evidence, artifacts, and release verification only. It grants no capacity
-advancement, production architecture, or adjacent spatial scope.
+The specification and exact bounded implementation are sealed. The historical
+implementation authority remains limited to the exact Phase-3 proof paths and
+bounded dispatch branch declared by this contract. The seal grants no capacity
+advancement, successor selection, production architecture, or adjacent spatial
+scope.

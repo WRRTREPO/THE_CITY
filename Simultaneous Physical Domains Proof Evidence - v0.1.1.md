@@ -2,7 +2,7 @@
 
 **Version:** 0.1.1
 **Date:** 2026-08-29
-**Status:** Implementation evidence passed; evidence unsealed pending independent review
+**Status:** Passed and sealed.
 **Specification:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md)
 **Proof harness identity:** `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`
 **Evidence continuation:** `0.7.0-draft.77`
@@ -16,8 +16,11 @@
 > mechanically classified as stale and incapable of current-head canonical
 > authority?
 
-The bounded implementation passes this claim. This document records a release
-candidate for separate evidence review. It does not seal the result.
+The bounded implementation passes this claim. Independent review accepted the
+exact release candidate at commit
+`4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree
+`9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`, without findings. This forward
+record seals that accepted candidate without rewriting its history.
 
 This is a new forward corrective candidate after the independent
 `STOP_WITH_REQUIRED_CORRECTIONS` review of
@@ -232,9 +235,16 @@ release_verifier_adversaries: 41/41_rejected
 manifest_self_excluding: true
 canonical_replay: byte_identical
 W1_W2_semantic_replay: equal
-evidence_status: unsealed
+evidence_status: passed_and_sealed
 capacity_advancement: none
 ```
+
+The generated `proof_run` artifact retains its acquisition-time
+`evidence_status: unsealed` field, and the accepted release verifier continues
+to refuse to self-authorize a seal. Those frozen candidate bytes are evidence,
+not operator authority. This governing evidence record and its exact
+self-excluding manifest record the later independent acceptance and forward
+seal.
 
 The UE build command was:
 
@@ -263,9 +273,25 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   python3 proof_kernel/verify_simultaneous_physical_domains_release.py verify
 ```
 
-## Proven candidate boundary
+## Seal record
 
-The evidence candidate establishes only two process-isolated Unreal
+```yaml
+sealed_candidate_commit: 4e14b39a01ba712bfe559d004b0383fc7d9db7d6
+sealed_candidate_tree: 9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78
+independent_verdict: ACCEPT_FOR_OPERATOR_SEAL_REVIEW
+independent_findings: none
+seal_form: forward_history_preserving
+artifact_roles: 44/44
+release_members_excluding_manifest: 111/111
+capacity_record: THE_CITY Development Capacity and Progress Note v0.1.11
+capacity_advancement: none
+successor_selected: false
+phase_4: closed
+```
+
+## Sealed proof boundary
+
+The sealed evidence establishes only two process-isolated Unreal
 representations of one exact sealed Phase-1 topology transition, with one
 domain projection per canonical site and the shared route included in both.
 It establishes that disposable live representation can survive a canonical
@@ -275,5 +301,5 @@ It does not establish canonical occupancy materialization, Q/BQ/BEXT, live
 external input, physical movement, navigation, networking, rollback, host
 migration, World Partition, streaming, split players, arbitrary domain counts,
 1-to-4-player topology, cross-domain causal propagation, production
-architecture, Phase 4, or any capacity increase. No successor scope follows
-until this evidence is independently reviewed and sealed.
+architecture, Phase 4, or any capacity increase. No successor is selected; the
+seal grants no authority beyond this exact bounded record.

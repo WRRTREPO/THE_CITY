@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
-**Version:** 0.7.0-draft.77
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains the latest sealed proof under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md) remains frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. Its latest forward-corrected bounded implementation and 44/111 release candidate are complete: 12/12 validator checks, 35/35 validator adversaries, 41/41 focused tests, 215/215 predecessor regressions, UE 5.8 build, 11/11 live-process witnesses, 154 accepted runtime-provenance closures, 22/22 single-field binding adversaries plus one coordinated relabel adversary, executable guard and fault surfaces, a 41-check source/dataflow audit with 16/16 adversaries rejected, an exact 71-occurrence classified input-API census, an exact complete C++ call-surface census, and exact translation-unit byte identities, canonical equivalence, and replay pass. The release verifier rejects 41/41 adversaries, including a recomputed successful-trace deletion. Evidence remains unsealed pending independent review. Capacity and every frozen contract boundary remain unchanged; Phase 4 remains closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Version:** 0.7.0-draft.78
+**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) is implemented, proven, and sealed under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. Its independently accepted exact candidate is commit `4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree `9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`; the seal binds the exact 44 artifacts and self-excluding 111-member release. Development Capacity v0.1.11 remains governing, no successor is selected, and Phase 4 and every adjacent production scope remain closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -105,14 +105,15 @@ The latest forward-corrected exact bounded implementation is complete. W3 now
 uses exact live UE-local counter steps, all 60 adapter/probe/harness fault rows
 are process-bound, all 37 authority rows use the exact frozen action table, and
 canonical history is mechanically measured around every applicable adversary.
-Its live runtime evidence has been reacquired with 154 accepted child
+Its live runtime evidence was reacquired with 154 accepted child
 provenance closures, field-by-field rejection of all 22 declared binding
 members plus one coordinated witness/launch relabel, exact loaded-image and
 initial-Actor inventories, and process-bound runtime input traces with exact
 successful three-stage and injected-fault-prefix obligations. Its 44/111
-release candidate passes verification.
-Evidence remains unsealed pending independent review; capacity remains
-unchanged.
+release passes verification. Independent review accepted exact candidate
+commit `4e14b39a01ba712bfe559d004b0383fc7d9db7d6` without findings, and the
+candidate is sealed by the forward release record. Capacity remains v0.1.11;
+no successor is selected and Phase 4 remains closed.
 
 ## Product framing
 
@@ -192,6 +193,21 @@ Every attempted or committed consequential mutation must append an inspectable c
 The ledger must allow a later inspection to reconstruct the complete causal chain without inferring intent from the final state alone.
 
 ## Changelog
+
+### 0.7.0-draft.78 — 2026-08-29
+
+- Sealed [Simultaneous Physical Domains Proof —
+  v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md)
+  through a forward, history-preserving record after independent review
+  accepted exact candidate commit
+  `4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree
+  `9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`, without findings.
+- Bound the seal to the exact 44 artifacts, self-excluding 111-member release,
+  41/41 focused checks, 215/215 predecessor regressions, UE 5.8 build, all 11
+  live-process witnesses, 41/41 source checks with 16/16 source adversaries
+  rejected, and 41/41 release-verifier adversaries rejected.
+- Kept Development Capacity v0.1.11 governing, selected no successor, and kept
+  Phase 4 and all adjacent production scope closed.
 
 ### 0.7.0-draft.77 — 2026-08-29
 
@@ -1098,13 +1114,13 @@ predecessor evidence.
 Canonical Occupancy Transition Proof v0.1.0 is complete and sealed in its exact
 bounded canonical scope.
 
-Simultaneous Physical Domains Proof v0.1.0 is the sole current evidence-review
-unit. Its bounded implementation and exact 44/110 release candidate are
-complete; evidence remains unsealed. Independent review must verify the frozen
-Phase-1 H0/H1 reuse, physical-lifecycle noninheritance, two-live-process
-projections, head-state/guard laws, H1-only refresh, live-UE oracle, continuous
-process-birth evidence, proof-semantic closure, faults, isolation, replay,
-provenance, source audit, and release verifier before any seal.
+Simultaneous Physical Domains Proof v0.1.1 is complete and sealed in its exact
+bounded two-live-domain scope. Its Phase-1 H0/H1 reuse, physical-lifecycle
+noninheritance, projections, head-state/guard laws, H1-only refresh, live-UE
+oracle, continuous process-birth evidence, proof-semantic closure, faults,
+isolation, replay, provenance, source audit, and exact 44/111 release are now
+sealed predecessor evidence. There is no current working unit and no successor
+proof is selected.
 
 Do not advance capacity or begin stochastic identity, 2+2 player topology,
 networking, live input collection, transport semantics, physical

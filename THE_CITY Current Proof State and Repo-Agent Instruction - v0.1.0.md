@@ -1,10 +1,10 @@
 # THE_CITY — Current Proof State and Repo-Agent Instruction
 
-**Version:** 0.1.0 (current amendment: 2026-08-28)\
-**Date:** 2026-08-28\
+**Version:** 0.1.0 (current amendment: 2026-08-29)\
+**Date:** 2026-08-29\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.77`\
-**Latest sealed proof:** `Canonical Occupancy Transition Proof v0.1.0`\
+**Governing continuation:** `0.7.0-draft.78`\
+**Latest sealed proof:** `Simultaneous Physical Domains Proof v0.1.1`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
 
@@ -72,7 +72,7 @@ Unreal occupancy, contention, simultaneous domains, networking, streaming,
 Phase 3, or adjacent architecture.
 
 [Simultaneous Physical Domains Proof —
-v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md) is frozen
+v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) is implemented, proven, and sealed
 under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` /
 `0.7.0-draft.77`. It reuses the exact sealed Phase-1 H0/H1 payload and
 access-only canonical transition, but explicitly does not inherit Phase 1's
@@ -87,13 +87,15 @@ self-tests. Exact bounded
 implementation authority now covers only the four named Python paths, eight
 named Unreal paths, bounded `CityProofGameMode.cpp` dispatch branch, evidence
 path, 44-member artifact directory, and self-excluding 111-member manifest.
-The exact bounded implementation now passes 33/33 focused tests, 215/215
+The exact bounded implementation passes 41/41 focused tests, 215/215
 predecessor regressions, the UE 5.8 build, all 11 frozen live-process witnesses,
 and exact 44/111 release verification. W3 uses exact compiled local-step counter
 evidence, all 60 fault rows are process-bound at their real boundaries, the 37
 authority rows match their exact actions, and canonical history is measured
-around every applicable adversary. Evidence remains unsealed pending
-independent review; no capacity advancement is established.
+around every applicable adversary. Independent review accepted exact candidate
+commit `4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree
+`9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`, without findings. The forward
+seal advances no capacity, selects no successor, and keeps Phase 4 closed.
 
 ## Current proof progression
 
@@ -127,7 +129,7 @@ Same-Clock Successor Semantics
                 PROVEN / SEALED
                 ↓
         Simultaneous Physical Domains
-                IMPLEMENTED / EVIDENCE CANDIDATE UNSEALED / SEAL REVIEW REQUIRED
+                PROVEN / SEALED
 ```
 
 Record-relative chronological resolution remains an essential
@@ -504,8 +506,9 @@ strategic authority
 
 That is now proven evidence.
 
-The forward-corrected Phase-3 implementation candidate is not sealed evidence
-and does not yet advance this machine summary.
+The forward-corrected Phase-3 implementation and exact release are sealed in
+their bounded two-live-domain scope. This advances no capacity and grants no
+successor authority.
 
 # Repo-agent instruction
 
@@ -515,29 +518,23 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.77
+  version: 0.7.0-draft.78
 
 latest_capacity_record:
   version: 0.1.11
 
 latest_sealed_proof:
-  name: Canonical Occupancy Transition Proof
-  version: 0.1.0
-  payload_schema: CanonicalOccupancyTransitionPayload.v1
-  simulation_identity: 0.7.0-draft.65
+  name: Simultaneous Physical Domains Proof
+  version: 0.1.1
+  proof_harness_identity: SimultaneousPhysicalDomainsProof.v1.1
+  simulation_identity: 0.7.0-draft.77
   evidence_status: passed_and_sealed
 
 active_proof:
-  name: Simultaneous Physical Domains Proof
-  version: 0.1.1
-  frozen_proof_harness_identity: SimultaneousPhysicalDomainsProof.v1.1/0.7.0-draft.77
-  canonical_source_payload: CanonicalSpatialTopologyIdentityPayload.v1
-  canonical_source_simulation_identity: 0.7.0-draft.61
-  status: implemented_evidence_candidate_unsealed
-  freeze_status: frozen
-  implementation: bounded_phase_3_proof_only
-  evidence_status: unsealed
-  capacity_advancement: none
+  name: none
+  status: no_successor_selected
+  implementation: prohibited
+  phase_4: closed
 ```
 
 Older continuation snapshots, README files, draft states, and superseded
@@ -583,8 +580,8 @@ traversal, derived travel time, Unreal occupancy materialization, multiple
 occupancy, contention, simultaneous physical domains, or Phase 3, and it
 authorizes no successor implementation.
 
-Simultaneous Physical Domains v0.1.1 is frozen for exact bounded corrective
-implementation. It reuses the exact sealed Phase-1 R0/H0 and R1/H1
+Simultaneous Physical Domains v0.1.1 is sealed only for its exact bounded
+corrective implementation. It reuses the exact sealed Phase-1 R0/H0 and R1/H1
 canonical payloads and their sole access-state mutation. It does not create a
 new canonical payload or materialize Phase-2 occupancy. Its novelty is the
 physical lifecycle: two process-isolated Unreal representations must remain
@@ -626,7 +623,7 @@ from exact H1 plus the exact role/H1 projection. Only
 collision, physics, receipt, capability, and H0-derived representation state
 must not merge or select H1 truth.
 
-Each operational instance is bound to a macOS process-start witness, original
+Each sealed operational instance is bound to a macOS process-start witness, original
 child handle, executable/root/pipe binding, continuous exit/EOF monitor, exact
 L0–L4B samples, and a two-launch/no-replacement audit. Refresh uses exactly one
 canonical-JSON line on each original stdin pipe plus one isolated role-specific
@@ -799,15 +796,13 @@ The blocked-access control, dense/jump equivalence, singular occupancy,
 reservation closure, record-relative completion, failure atomicity, replay,
 source audit, and release package are sealed predecessor evidence.
 
-Simultaneous Physical Domains v0.1.1 evidence review is the sole current
-working unit. The specification is frozen, the forward-corrected bounded
-implementation and exact 44/111 release candidate are complete, and evidence
-is unsealed. The exact structural validator's 12/12 positive checks and all
-35/35 adversarial self-tests remain hard gates. No implementation expansion,
-capacity advancement, or successor work is authorized before independent
-evidence review and seal.
+Simultaneous Physical Domains v0.1.1 is complete and sealed. Its exact 44
+artifacts, self-excluding 111-member release, two-live-process lifecycle,
+stale-domain quarantine, independent H1 refresh, fault surfaces, provenance,
+source audit, and replay are sealed predecessor evidence. Development Capacity
+remains v0.1.11. There is no current working unit, no successor is selected,
+and Phase 4 remains closed.
 
-> **Review only the frozen Phase-3 implementation and evidence candidate. Do
-> not infer physical movement, occupancy materialization, evidence arbitration,
-> multiplayer, networking, streaming, capacity advancement, or adjacent spatial
-> architecture from this bounded result.**
+> **Do not infer physical movement, occupancy materialization, evidence
+> arbitration, multiplayer, networking, streaming, capacity advancement, or
+> adjacent spatial architecture from this bounded Phase-3 seal.**
