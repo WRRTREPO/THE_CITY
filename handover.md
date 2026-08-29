@@ -1,12 +1,68 @@
 # THE_CITY Session Handover
 
-**Generated:** 2026-08-29T21:24:01Z
+**Generated:** 2026-08-29T21:57:30Z
 
 **Repository:** `/Users/boandersson/Desktop/Games/THE_CITY`
 
 **Purpose:** Semantic and executable handover for the next repository session
 
 **Authority:** Committed informational successor only; this file is not a proof contract, seal, capacity record, release member, or implementation authorization
+
+## Phase-4 specification freeze — 2026-08-29
+
+This is the current operational record. It supersedes the Phase-4 candidate,
+review-status, authority, current-working-unit, and next-gate statements in
+every later historical section of this handover.
+
+```yaml
+freeze_commit: 239a105463ef1d928a06b010918f197bba330fe3
+freeze_tree: 8944f4881deb2d55912fb90b72926e64179c2be8
+freeze_parent: 0f0d6ed6365fa4b07f15b5d9c1d021992afc7d14
+freeze_subject: Freeze cross-domain occupancy materialization proof
+accepted_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7
+accepted_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3
+independent_final_freeze_review: ACCEPT_FOR_FREEZE
+frozen_spec_sha256: 47889ac299cf2cfbea143a6a529b1253826e74ae9ddc83f0b25903117ff9406d
+review_validator_sha256: 5b58e044f23bef743c3cf5730406aaed0bd21c5f1e31ce0c280ceac55c4961c8
+governing_continuation: 0.7.0-draft.81
+working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0 bounded implementation
+phase: 4
+frozen_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1
+simulation_identity: 0.7.0-draft.80
+specification_status: frozen
+freeze_status: frozen
+implementation_authority: bounded_phase_4_proof_only
+unreal_source_change_authority: exact_frozen_phase_4_paths_only
+evidence_authority: exact_frozen_phase_4_evidence_only
+release_authority: exact_frozen_phase_4_release_only
+evidence_status: unsealed
+artifact_members: 82
+manifest_members_excluding_manifest: 172
+review_validator: 20/20_checks_and_32/32_mutations_rejected
+predecessor_regressions: 215/215
+relative_links: 110/110
+capacity_record: THE_CITY Development Capacity and Progress Note v0.1.11
+capacity_advancement: none
+phase_5: closed
+implementation_performed_by_freeze: false
+push_performed: false
+next_gate: exact_bounded_phase_4_implementation_and_evidence_acquisition
+```
+
+Independent final review accepted the exact candidate commit and tree above.
+The forward freeze records that verdict without rewriting the reviewed
+candidate or any sealed predecessor. It grants only the specification's exact
+four new Python paths, ten new Unreal paths, bounded
+`CityProofGameMode.cpp` branch, evidence path, four governing paths,
+82-member artifact directory, and self-excluding 172-member release boundary.
+The specification itself is immutable during implementation; the review
+validator remains non-release QA; `handover.md` remains an informational
+excluded record.
+
+The freeze transition changed only the five governing/specification documents
+and the non-release validator. It created no Phase-4 runtime source, Unreal
+source, evidence, artifact, or manifest, performed no release construction,
+advanced no capacity, opened no Phase 5 work, and performed no push.
 
 ## Phase-4 corrective final-freeze candidate — 2026-08-29
 
