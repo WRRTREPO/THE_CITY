@@ -5,9 +5,9 @@
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Independently accepted Phase-3 candidate commit `4e14b39`,
-its forward seal record, and the 2026-08-29 Phase-4 corrective final
-freeze-review candidate
-**Governing continuation:** `0.7.0-draft.80`
+its forward seal record, and the independently accepted 2026-08-29 Phase-4
+specification freeze
+**Governing continuation:** `0.7.0-draft.81`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
 **Latest sealed proof:** `Simultaneous Physical Domains Proof v0.1.1`
@@ -127,16 +127,22 @@ phase_3_simultaneous_physical_domains:
 
 phase_4_cross_domain_canonical_occupancy_materialization:
   selected: true
-  specification: v0.1.0-draft.1_final_freeze_review_candidate
-  candidate_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1/0.7.0-draft.80
-  frozen: false
-  implementation: prohibited
-  evidence: not_created
+  specification: v0.1.0_frozen
+  frozen_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1/0.7.0-draft.80
+  accepted_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7
+  accepted_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3
+  frozen: true
+  implementation_authority: bounded_phase_4_proof_only
+  unreal_source_change_authority: exact_frozen_phase_4_paths_only
+  evidence_authority: exact_frozen_phase_4_evidence_only
+  release_authority: exact_frozen_phase_4_release_only
+  evidence: unsealed
   review_validator: 20/20_checks_and_32/32_mutations_rejected
-  final_freeze_review: corrected_resubmission_pending_exact_commit_review
-  prospective_artifact_members: 82
-  prospective_manifest_members_excluding_manifest: 172
+  final_freeze_review: accepted_exact_candidate
+  artifact_members: 82
+  manifest_members_excluding_manifest: 172
   capacity_advancement: none
+  phase_5: closed
 ```
 
 Phase 1 established what canonical places and their relation are. Phase 2
@@ -192,11 +198,11 @@ named bounded implementation surface:
   Phase-3 surface. That work is now sealed historical scope. Capacity and
   adjacent scope remain closed.
 
-Phase 4 now has one corrective final freeze-review candidate for the exact
-composition question: can the sealed Phase-2 R0 → Rtransit → Rfinal occupancy
+Phase 4 now has one frozen specification for the exact composition question:
+can the sealed Phase-2 R0 → Rtransit → Rfinal occupancy
 chain be represented in the same two original, simultaneously live Phase-3
 Unreal domains without granting physical state occupancy or completion
-authority? The candidate freezes two canonical commits, two stale/refresh
+authority? The frozen contract fixes two canonical commits, two stale/refresh
 cycles, six byte-exact domain/head projections, an ordered 22-field process
 binding, exact invocation channels, and separate expectation, receipt,
 exhaustive live census, private-head, guard, and harness-disposition records.
@@ -204,18 +210,21 @@ Its central negative state is proved positively: at Rtransit, both domains must
 anchor exact Rtransit and independently census zero subject Actors. Neither a
 receipt nor an empty query can satisfy that obligation.
 
-The corrective candidate also closes the exact controls, asymmetric failures,
+The frozen contract also closes the exact controls, asymmetric failures,
 40 authority cases / 121 subcases, 18 head faults, 138 materialization faults,
 36 observation faults, 23 binding adversaries, six liveness adversaries, 30
-source checks, 18 source mutations, and the prospective 82-artifact/172-member
+source checks, 18 source mutations, and the exact 82-artifact/172-member
 release. The review-only validator passes 20/20 checks and rejects 32/32
 in-memory mutations. Final freeze review of candidate
 `299aa865c5757fb63aeef27a9c4eb48554dcea6f` returned
-`STOP_WITH_FINDINGS`. The current draft.1 revision closes its residual byte-
+`STOP_WITH_FINDINGS`. Corrected candidate commit
+`fd2d62f404936eb961d7d1571204f1a352439bd7`, tree
+`b8b7bd6259d72c685ac5dee3c1488b19025b0fb3`, closes its residual byte-
 serialization, binding-order, liveness/asymmetric-failure, and harness-trace
-gaps; independent re-review of the new exact commit remains pending. This is
-not a freeze. No Python, Unreal, adapter, Actor, test, evidence, artifact,
-release, manifest, capacity, or Phase-5 work is open.
+gaps and received independent `ACCEPT_FOR_FREEZE`. Only the exact frozen
+Python, Unreal, adapter, Actor, test, evidence, artifact, release, manifest,
+and governing-document surface is open. Evidence is unsealed; capacity and
+Phase 5 remain closed.
 
 ## Exact sealed Phase-2 canonical envelope
 
@@ -264,8 +273,8 @@ The current corpus does not establish:
   population, traffic simulation, or city-scale performance;
 - stochastic identity, generalized planning, production topology, or a
   generalized movement/occupancy system; or
-- proven cross-domain canonical occupancy materialization; the current
-  Phase-4 draft is a review candidate, not evidence.
+- proven cross-domain canonical occupancy materialization; the frozen Phase-4
+  specification authorizes bounded implementation but is not evidence.
 
 ## Development frontier
 
@@ -280,30 +289,36 @@ witnesses, exact fault and authority surfaces, 44 artifacts, and self-excluding
 111-member release are sealed predecessor evidence.
 
 [Cross-Domain Canonical Occupancy Materialization Proof —
-v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is the sole active working unit and corrective Phase-4 final freeze-review
-candidate. Capacity remains v0.1.11. The draft is not frozen and no
-implementation or evidence is authorized.
+v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is the frozen Phase-4 working unit. Exact candidate commit
+`fd2d62f404936eb961d7d1571204f1a352439bd7`, tree
+`b8b7bd6259d72c685ac5dee3c1488b19025b0fb3`, received independent
+`ACCEPT_FOR_FREEZE`. Capacity remains v0.1.11. Implementation and evidence are
+authorized only within the exact frozen boundary; evidence remains unsealed.
 
 Current authority:
 
 ```yaml
-working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1
+working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0 bounded implementation
 phase: 4
 successor_selected: true
-candidate_simulation_identity: 0.7.0-draft.80
-specification_status: final_freeze_review_candidate
-freeze_status: not_frozen
-implementation_authority: none
-unreal_source_change_authority: none
-evidence_status: not_created
-prospective_artifact_members: 82
-prospective_manifest_members_excluding_manifest: 172
+simulation_identity: 0.7.0-draft.80
+accepted_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7
+accepted_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3
+specification_status: frozen
+freeze_status: frozen
+implementation_authority: bounded_phase_4_proof_only
+unreal_source_change_authority: exact_frozen_phase_4_paths_only
+evidence_authority: exact_frozen_phase_4_evidence_only
+release_authority: exact_frozen_phase_4_release_only
+evidence_status: unsealed
+artifact_members: 82
+manifest_members_excluding_manifest: 172
 review_validator: 20/20_checks_and_32/32_mutations_rejected
-final_freeze_review: corrected_resubmission_pending_exact_commit_review
+final_freeze_review: accepted_exact_candidate
 governing_record_change_from_this_note: none
 capacity_change_from_this_note: none
-phase_4: final_freeze_review_only
+phase_5: closed
 ```
 
 ## Record discipline

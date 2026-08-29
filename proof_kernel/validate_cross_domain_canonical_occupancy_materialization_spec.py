@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Validate the Phase-4 corrective specification's frozen-candidate structure.
+"""Validate the frozen Phase-4 specification's exact structure.
 
-This is review-time document QA. It does not import or execute a Phase-4 proof
-implementation, create evidence, or belong to the prospective release. The
+This is frozen document QA. It does not import or execute the authorized
+Phase-4 proof implementation, create evidence, or belong to the frozen release. The
 ``--self-test`` mode mutates only in-memory document copies.
 """
 
@@ -26,7 +26,7 @@ MANIFEST = (
 )
 
 EXPECTED_COMPLETE_SPEC_SHA256 = (
-    "0914e980ac963da0046153fb8ab0385c0fb20eef631686ed2f31f539e6285be2"
+    "47889ac299cf2cfbea143a6a529b1253826e74ae9ddc83f0b25903117ff9406d"
 )
 EXPECTED_ARTIFACT_LIST_SHA256 = (
     "93d3e024361f94c613aae4a8467b12a6463fbc69d46397908158f6c7dc50c7ef"
@@ -95,14 +95,15 @@ EXPECTED_AFTER_BLOCK_SHA256 = {
     "The exact states are:": "50f70dbf66c78dc32fc9ab11ec52b743c3b4c33243909119602aec74776ebed9",
 }
 
-EXPECTED_VERSION_HEADER = "**Version:** 0.1.0-draft.1\\"
+EXPECTED_VERSION_HEADER = "**Version:** 0.1.0\\"
 EXPECTED_STATUS_HEADER = (
-    "**Status:** Corrective final freeze-review candidate; implementation prohibited\\"
+    "**Status:** Frozen specification; exact bounded Phase-4 implementation, "
+    "evidence, and release verification authorized; evidence unsealed\\"
 )
 EXPECTED_IDENTITY = (
-    "**Candidate proof-harness identity:** "
+    "**Frozen proof-harness identity:** "
     "`CrossDomainCanonicalOccupancyMaterializationProof.v1` / "
-    "`0.7.0-draft.80` — not frozen"
+    "`0.7.0-draft.80`"
 )
 
 EXPECTED_CANONICAL_RAW = {
@@ -576,7 +577,22 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
     require(text.startswith("# Cross-Domain Canonical Occupancy Materialization Proof\n"), "title")
     require(EXPECTED_VERSION_HEADER in text, "version header")
     require(EXPECTED_STATUS_HEADER in text, "status header")
-    require(EXPECTED_IDENTITY in text, "candidate identity")
+    require(EXPECTED_IDENTITY in text, "frozen identity")
+    selection = fenced_block_after(text, "## Selection and authority state")
+    for required in (
+        "version: 0.1.0",
+        "status: frozen_specification",
+        "accepted_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7",
+        "accepted_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3",
+        "implementation_authority: bounded_phase_4_proof_only",
+        "unreal_source_change_authority: exact_frozen_phase_4_paths_only",
+        "evidence_authority: exact_frozen_phase_4_evidence_only",
+        "release_authority: exact_frozen_phase_4_release_only",
+        "capacity_advancement: none",
+        "freeze_status: frozen",
+        "evidence_status: unsealed",
+    ):
+        require(required in selection, f"selection authority {required}")
     checks.append("headers_and_authority")
 
     if enforce_complete_hash:
@@ -937,7 +953,7 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
 
     provenance_section = section_between(
         text, "## Provenance and source/dataflow audit",
-        "## Exact implementation, evidence, and release boundary proposed for freeze",
+        "## Exact frozen implementation, evidence, and release boundary",
     )
     source_block = fenced_block_after(provenance_section, "exactly these 30 positive checks")
     source_checks = tuple(list_members(source_block))
@@ -1081,15 +1097,23 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
     require(not forbidden.search(text), "unfinished or excessive authority term")
     current = fenced_block_after(text, "## Current decision record")
     for required in (
-        "working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1",
-        "candidate_simulation_identity: 0.7.0-draft.80",
-        "specification_status: final_freeze_review_candidate",
-        "freeze_status: not_frozen", "implementation_authority: none",
+        "working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0 bounded implementation",
+        "simulation_identity: 0.7.0-draft.80",
+        "accepted_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7",
+        "accepted_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3",
+        "specification_status: frozen",
+        "freeze_status: frozen",
+        "implementation_authority: bounded_phase_4_proof_only",
+        "unreal_source_change_authority: exact_frozen_phase_4_paths_only",
+        "evidence_authority: exact_frozen_phase_4_evidence_only",
+        "release_authority: exact_frozen_phase_4_release_only",
+        "evidence_status: unsealed",
         "canonical_capacity_change: none",
+        "phase_5: closed",
     ):
         require(required in current, f"current decision {required}")
     require(text.rstrip().endswith(
-        "the complete contract and explicitly grants bounded implementation authority."
+        "capacity advancement, Phase 5, production architecture, or adjacent scope."
     ), "terminal authority boundary")
     checks.append("terminal_scope_and_decision")
 
@@ -1128,11 +1152,11 @@ def run_self_test(text: str) -> list[str]:
         (
             "version_change",
             lambda s: replace_once(
-                s, EXPECTED_VERSION_HEADER, "**Version:** 0.1.0-draft.2\\"
+                s, EXPECTED_VERSION_HEADER, "**Version:** 0.1.1\\"
             ),
         ),
-        ("authority_grant", lambda s: replace_once(s, EXPECTED_STATUS_HEADER,
-             "**Status:** Frozen; implementation authorized\\")),
+        ("authority_scope_erased", lambda s: replace_once(s, EXPECTED_STATUS_HEADER,
+             "**Status:** Frozen; implementation unrestricted\\")),
         ("canonical_digest", lambda s: replace_once(s, EXPECTED_CANONICAL_RAW[next(iter(EXPECTED_CANONICAL_RAW))], "0" * 64)),
         ("projection_missing", lambda s: replace_once(s, json.dumps(json.loads(fenced_block_after(s, "The exact canonical JSON bytes", "json").splitlines()[0]), separators=(",", ":")) + "\n", "")),
         (

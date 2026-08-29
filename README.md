@@ -7,7 +7,7 @@ strategic authority.
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
 **Current sealed proof record:** [Simultaneous Physical Domains Proof — v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md).
-The governing continuation is [v0.7.0-draft.80](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+The governing continuation is [v0.7.0-draft.81](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md)
 is sealed under `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. It
 reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
@@ -35,27 +35,30 @@ findings, and that candidate is now sealed by a forward release record. That
 seal advanced no capacity and selected no successor.
 
 [Cross-Domain Canonical Occupancy Materialization Proof
-v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is now the sole active Phase-4 successor and corrective final freeze-review
-candidate under `CrossDomainCanonicalOccupancyMaterializationProof.v1` /
+v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
+is now the frozen Phase-4 working unit under
+`CrossDomainCanonicalOccupancyMaterializationProof.v1` /
 `0.7.0-draft.80`. It composes the exact sealed Phase-2 R0 → Rtransit → Rfinal
 occupancy chain with the same two original, simultaneously live Phase-3 Unreal
 domains while keeping canonical records solely authoritative for occupancy,
-transition, and completion. The closed candidate requires six byte-exact
+transition, and completion. The frozen contract requires six byte-exact
 projections, unverified local generation publication, separately authenticated
 expectation and receipt records, an independent exhaustive live-world census,
 private canonical-head observation, and a harness-only acceptance disposition.
 Its complete binding, guard, permissions, input, witness, fault, provenance,
-source, and prospective 82-artifact/172-member release structures pass 20/20
+source, and exact 82-artifact/172-member release structures pass 20/20
 review-validator checks and reject 32/32 in-memory mutations. Independent final
 freeze review of corrective candidate `299aa865c5757fb63aeef27a9c4eb48554dcea6f`
-returned `STOP_WITH_FINDINGS`; the current draft.1 revision closes its three
-residual gaps with one LF-exact detached-JSON law, distinct logical/stored
-binding orders, field-exact LV01–LV06 and AF01–AF04 matrices, and complete
-successful/fault harness traces. The corrected bytes still await independent
-re-review. The proof is not frozen and authorizes no implementation, evidence,
-release, Unreal source change, or capacity advancement. Development Capacity
-remains v0.1.11.
+returned `STOP_WITH_FINDINGS`; corrected candidate commit
+`fd2d62f404936eb961d7d1571204f1a352439bd7`, tree
+`b8b7bd6259d72c685ac5dee3c1488b19025b0fb3`, closes its three residual gaps
+with one LF-exact detached-JSON law, distinct logical/stored binding orders,
+field-exact LV01–LV06 and AF01–AF04 matrices, and complete successful, fault,
+and liveness-adversary harness traces. Independent review returned
+`ACCEPT_FOR_FREEZE` for those exact bytes. The specification is frozen and
+authorizes only its exact bounded Phase-4 Python, Unreal, evidence, artifact,
+and release-verification paths. Evidence remains unsealed, Development
+Capacity remains v0.1.11, and Phase 5 remains closed.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -122,8 +125,8 @@ The current capacity record is [THE_CITY Development Capacity and Progress Note 
 
 ## Verification
 
-Validate the active Phase-4 corrective specification without executing any
-Phase-4 implementation or creating evidence:
+Validate the frozen Phase-4 specification without executing the authorized
+implementation or creating evidence:
 
 ```sh
 cd "/Users/boandersson/Desktop/Games/THE_CITY"
@@ -134,7 +137,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
 ```
 
 These review-only commands must report **20/20** structural checks and
-**32/32** rejected in-memory mutations. The validator is outside the prospective
+**32/32** rejected in-memory mutations. The validator is outside the frozen
 Phase-4 release and proves no runtime behavior.
 
 Verify the sealed Phase-3 release package from an isolated export of its exact
