@@ -1,12 +1,81 @@
 # THE_CITY Session Handover
 
-**Generated:** 2026-08-28T20:38:47Z
+**Generated:** 2026-08-29T17:55:29Z
 
 **Repository:** `/Users/boandersson/Desktop/Games/THE_CITY`
 
 **Purpose:** Semantic and executable handover for the next repository session
 
 **Authority:** Committed informational successor only; this file is not a proof contract, seal, capacity record, release member, or implementation authorization
+
+## Current corrected candidate — 2026-08-29
+
+This section supersedes every later candidate identity, count, verdict, and
+review command in this historical handover. The older sections remain only as
+the record of prior review rounds.
+
+```yaml
+repository_realpath: /Users/boandersson/Desktop/Games/THE_CITY
+branch: main
+reviewed_candidate_commit: 4e14b39a01ba712bfe559d004b0383fc7d9db7d6
+reviewed_candidate_tree: 9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78
+reviewed_candidate_subject: Correct Phase 3 focused test evidence count
+independent_verdict: ACCEPT_FOR_OPERATOR_SEAL_REVIEW
+independent_findings: none
+review_testimony_is_a_seal: false
+evidence_status: unsealed
+capacity_advancement: none
+phase_4: closed
+push_performed: false
+next_gate: operator_evidence_and_seal_review
+```
+
+The reviewed release includes the implementation correction at
+`990b6233af13aa27ac10a404de1355e22aa332d9`, the complete source-input closure
+at `3e72568c29ee2878e2a4bce92056622fc191a102`, and the manifest-bound evidence
+count correction at the reviewed candidate above. The independent reviewer
+confirmed the exact final archive, found no remaining issue, and reported:
+
+```yaml
+specification_validator: 12/12
+specification_adversaries: 35/35_rejected
+focused_tests: 41/41
+predecessor_regressions: 215/215
+source_checks: 41/41
+source_adversaries: 16/16_rejected
+classified_input_api_occurrences: 71
+lstat_occurrences: 2
+cpp_call_surface_occurrences: 2465
+exact_cpp_source_identities: 5/5
+artifact_roles: 44/44
+release_members: 111/111
+release_verifier_adversaries: 41/41_rejected
+manifest_self_excluding: true
+```
+
+The fresh rebuilt-Unreal evidence population contains 177 process executions:
+154 accepted unique process closures, 22 one-field binding rejections, and one
+coordinated witness/launch relabel rejection. The accepted evidence reconciles
+170 embeddings to those 154 identities, with 2,178 runtime-trace events and 464
+stdin events. It retains exact three-stage successful physical traces and the
+exact 24 physical-fault prefixes. The accepted UE identity is
+`5.8.0-55116800+++UE5+Release-5.8`.
+
+The source audit now accounts for both live `lstat` calls and is backed by an
+exact call-surface census plus exact translation-unit byte identities. It
+rejects the prior reachable `FFileHelper` branch, an added `lstat`, unclassified
+`readlink`, `access`, and `getpid` calls, and a direct `environ` read that adds no
+call token. The binding witness is derived from child-visible process-root
+state, and the coordinated relabel is rejected before provenance or
+materialization with zero trace events. The verifier also rejects deletion of
+the three successful refresh physical-read events after trace renumbering and
+summary recomputation.
+
+This handover is excluded from the 111-member release. Its later documentation
+commit is therefore not the independently reviewed release tree. Review or seal
+only commit `4e14b39a01ba712bfe559d004b0383fc7d9db7d6` and tree
+`9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`. No push, seal, capacity change, or
+Phase-4 work follows from this record.
 
 ## 1. Read this first
 
