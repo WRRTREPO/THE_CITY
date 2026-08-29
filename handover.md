@@ -1,12 +1,52 @@
 # THE_CITY Session Handover
 
-**Generated:** 2026-08-29T17:55:29Z
+**Generated:** 2026-08-29T18:30:53Z
 
 **Repository:** `/Users/boandersson/Desktop/Games/THE_CITY`
 
 **Purpose:** Semantic and executable handover for the next repository session
 
 **Authority:** Committed informational successor only; this file is not a proof contract, seal, capacity record, release member, or implementation authorization
+
+## Phase-3 forward seal — 2026-08-29
+
+This is the current operational record. It supersedes the candidate-status and
+next-gate statements in every later historical section of this handover.
+
+```yaml
+sealed_candidate_commit: 4e14b39a01ba712bfe559d004b0383fc7d9db7d6
+sealed_candidate_tree: 9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78
+seal_commit: f72d6fbb87bcc5a047db0ab12f7447614ebee1fc
+seal_tree: 5916ade67e25bf004d12df74b980fde4ec39bfaa
+seal_subject: Seal simultaneous physical domains proof
+seal_form: forward_history_preserving
+independent_verdict: ACCEPT_FOR_OPERATOR_SEAL_REVIEW
+independent_findings: none
+artifact_roles: 44/44
+release_members_excluding_manifest: 111/111
+release_verifier_adversaries: 41/41_rejected
+evidence_status: passed_and_sealed
+capacity_record: THE_CITY Development Capacity and Progress Note v0.1.11
+capacity_advancement: none
+successor_selected: false
+phase_4: closed
+push_performed: false
+next_gate: separate_operator_successor_selection_and_freeze_decision
+```
+
+The forward seal changes only six governing records and the self-excluding
+manifest. The accepted Phase-3 Python and Unreal implementation, all 44
+artifacts, and Development Capacity v0.1.11 remain byte-identical to candidate
+`4e14b39a01ba712bfe559d004b0383fc7d9db7d6`. Candidate verification from an
+isolated export passed 12/12 specification checks and 111/111 release members;
+the seal tree passed 111/111 release verification and 215/215 predecessor
+regressions. The verifier's frozen acquisition-time `evidence remains
+unsealed` output does not self-authorize or negate the later governing seal.
+
+This handover remains excluded from the 111-member release. The exact sealed
+release is commit `f72d6fbb87bcc5a047db0ab12f7447614ebee1fc`, tree
+`5916ade67e25bf004d12df74b980fde4ec39bfaa`. No push occurred. No successor or
+Phase-4 work is authorized.
 
 ## Current corrected candidate — 2026-08-29
 
