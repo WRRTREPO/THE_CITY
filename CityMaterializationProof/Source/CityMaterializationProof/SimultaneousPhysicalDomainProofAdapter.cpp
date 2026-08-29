@@ -76,6 +76,9 @@ bool StrictDirectory(const FString& Root, const TArray<FString>& Expected, FStri
         }
         DeviceInodes.Add(Identity);
     }
+    FString DirectoryRealpath = FPaths::ConvertRelativePathToFull(Root);
+    FPaths::NormalizeDirectoryName(DirectoryRealpath);
+    SimultaneousPhysicalDomainRuntimeAudit::RecordDirectoryInventory(DirectoryRealpath, Entries);
     return true;
 }
 
@@ -114,6 +117,14 @@ bool LoadStoredBytesNoFollow(const FString& Path, TArray<uint8>& OutBytes)
         Total += Read;
     }
     close(Descriptor);
+    FString FileRealpath = FPaths::ConvertRelativePathToFull(Path);
+    FPaths::NormalizeFilename(FileRealpath);
+    SimultaneousPhysicalDomainRuntimeAudit::RecordBundleFileRead(
+        FileRealpath,
+        Sha256Bytes(OutBytes),
+        static_cast<int64>(Info.st_size),
+        static_cast<uint64>(Info.st_dev),
+        static_cast<uint64>(Info.st_ino));
     if (OutBytes.Last() != '\n')
     {
         return false;
@@ -157,7 +168,7 @@ bool ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch(
     FSPDValidatedVisibleTuple Tuple;
     FSPDAuthoritativeRepresentation Candidate;
     if (!LoadVisibleTuple(Binding, false, Tuple, nullptr, OutReason) ||
-        !BuildAuthoritativeCandidate(Binding, Tuple, Candidate, nullptr, OutReason))
+        !BuildAuthoritativeCandidate(Tuple.Payload, Tuple.Projection, Candidate, nullptr, OutReason))
     {
         return false;
     }
@@ -279,7 +290,7 @@ bool ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(
     {
         return false;
     }
-    if (!BuildAuthoritativeCandidate(Binding, Tuple, Candidate, FaultPlan, OutReason))
+    if (!BuildAuthoritativeCandidate(Tuple.Payload, Tuple.Projection, Candidate, FaultPlan, OutReason))
     {
         return false;
     }
@@ -629,13 +640,12 @@ bool ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple(
 }
 
 bool ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(
-    const FSPDImmutableProcessBinding& Binding,
-    const FSPDValidatedVisibleTuple& Tuple,
+    const TSharedPtr<FJsonObject>& Payload,
+    const TSharedPtr<FJsonObject>& Projection,
     FSPDAuthoritativeRepresentation& OutRepresentation,
     FSPDInjectedFaultPlan* FaultPlan,
     FString& OutReason) const
 {
-    const bool bRefresh = Tuple.HeadRole == TEXT("H1");
     if (SimultaneousPhysicalDomainFault::InjectAt(
         FaultPlan, TEXT("refresh"), TEXT("H1_authoritative_fact_derivation"), TEXT("before"), OutReason))
     {
@@ -647,8 +657,8 @@ bool ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(
     const TSharedPtr<FJsonObject>* Route = nullptr;
     const TArray<TSharedPtr<FJsonValue>>* Endpoints = nullptr;
     FString AccessState;
-    if (!Tuple.Payload.IsValid() ||
-        !Tuple.Payload->TryGetObjectField(TEXT("current_causal_state"), Current) ||
+    if (!Payload.IsValid() ||
+        !Payload->TryGetObjectField(TEXT("current_causal_state"), Current) ||
         !(*Current)->TryGetObjectField(TEXT("spatial_topology"), Topology) ||
         !(*Topology)->TryGetObjectField(TEXT("routes"), Routes) ||
         !(*Routes)->TryGetObjectField(RouteId, Route) ||
@@ -659,9 +669,9 @@ bool ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(
         OutReason = TEXT("H1_authoritative_fact_derivation_failed");
         return false;
     }
-    OutRepresentation.DomainRole = Binding.DomainRole;
-    OutRepresentation.RawPayloadHash = Tuple.RawPayloadHash;
-    OutRepresentation.CanonicalHash = Tuple.CanonicalHash;
+    const FString CanonicalPayload = CanonicalizeObject(Payload);
+    OutRepresentation.RawPayloadHash = Sha256Utf8(CanonicalPayload + TEXT("\n"));
+    OutRepresentation.CanonicalHash = Sha256Utf8(CanonicalPayload);
     OutRepresentation.RouteId = RouteId;
     OutRepresentation.Endpoint0 = SiteA;
     OutRepresentation.Endpoint1 = SiteB;
@@ -679,10 +689,11 @@ bool ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(
     }
     const TSharedPtr<FJsonObject>* SiteProjection = nullptr;
     const TSharedPtr<FJsonObject>* RouteProjection = nullptr;
-    if (!Tuple.Projection.IsValid() ||
-        !Tuple.Projection->TryGetObjectField(TEXT("allowed_site_projection"), SiteProjection) ||
-        !Tuple.Projection->TryGetObjectField(TEXT("allowed_route_projection"), RouteProjection) ||
-        !Tuple.Projection->TryGetStringField(TEXT("projection_id"), OutRepresentation.ProjectionId) ||
+    if (!Projection.IsValid() ||
+        !Projection->TryGetStringField(TEXT("domain_role"), OutRepresentation.DomainRole) ||
+        !Projection->TryGetObjectField(TEXT("allowed_site_projection"), SiteProjection) ||
+        !Projection->TryGetObjectField(TEXT("allowed_route_projection"), RouteProjection) ||
+        !Projection->TryGetStringField(TEXT("projection_id"), OutRepresentation.ProjectionId) ||
         !(*SiteProjection)->TryGetStringField(TEXT("canonical_site_id"), OutRepresentation.SiteId) ||
         !(*SiteProjection)->TryGetStringField(TEXT("representation_slot"), OutRepresentation.SiteSlot) ||
         !(*RouteProjection)->TryGetStringField(TEXT("representation_slot"), OutRepresentation.RouteSlot))
@@ -690,7 +701,7 @@ bool ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(
         OutReason = TEXT("projection_slot_binding_failed");
         return false;
     }
-    OutRepresentation.RawProjectionHash = Tuple.RawProjectionHash;
+    OutRepresentation.RawProjectionHash = Sha256Utf8(CanonicalizeObject(Projection) + TEXT("\n"));
     if (SimultaneousPhysicalDomainFault::InjectAt(
         FaultPlan, TEXT("refresh"), TEXT("projection_slot_binding"), TEXT("after"), OutReason))
     {
@@ -719,10 +730,13 @@ bool ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(
     Representation->SetStringField(TEXT("materialized_route_access_state"), OutRepresentation.AccessState);
     OutRepresentation.CanonicalJson = CanonicalizeObject(Representation);
     OutRepresentation.RawStoredSha256 = Sha256Utf8(OutRepresentation.CanonicalJson + TEXT("\n"));
-    const FString ExpectedSite = Binding.DomainRole == TEXT("domain_A") ? SiteA : SiteB;
+    const FString ExpectedSite = OutRepresentation.DomainRole == TEXT("domain_A") ? SiteA : SiteB;
+    const bool bExactKnownHead =
+        (OutRepresentation.CanonicalHash == H0 && OutRepresentation.AccessState == TEXT("available")) ||
+        (OutRepresentation.CanonicalHash == H1 && OutRepresentation.AccessState == TEXT("blocked"));
     if (OutRepresentation.SiteId != ExpectedSite || OutRepresentation.RouteId != RouteId ||
-        OutRepresentation.AccessState != (bRefresh ? TEXT("blocked") : TEXT("available")) ||
-        OutRepresentation.CanonicalHash != (bRefresh ? H1 : H0))
+        (OutRepresentation.DomainRole != TEXT("domain_A") && OutRepresentation.DomainRole != TEXT("domain_B")) ||
+        !bExactKnownHead)
     {
         OutReason = TEXT("private_candidate_validation_failed");
         return false;

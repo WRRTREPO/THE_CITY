@@ -66,6 +66,12 @@ from simultaneous_physical_domains import (
     verify_current_head_observation,
 )
 from canonical_spatial_topology_identity import stored_json_bytes as phase1_bytes
+from simultaneous_physical_domains_harness import (
+    PROCESS_BINDING_FIELDS,
+    _binding_field_expected_reason,
+    _mutate_one_binding_field,
+    _source_audit,
+)
 
 
 class SimultaneousPhysicalDomainsTests(unittest.TestCase):
@@ -432,6 +438,7 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
         self.assertFalse(audit["head_observation_visible_to_unreal"])
         self.assertFalse(audit["physical_guard_visible_to_unreal"])
         self.assertEqual(audit["alternate_refresh_channels"], [])
+        self.assertFalse(audit["proof_semantic_closure_complete"])
 
     def test_32_exact_artifact_member_set_is_44_unique(self) -> None:
         self.assertEqual(len(ARTIFACT_NAMES), 44)
@@ -450,6 +457,51 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
         self.assertEqual(semantic_replay_projection(left), semantic_replay_projection(right))
         right["canonical"] = H0
         self.assertNotEqual(semantic_replay_projection(left), semantic_replay_projection(right))
+
+    def test_34_source_audit_is_function_scoped_and_adversarial(self) -> None:
+        audit = _source_audit()
+        self.assertEqual(audit["check_count"], 36)
+        self.assertTrue(audit["all_checks_passed"])
+        self.assertEqual(audit["source_audit_adversaries"]["case_count"], 10)
+        self.assertTrue(audit["source_audit_adversaries"]["all_rejected"])
+
+    def test_35_authoritative_constructor_accepts_only_payload_projection(self) -> None:
+        contract = _source_audit()["authoritative_constructor_contract"]
+        self.assertEqual(contract["permitted_authoritative_inputs"], ["Payload", "Projection"])
+        self.assertEqual(contract["operational_or_prevalidated_tuple_inputs"], [])
+        self.assertEqual(contract["call_sites"], [
+            "ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch",
+            "ASimultaneousPhysicalDomainProofAdapter::RefreshOnce",
+        ])
+
+    def test_36_each_binding_adversary_mutates_exactly_one_field(self) -> None:
+        self.assertEqual(len(PROCESS_BINDING_FIELDS), 22)
+        for field_name in PROCESS_BINDING_FIELDS:
+            candidate = copy.deepcopy(self.binding_a)
+            _mutate_one_binding_field(candidate, field_name)
+            changed = [
+                name for name in PROCESS_BINDING_FIELDS
+                if candidate[name] != self.binding_a[name]
+            ]
+            self.assertEqual(changed, [field_name])
+            self.assertTrue(_binding_field_expected_reason(field_name))
+
+    def test_37_source_audit_enumerates_runtime_reads_and_call_graph(self) -> None:
+        audit = _source_audit()
+        self.assertEqual(audit["runtime_input_read_site_count"], 13)
+        graph = audit["reachable_phase3_dispatch_and_input_graph"]
+        self.assertEqual(graph["edge_count"], 11)
+        self.assertTrue(graph["all_edges_source_verified"])
+
+    def test_38_source_adversaries_cover_all_three_corrected_areas(self) -> None:
+        cases = _source_audit()["source_audit_adversaries"]["cases"]
+        identifiers = {case["adversary_id"] for case in cases}
+        self.assertTrue({
+            "constructor_reads_binding",
+            "binding_field_loop_omits_diagnostic_pipe",
+            "loaded_image_inventory_removed",
+            "live_world_trace_removed",
+        }.issubset(identifiers))
 
 
 if __name__ == "__main__":

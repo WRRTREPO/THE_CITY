@@ -56,11 +56,43 @@ namespace SimultaneousPhysicalDomainJson
     CITYMATERIALIZATIONPROOF_API FString CanonicalizeValue(const TSharedPtr<FJsonValue>& Value);
     CITYMATERIALIZATIONPROOF_API FString Sha256Utf8(const FString& Value);
     CITYMATERIALIZATIONPROOF_API FString Sha256Bytes(const TArray<uint8>& Bytes);
-    CITYMATERIALIZATIONPROOF_API bool LoadExactStoredJsonNoFollow(const FString& Path, TArray<uint8>& OutBytes, TSharedPtr<FJsonObject>& OutObject);
     CITYMATERIALIZATIONPROOF_API bool HasExactKeys(const TSharedPtr<FJsonObject>& Object, std::initializer_list<const TCHAR*> Keys);
     CITYMATERIALIZATIONPROOF_API bool ExactString(const TSharedPtr<FJsonObject>& Object, const TCHAR* Field, const TCHAR* Expected);
     CITYMATERIALIZATIONPROOF_API bool IsLowerSha256(const FString& Value);
     CITYMATERIALIZATIONPROOF_API void EmitStructuredObject(const TSharedPtr<FJsonObject>& Object);
+}
+
+// A write-only operational trace.  These records expose which declared input
+// surfaces were actually read; they never feed an adapter, probe, guard,
+// canonical resolver, or representation decision.
+namespace SimultaneousPhysicalDomainRuntimeAudit
+{
+    CITYMATERIALIZATIONPROOF_API bool ResolveAndHashRegularFile(
+        const FString& Path,
+        FString& OutRealpath,
+        FString& OutRawSha256);
+    CITYMATERIALIZATIONPROOF_API void Initialize(
+        const FString& DomainRole,
+        const FString& OperationalProcessInstanceId,
+        const FString& ProcessBindingRawSha256);
+    CITYMATERIALIZATIONPROOF_API void RecordStdinCommand(const TSharedPtr<FJsonObject>& Command);
+    CITYMATERIALIZATIONPROOF_API void RecordDirectoryInventory(
+        const FString& DirectoryRealpath,
+        const TArray<FString>& SortedMemberNames);
+    CITYMATERIALIZATIONPROOF_API void RecordBundleFileRead(
+        const FString& FileRealpath,
+        const FString& RawSha256,
+        int64 Size,
+        uint64 Device,
+        uint64 Inode);
+    CITYMATERIALIZATIONPROOF_API void RecordEngineAssetRead(
+        const FString& PackageIdentity,
+        const FString& FileRealpath,
+        const FString& RawSha256);
+    CITYMATERIALIZATIONPROOF_API void RecordLiveWorldRead(
+        const FString& InspectionId,
+        const FString& ReadStage,
+        const FString& ObservedValueRawSha256);
 }
 
 // The one proof-local stdin router.  It accepts a process binding once, then
@@ -82,7 +114,10 @@ protected:
 
 private:
     bool AcceptBinding(const TSharedPtr<FJsonObject>& Command, FString& OutReason);
-    bool VerifyObservableBinding(const TSharedPtr<FJsonObject>& Binding, FString& OutReason) const;
+    bool VerifyObservableBinding(
+        const TSharedPtr<FJsonObject>& Binding,
+        TSharedPtr<FJsonObject>& OutRuntimeProvenance,
+        FString& OutReason) const;
     bool AcceptFaultArm(const TSharedPtr<FJsonObject>& Command, FString& OutReason);
     void HandleLine(const FString& CanonicalLine);
     void EmitFailure(const FString& PublicationStage, const FString& ReasonCode) const;

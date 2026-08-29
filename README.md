@@ -9,7 +9,7 @@ strategic authority.
 **Current sealed proof record:** [Canonical Occupancy Transition Proof — v0.1.0](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md).
 The governing continuation is [v0.7.0-draft.76](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md)
-is frozen under `SimultaneousPhysicalDomainsProof.v1` / `0.7.0-draft.72`. It
+is frozen under `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. It
 reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
 process-isolated Unreal representations to remain alive across the commit and
 obey one fail-closed harness-private current-head observer and
@@ -19,12 +19,12 @@ guard-open control ends failed-closed after canonical H1 still commits. Refresh
 rebuilds canonical-derived representation facts only from exact H1 plus the exact projection, while a
 separate live-UE probe must observe `available` at H0 and `blocked` after H1.
 The exact process-liveness, proof-semantic-input, release-DAG, member-set, and
-manifest contracts are frozen and pass the 11/11 exact structural document
-validator checks plus all 30 adversarial self-tests. The forward-corrected
-bounded implementation is now complete: 33/33 focused tests and 215/215
+manifest contracts are frozen and pass the 12/12 exact structural document
+validator checks plus all 35 adversarial self-tests. The forward-corrected
+bounded implementation is now complete: 38/38 focused tests and 215/215
 predecessor regressions pass, the UE 5.8 editor builds, all 11 frozen
 live-process witnesses pass, all frozen fault and authority surfaces execute,
-the exact 44 artifacts exist, and the self-excluding 110-member release
+the exact 44 artifacts exist, and the self-excluding 111-member release
 verifies. Evidence remains unsealed pending independent review. Development
 Capacity v0.1.11 is unchanged and Phase 4 remains closed.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)

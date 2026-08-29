@@ -96,6 +96,16 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
             ++Phase3InputPathCount;
         }
     }
+    TSharedPtr<FJsonObject> PlayerInventory = MakeShared<FJsonObject>();
+    PlayerInventory->SetNumberField(TEXT("player_controller_count"), PlayerControllerCount);
+    PlayerInventory->SetNumberField(TEXT("player_controller_with_pawn_count"), PlayerControllerWithPawnCount);
+    PlayerInventory->SetNumberField(TEXT("pawn_count"), PawnCount);
+    PlayerInventory->SetNumberField(TEXT("phase3_input_path_count"), Phase3InputPathCount);
+    SimultaneousPhysicalDomainRuntimeAudit::RecordLiveWorldRead(
+        InspectionId,
+        TEXT("player_and_input_inventory"),
+        SimultaneousPhysicalDomainJson::Sha256Utf8(
+            SimultaneousPhysicalDomainJson::CanonicalizeObject(PlayerInventory)));
     if (PlayerControllerCount != 1 || PlayerControllerWithPawnCount != 0 ||
         PawnCount != 0 || Phase3InputPathCount != 0)
     {
@@ -119,6 +129,14 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
             Matching.Add(Actor);
         }
     }
+    TSharedPtr<FJsonObject> ActorEnumeration = MakeShared<FJsonObject>();
+    ActorEnumeration->SetStringField(TEXT("probe_tag"), ProbeTag);
+    ActorEnumeration->SetNumberField(TEXT("matching_live_actor_count"), Matching.Num());
+    SimultaneousPhysicalDomainRuntimeAudit::RecordLiveWorldRead(
+        InspectionId,
+        TEXT("representation_actor_enumeration"),
+        SimultaneousPhysicalDomainJson::Sha256Utf8(
+            SimultaneousPhysicalDomainJson::CanonicalizeObject(ActorEnumeration)));
 
     if (SimultaneousPhysicalDomainFault::InjectAt(
         FaultPlan, TEXT("physical_observation"), TEXT("exact_actor_count_check"), TEXT("at"), OutReason))
@@ -178,6 +196,19 @@ bool ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(
         if (bAvailableMesh && bAvailableLabel) ObservedState = TEXT("available");
         if (bBlockedMesh && bBlockedLabel) ObservedState = TEXT("blocked");
     }
+    TSharedPtr<FJsonObject> ComponentRead = MakeShared<FJsonObject>();
+    ComponentRead->SetBoolField(TEXT("actor_hidden"), bActorHidden);
+    ComponentRead->SetBoolField(TEXT("mesh_registered"), bMeshRegistered);
+    ComponentRead->SetBoolField(TEXT("mesh_visible"), bMeshVisible);
+    ComponentRead->SetBoolField(TEXT("label_registered"), bLabelRegistered);
+    ComponentRead->SetBoolField(TEXT("label_visible"), bLabelVisible);
+    ComponentRead->SetStringField(TEXT("label_text"), LabelText);
+    ComponentRead->SetStringField(TEXT("observed_state"), ObservedState);
+    SimultaneousPhysicalDomainRuntimeAudit::RecordLiveWorldRead(
+        InspectionId,
+        TEXT("mesh_label_component_state"),
+        SimultaneousPhysicalDomainJson::Sha256Utf8(
+            SimultaneousPhysicalDomainJson::CanonicalizeObject(ComponentRead)));
 
     OutObservation = MakeShared<FJsonObject>();
     OutObservation->SetStringField(TEXT("observation_schema"), TEXT("SimultaneousPhysicalDomainPhysicalObservation.v1"));

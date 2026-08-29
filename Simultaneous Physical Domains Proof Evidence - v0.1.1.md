@@ -19,9 +19,9 @@
 The bounded implementation passes this claim. This document records a release
 candidate for separate evidence review. It does not seal the result.
 
-This is the second forward corrective candidate after the independent STOP
-review of `c8aeaca3b020c1ca17172464cbdb68437eb099cf`. It preserves pushed history
-and does not accept or seal either earlier implementation candidate.
+This is a new forward corrective candidate after review of
+`06f058311ca00cab0b98ca376d327ca0a26a9a5e`. It preserves pushed history and
+does not accept or seal any earlier implementation candidate.
 
 ## Exact canonical reuse
 
@@ -84,8 +84,21 @@ components or auto-receive bindings.
 
 The adapter derives site identity, route identity, endpoints, and
 `topology_route_0001.access_state` only from the exact payload and exact
-detached projection. The receipt asserts disposable representation
-correspondence only. It grants no current-head or canonical authority.
+detached projection. Its authoritative constructor receives no binding,
+head-role, prevalidated tuple, environment, or alternate-reader input. The
+receipt asserts disposable representation correspondence only. It grants no
+current-head or canonical authority.
+
+Before first materialization, each accepted child emits an independently
+checked runtime-provenance report. It binds all 22 process-binding members to
+observed process state, exact argv and redacted environment, cwd, fd 0/1/2
+kernel identities, project/config/module inventory, entry-map identity, loaded
+Mach-O paths and UUIDs, and the initial world Actor-class inventory. The final
+record contains 154 unique accepted Unreal process identities across 170
+intentional evidence occurrences. One catalog-backed loaded-image inventory
+contains 1,719 image rows: 771 filesystem images independently hashed and
+UUID-checked, plus 948 logical images backed by an exact four-member arm64e
+dyld shared-cache inventory.
 
 ## Witnesses and failure atomicity
 
@@ -117,6 +130,7 @@ illegal_guard_transitions: 8/8 rejected
 refresh_fault_injections: 36/36 fresh_process_bound_compiled_adapter_or_router_boundaries
 physical_observation_fault_injections: 24/24 fresh_process_bound_live_probe_router_or_harness_boundaries
 current_head_authority_cases: 37/37 exact_case_ID_to_action_rows_executed
+process_binding_field_adversaries: 22/22 fresh_processes_rejected_before_provenance_or_materialization
 canonical_before_after_measurements: record_ledger_ancestry_schedule_recomputed_per_case
 canonical_R1_rollback_or_rewrite: none
 partial_current_head_authority: none
@@ -132,7 +146,11 @@ work, mutate truth, refresh from an undeclared channel, or publish a successor.
 The launch audit records exact argv, hashed environment entries, launch cwd,
 fd 0/1/2 bindings, executable/project/module identities, engine identity, and
 the three-file launch bundle. Refresh accepts only the original stdin pipe and
-one exact three-file H1 bundle. The evidence records:
+one exact three-file H1 bundle. A process-bound runtime trace covers every
+stdin command, exact bundle-directory inventory, opened bundle-file read,
+engine asset dependency, and independent live-world probe read. The released
+registry contains 2,178 contiguous trace events, including 464 exact stdin
+command-byte observations. The evidence records:
 
 ```yaml
 proof_semantic_closure_complete: true
@@ -144,8 +162,11 @@ other_domain_state_visible_to_unreal: false
 expected_physical_result_visible_to_probe: false
 ```
 
-The independently rerun source/dataflow audit passes. It confirms that the
-sealed Phase-1 resolver remains the sole canonical mutation owner, that no
+The independently rerun function-scoped source/dataflow audit passes 36/36
+checks and rejects 10/10 source mutations. It enumerates 13 exact runtime input
+read sites and 11 source-verified dispatch/dataflow edges. It confirms that the
+sealed Phase-1 resolver remains the sole canonical mutation owner, that the
+authoritative constructor consumes only payload and projection, that no
 head-observation or guard input reaches Unreal, that the live probe is separated
 from the adapter/receipt path, and that no Phase-3 source implements occupancy,
 movement, navigation, networking, streaming, or successor publication.
@@ -157,13 +178,14 @@ target or peer identities, binding digests, birth tuples, domain evidence, or
 bound results across the 36-row and 24-row matrices. Its independent 37-row
 authority contract fixes each action's execution path, rejection stage, reason,
 and concrete live or deterministic input, including cross-references to the
-specific stored witnesses. Thirty-three isolated in-memory adversaries exercise
-these bindings; none is accepted.
+specific stored witnesses. Forty isolated in-memory adversaries exercise these
+bindings, compact provenance reconstruction, runtime traces, catalogs, process
+registry, source binding, and field matrix; none is accepted.
 
 ## Determinism, replay, build, and release
 
 ```yaml
-phase_3_focused_tests: 33/33
+phase_3_focused_tests: 38/38
 predecessor_regressions: 215/215
 specification_validator: 12/12
 specification_validator_adversaries: 35/35
@@ -172,7 +194,7 @@ ue_editor_build: succeeded_with_DisableUnity
 live_witnesses: 11/11
 artifact_roles: 44/44
 release_manifest_members_excluding_manifest: 111/111
-release_verifier_adversaries: 33/33_rejected
+release_verifier_adversaries: 40/40_rejected
 manifest_self_excluding: true
 canonical_replay: byte_identical
 W1_W2_semantic_replay: equal
@@ -186,16 +208,19 @@ The UE build command was:
 '/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh' \
   CityMaterializationProofEditor Mac Development \
   '/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/CityMaterializationProof.uproject' \
-  -WaitMutex -DisableUnity
+  -WaitMutex -DisableUnity -NoHotReloadFromIDE
 ```
 
 The exact release directory contains 44 regular, non-symlink members and no
 others. The self-excluding manifest contains the frozen 67 non-artifact members
 plus those 44 artifacts, sorted by raw UTF-8 relative-path bytes. The release
 verifier rehashes every member, reconstructs deterministic artifacts, validates
-operational witness relations, reruns all 33 focused tests, reperforms the
-source/dataflow audit, and rejects CPU-only W3, Python-only live fault matrices,
-swapped authority labels/actions, and hard-coded unchanged-history claims.
+operational witness relations, reconstructs all compact child provenance,
+reconciles the 154-member unique process registry, reruns all 38 focused tests,
+reperforms the source/dataflow audit, and rejects CPU-only W3, Python-only live
+fault matrices, swapped authority labels/actions, hard-coded unchanged-history
+claims, provenance/trace/catalog mutations, missing process rows, incomplete
+binding adversaries, and source-audit drift.
 
 Run it from the repository root:
 

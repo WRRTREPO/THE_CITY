@@ -13,6 +13,7 @@ import argparse
 import copy
 import ctypes
 import errno
+import fcntl
 import hashlib
 import json
 import os
@@ -20,11 +21,12 @@ import select
 import shutil
 import signal
 import stat
+import struct
 import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterable, Mapping
+from typing import Any, Callable, Iterable, Mapping
 
 from simultaneous_physical_domains import (
     ARTIFACT_NAMES,
@@ -96,6 +98,26 @@ CONFIG_PATHS = (
     ROOT / "CityMaterializationProof" / "Config" / "DefaultGame.ini",
     ROOT / "CityMaterializationProof" / "Config" / "DefaultInput.ini",
 )
+DYLD_SHARED_CACHE_ROOT = Path(
+    "/System/Volumes/Preboot/Cryptexes/OS/System/Library/dyld"
+)
+
+PROCESS_BINDING_FIELDS = (
+    "binding_schema", "proof_scenario", "witness_id", "domain_role",
+    "harness_launch_id", "pid", "macos_process_start", "executable_realpath",
+    "executable_raw_sha256", "unreal_engine_build_identity",
+    "entry_map_package_identity", "project_realpath", "project_raw_sha256",
+    "project_config_and_module_inventory_raw_sha256", "process_root_realpath",
+    "launch_argv_raw_sha256", "launch_environment_audit_raw_sha256",
+    "launch_cwd_realpath", "inherited_descriptor_map_raw_sha256",
+    "control_pipe_id", "structured_output_pipe_id", "diagnostic_pipe_id",
+)
+
+_FILE_IDENTITY_CACHE: dict[tuple[str, int, int, int], dict[str, Any]] = {}
+_RUNTIME_LOADED_IMAGE_CATALOG: dict[str, dict[str, Any]] = {}
+_RUNTIME_LOADED_IMAGE_INVENTORY_CATALOG: dict[str, list[dict[str, Any]]] = {}
+_RUNTIME_PROVENANCE_REGISTRY: dict[str, dict[str, Any]] = {}
+_SHARED_CACHE_INVENTORY: dict[str, Any] | None = None
 
 POSIX_SPAWN_START_SUSPENDED = 0x0080
 POSIX_SPAWN_SETSID = 0x0400
@@ -191,6 +213,154 @@ def _real(path: Path) -> Path:
     return path.resolve(strict=True)
 
 
+def _is_sha256_text(value: Any) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdef" for character in value)
+    )
+
+
+def _uuid_text(raw: bytes) -> str:
+    if len(raw) != 16:
+        raise ValueError("Mach-O UUID must contain exactly 16 bytes")
+    text = raw.hex()
+    return "-".join((text[:8], text[8:12], text[12:16], text[16:20], text[20:]))
+
+
+def _thin_mach_o_uuids(stream: Any, offset: int) -> set[str]:
+    stream.seek(offset)
+    prefix = stream.read(32)
+    magic = prefix[:4]
+    if magic == b"\xcf\xfa\xed\xfe":
+        endian, header_size = "<", 32
+    elif magic == b"\xce\xfa\xed\xfe":
+        endian, header_size = "<", 28
+    elif magic == b"\xfe\xed\xfa\xcf":
+        endian, header_size = ">", 32
+    elif magic == b"\xfe\xed\xfa\xce":
+        endian, header_size = ">", 28
+    else:
+        raise ValueError("file slice is not a supported Mach-O image")
+    if len(prefix) < header_size:
+        raise ValueError("truncated Mach-O header")
+    command_count, command_bytes = struct.unpack_from(f"{endian}II", prefix, 16)
+    if command_count > 65536 or command_bytes > 256 * 1024 * 1024:
+        raise ValueError("Mach-O load-command bounds are not credible")
+    stream.seek(offset + header_size)
+    commands = stream.read(command_bytes)
+    if len(commands) != command_bytes:
+        raise ValueError("truncated Mach-O load-command region")
+    uuids: set[str] = set()
+    cursor = 0
+    for _ in range(command_count):
+        if cursor + 8 > len(commands):
+            raise ValueError("truncated Mach-O load command")
+        command, command_size = struct.unpack_from(f"{endian}II", commands, cursor)
+        if command_size < 8 or cursor + command_size > len(commands):
+            raise ValueError("invalid Mach-O load-command size")
+        if command == 0x1B:
+            if command_size < 24:
+                raise ValueError("truncated LC_UUID command")
+            uuids.add(_uuid_text(commands[cursor + 8:cursor + 24]))
+        cursor += command_size
+    if cursor != len(commands) or not uuids:
+        raise ValueError("Mach-O load-command region lacks one exact UUID")
+    return uuids
+
+
+def _mach_o_uuids(path: Path) -> list[str]:
+    with path.open("rb") as stream:
+        magic = stream.read(4)
+        stream.seek(0)
+        if magic in (
+            b"\xcf\xfa\xed\xfe", b"\xce\xfa\xed\xfe",
+            b"\xfe\xed\xfa\xcf", b"\xfe\xed\xfa\xce",
+        ):
+            uuids = _thin_mach_o_uuids(stream, 0)
+        elif magic in (b"\xca\xfe\xba\xbe", b"\xca\xfe\xba\xbf"):
+            is_64 = magic == b"\xca\xfe\xba\xbf"
+            stream.seek(4)
+            count_raw = stream.read(4)
+            if len(count_raw) != 4:
+                raise ValueError("truncated fat Mach-O header")
+            count = struct.unpack(">I", count_raw)[0]
+            if count == 0 or count > 64:
+                raise ValueError("fat Mach-O architecture count is invalid")
+            entry_size = 32 if is_64 else 20
+            entries = stream.read(count * entry_size)
+            if len(entries) != count * entry_size:
+                raise ValueError("truncated fat Mach-O architecture table")
+            offsets: list[int] = []
+            for index in range(count):
+                base = index * entry_size
+                offsets.append(struct.unpack_from(">Q" if is_64 else ">I", entries, base + 8)[0])
+            uuids = set()
+            for member_offset in offsets:
+                uuids.update(_thin_mach_o_uuids(stream, member_offset))
+        else:
+            raise ValueError(f"not a Mach-O file: {path}")
+    return sorted(uuids)
+
+
+def _independent_file_identity(path: Path) -> dict[str, Any]:
+    realpath = _real(path)
+    info = realpath.stat()
+    if not stat.S_ISREG(info.st_mode):
+        raise ValueError(f"runtime image is not a regular file: {realpath}")
+    key = (str(realpath), info.st_ino, info.st_size, info.st_mtime_ns)
+    cached = _FILE_IDENTITY_CACHE.get(key)
+    if cached is None:
+        cached = {
+            "realpath": str(realpath),
+            "device": str(info.st_dev),
+            "inode": str(info.st_ino),
+            "size": info.st_size,
+            "raw_sha256": _sha_file(realpath),
+            "mach_o_uuids": _mach_o_uuids(realpath),
+        }
+        _FILE_IDENTITY_CACHE[key] = cached
+    return copy.deepcopy(cached)
+
+
+def _shared_cache_inventory() -> dict[str, Any]:
+    global _SHARED_CACHE_INVENTORY
+    if _SHARED_CACHE_INVENTORY is None:
+        members = []
+        for path in sorted(DYLD_SHARED_CACHE_ROOT.glob("dyld_shared_cache_arm64e*")):
+            info = path.stat()
+            if stat.S_ISREG(info.st_mode):
+                members.append({
+                    "realpath": str(_real(path)),
+                    "size": info.st_size,
+                    "raw_sha256": _sha_file(path),
+                })
+        if len(members) != 4:
+            raise RuntimeError("exact arm64e dyld shared-cache set is unavailable")
+        value = {
+            "inventory_schema": "SimultaneousPhysicalDomainDyldSharedCacheInventory.v1",
+            "members": members,
+        }
+        value["inventory_raw_sha256"] = sha256_value(value)
+        _SHARED_CACHE_INVENTORY = value
+    return copy.deepcopy(_SHARED_CACHE_INVENTORY)
+
+
+def _descriptor_kernel_identity(fd: int, target_fd: int, role: str) -> dict[str, Any]:
+    info = os.fstat(fd)
+    access = fcntl.fcntl(fd, fcntl.F_GETFL) & os.O_ACCMODE
+    expected = os.O_RDONLY if target_fd == 0 else os.O_WRONLY
+    if not stat.S_ISFIFO(info.st_mode) or access != expected:
+        raise RuntimeError(f"spawn descriptor {role} is not the exact expected FIFO endpoint")
+    return {
+        "fd": target_fd,
+        "file_type": "fifo",
+        "access_mode": "read_only" if target_fd == 0 else "write_only",
+        "device": str(info.st_dev),
+        "inode": str(info.st_ino),
+    }
+
+
 def _canonical_line(value: Any) -> bytes:
     return canonical_json(value).encode("utf-8") + b"\n"
 
@@ -208,7 +378,7 @@ def _engine_build_identity() -> str:
     value = json.loads(BUILD_VERSION.read_text(encoding="utf-8"))
     return (
         f"{value['MajorVersion']}.{value['MinorVersion']}.{value['PatchVersion']}-"
-        f"{value['Changelist']}-{value['BranchName']}"
+        f"{value['Changelist']}+{value['BranchName']}"
     )
 
 
@@ -265,6 +435,19 @@ def _argv(domain_root: Path, role: str) -> list[str]:
 
 def _environment(domain_root: Path) -> dict[str, str]:
     environment = dict(os.environ)
+    # Bind the complete environment that is observable from the project module.
+    # Unreal establishes these deterministic process-wide values before BeginPlay;
+    # supplying the same values at exec makes the launch audit stable and exact.
+    environment.pop("CODEX_SANDBOX", None)
+    environment["EOS_LAUNCHED_BY_EPIC"] = "0"
+    environment["SSL_CERT_FILE"] = str(
+        EDITOR.parents[5] / "Content" / "Certificates" / "ThirdParty" / "cacert.pem"
+    )
+    environment["UE_DesktopUnrealProcess"] = "1"
+    environment["UE_ZenSubprocessDataPath"] = str(
+        Path.home() / "Library" / "Application Support" / "Epic" /
+        "UnrealEngine" / "Common" / "Zen" / "Data"
+    )
     environment["TMPDIR"] = str(domain_root / "temp")
     return environment
 
@@ -301,7 +484,11 @@ def _task_info(pid: int) -> dict[str, int]:
     }
 
 
-def _spawn_suspended(argv: list[str], environment: Mapping[str, str], cwd: Path) -> tuple[int, dict[str, int]]:
+def _spawn_suspended(
+    argv: list[str],
+    environment: Mapping[str, str],
+    cwd: Path,
+) -> tuple[int, dict[str, int], list[dict[str, Any]]]:
     control_read, control_write = os.pipe()
     output_read, output_write = os.pipe()
     diagnostic_read, diagnostic_write = os.pipe()
@@ -346,6 +533,11 @@ def _spawn_suspended(argv: list[str], environment: Mapping[str, str], cwd: Path)
         LIBC.posix_spawn_file_actions_destroy(ctypes.byref(actions))
         LIBC.posix_spawnattr_destroy(ctypes.byref(attributes))
 
+    descriptor_identities = [
+        _descriptor_kernel_identity(control_read, 0, "control_read"),
+        _descriptor_kernel_identity(output_write, 1, "structured_output_write"),
+        _descriptor_kernel_identity(diagnostic_write, 2, "diagnostic_write"),
+    ]
     os.close(control_read)
     os.close(output_write)
     os.close(diagnostic_write)
@@ -355,7 +547,7 @@ def _spawn_suspended(argv: list[str], environment: Mapping[str, str], cwd: Path)
         "control_write": control_write,
         "output_read": output_read,
         "diagnostic_read": diagnostic_read,
-    }
+    }, descriptor_identities
 
 
 def _prepare_bundle(domain_root: Path, role: str, head: str, operation: str, instance_id: str | None) -> dict[str, Any]:
@@ -393,15 +585,20 @@ class LiveDomain:
     pid: int
     fds: dict[str, int]
     binding: dict[str, Any]
+    nominal_binding: dict[str, Any]
     launch_argv: list[str]
     environment_audit: dict[str, Any]
     descriptor_map: dict[str, Any]
+    spawn_descriptor_kernel_identities: list[dict[str, Any]]
     launch_inventory: dict[str, Any]
     kqueue: select.kqueue
     process_start: dict[str, Any]
     output_buffer: bytes = b""
     diagnostic_digest: hashlib._Hash = field(default_factory=hashlib.sha256)
     parsed_objects: list[dict[str, Any]] = field(default_factory=list)
+    runtime_provenance: dict[str, Any] | None = None
+    runtime_provenance_validation: dict[str, Any] | None = None
+    runtime_input_trace: list[dict[str, Any]] = field(default_factory=list)
     commands: list[dict[str, Any]] = field(default_factory=list)
     refresh_inventory_before: dict[str, Any] | None = None
     refresh_inventory_after: dict[str, Any] | None = None
@@ -453,7 +650,10 @@ class LiveDomain:
                     == "SimultaneousPhysicalDomainPhysicalObservation.v1"
                 )
                 if isinstance(value, dict) and (canonical_json(value) == text or is_physical_observation):
-                    self.parsed_objects.append(value)
+                    if value.get("trace_schema") == "SimultaneousPhysicalDomainRuntimeInputTraceEvent.v1":
+                        self.runtime_input_trace.append(value)
+                    else:
+                        self.parsed_objects.append(value)
         while True:
             try:
                 chunk = os.read(self.fds["diagnostic_read"], 65536)
@@ -461,6 +661,8 @@ class LiveDomain:
                 break
             if not chunk:
                 break
+            with (self.root / "diagnostic" / "UnrealEditor.stderr.raw").open("ab") as stream:
+                stream.write(chunk)
             self.diagnostic_digest.update(chunk)
 
     def next_object(self, predicate, timeout: float = 180.0) -> dict[str, Any]:
@@ -547,7 +749,13 @@ class LiveDomain:
         }
 
 
-def _launch_domain(runtime_root: Path, witness_id: str, role: str) -> LiveDomain:
+def _launch_domain(
+    runtime_root: Path,
+    witness_id: str,
+    role: str,
+    *,
+    binding_mutator: Callable[[dict[str, Any]], None] | None = None,
+) -> LiveDomain:
     domain_root = runtime_root / role
     for name in ("user", "temp", "diagnostic"):
         (domain_root / name).mkdir(parents=True, exist_ok=False)
@@ -556,7 +764,7 @@ def _launch_domain(runtime_root: Path, witness_id: str, role: str) -> LiveDomain
     environment = _environment(domain_root)
     environment_audit = _redacted_environment_audit(environment)
     descriptor_map = _descriptor_map(role)
-    pid, fds = _spawn_suspended(argv, environment, ROOT)
+    pid, fds, descriptor_identities = _spawn_suspended(argv, environment, ROOT)
     process_start = _proc_info(pid)
     if process_start["ppid"] != os.getpid():
         os.kill(pid, signal.SIGKILL)
@@ -589,6 +797,9 @@ def _launch_domain(runtime_root: Path, witness_id: str, role: str) -> LiveDomain
         "structured_output_pipe_id": f"{role}/stdout/0001",
         "diagnostic_pipe_id": f"{role}/stderr/0001",
     })
+    nominal_binding = copy.deepcopy(binding)
+    if binding_mutator is not None:
+        binding_mutator(binding)
     watch = select.kqueue()
     watch.control(
         [select.kevent(pid, filter=select.KQ_FILTER_PROC, flags=select.KQ_EV_ADD | select.KQ_EV_ENABLE,
@@ -596,8 +807,10 @@ def _launch_domain(runtime_root: Path, witness_id: str, role: str) -> LiveDomain
     )
     domain = LiveDomain(
         witness_id=witness_id, role=role, root=domain_root, pid=pid, fds=fds,
-        binding=binding, launch_argv=argv, environment_audit=environment_audit,
-        descriptor_map=descriptor_map, launch_inventory=launch_bundle["inventory"],
+        binding=binding, nominal_binding=nominal_binding, launch_argv=argv,
+        environment_audit=environment_audit, descriptor_map=descriptor_map,
+        spawn_descriptor_kernel_identities=descriptor_identities,
+        launch_inventory=launch_bundle["inventory"],
         kqueue=watch, process_start=process_start,
     )
     domain.send(bind_invocation(binding))
@@ -616,6 +829,122 @@ def _launch_pair(runtime_root: Path, witness_id: str) -> dict[str, LiveDomain]:
         for domain in domains.values():
             domain.terminate()
         raise
+
+
+def _mutate_one_binding_field(binding: dict[str, Any], field_name: str) -> None:
+    if field_name not in PROCESS_BINDING_FIELDS:
+        raise ValueError(f"unknown process-binding field adversary: {field_name}")
+    if field_name == "binding_schema":
+        binding[field_name] = "SimultaneousPhysicalDomainProcessBinding.adversary"
+    elif field_name == "proof_scenario":
+        binding[field_name] = "simultaneous-physical-domains-adversary"
+    elif field_name == "witness_id":
+        binding[field_name] = "w2_b_then_a"
+    elif field_name == "domain_role":
+        binding[field_name] = "domain_B"
+    elif field_name == "harness_launch_id":
+        binding[field_name] = "w1_a_then_b/domain_A/launch_adversary"
+    elif field_name == "pid":
+        binding[field_name] += 1
+    elif field_name == "macos_process_start":
+        start = copy.deepcopy(binding[field_name])
+        start["microseconds"] = (
+            start["microseconds"] + 1
+            if start["microseconds"] < 999999 else start["microseconds"] - 1
+        )
+        binding[field_name] = start
+    elif field_name.endswith("raw_sha256"):
+        digest = binding[field_name]
+        binding[field_name] = ("1" if digest[0] == "0" else "0") + digest[1:]
+    else:
+        binding[field_name] = f"{binding[field_name]}.adversary"
+
+
+def _binding_field_expected_reason(field_name: str) -> str:
+    if field_name in ("binding_schema", "proof_scenario"):
+        return "binding_structure_mismatch"
+    if field_name in ("witness_id", "domain_role", "harness_launch_id"):
+        return "binding_fixed_identity_or_cross_field_mismatch"
+    return f"binding_field_mismatch/{field_name}"
+
+
+def _acquire_binding_field_adversaries(runtime_parent: Path) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    for index, field_name in enumerate(PROCESS_BINDING_FIELDS, start=1):
+        domain: LiveDomain | None = None
+        termination: dict[str, Any] | None = None
+        try:
+            domain = _launch_domain(
+                runtime_parent / f"{index:02d}_{field_name}",
+                "w1_a_then_b",
+                "domain_A",
+                binding_mutator=lambda value, member=field_name: (
+                    _mutate_one_binding_field(value, member)
+                ),
+            )
+            differing = [
+                name for name in PROCESS_BINDING_FIELDS
+                if domain.nominal_binding[name] != domain.binding[name]
+            ]
+            if differing != [field_name]:
+                raise RuntimeError(
+                    f"binding adversary changed fields {differing}, expected {field_name}"
+                )
+            failure = domain.next_object(_is_failure)
+            domain.drain()
+            expected_reason = _binding_field_expected_reason(field_name)
+            if (
+                failure.get("reason_code") != expected_reason
+                or failure.get("local_publication_stage")
+                != "process_binding_identity_verification"
+                or failure.get("domain_role") != "unbound"
+                or failure.get("operational_process_instance_id") != ""
+                or failure.get("process_binding_raw_sha256") != ""
+                or failure.get("represented_hash_if_known") != ""
+                or domain.runtime_provenance is not None
+                or domain.runtime_input_trace
+                or any(_is_receipt(value) for value in domain.parsed_objects)
+            ):
+                raise RuntimeError(
+                    f"binding field adversary did not fail before materialization: {field_name}"
+                )
+            termination = domain.terminate()
+            rows.append({
+                "case_schema": "SimultaneousPhysicalDomainBindingFieldAdversary.v1",
+                "case_id": f"binding_field_{index:02d}_{field_name}",
+                "mutated_field": field_name,
+                "nominal_process_binding": domain.nominal_binding,
+                "adversarial_process_binding": domain.binding,
+                "adversarial_bind_command": bind_invocation(domain.binding),
+                "changed_top_level_fields": differing,
+                "operational_process_instance_id_recomputed": True,
+                "expected_reason_code": expected_reason,
+                "observed_failure": failure,
+                "rejected_before_runtime_provenance": True,
+                "rejected_before_materialization": True,
+                "runtime_trace_event_count": 0,
+                "termination": termination,
+            })
+        finally:
+            if domain is not None and termination is None:
+                try:
+                    domain.terminate()
+                except BaseException:
+                    pass
+    return {
+        "matrix_schema": "SimultaneousPhysicalDomainBindingFieldAdversaryMatrix.v1",
+        "proof_scenario": PROOF_SCENARIO,
+        "field_order": list(PROCESS_BINDING_FIELDS),
+        "field_count": len(PROCESS_BINDING_FIELDS),
+        "fresh_live_unreal_process_count": len(rows),
+        "cases": rows,
+        "all_fields_mutated_exactly_once": [
+            row["mutated_field"] for row in rows
+        ] == list(PROCESS_BINDING_FIELDS),
+        "all_rejected_before_materialization": all(
+            row["rejected_before_materialization"] for row in rows
+        ),
+    }
 
 
 def _is_receipt(value: Mapping[str, Any]) -> bool:
@@ -689,6 +1018,336 @@ def _is_failure(value: Mapping[str, Any]) -> bool:
     return value.get("diagnostic_schema") == "SimultaneousPhysicalDomainFailure.v1"
 
 
+def _is_runtime_provenance(value: Mapping[str, Any]) -> bool:
+    return value.get("audit_schema") == "SimultaneousPhysicalDomainRuntimeProvenance.v1"
+
+
+def _validate_runtime_provenance(
+    domain: LiveDomain,
+    value: Mapping[str, Any],
+) -> dict[str, Any]:
+    required = {
+        "audit_schema", "binding_verification_rows",
+        "captured_before_first_materialization", "descriptor_kernel_identities",
+        "domain_role", "entry_map_file_identity",
+        "initial_world_actor_class_inventory", "loaded_image_identities",
+        "observed_inherited_descriptor_map", "observed_launch_argv",
+        "observed_process_binding", "operational_process_instance_id",
+        "process_binding_raw_sha256", "project_config_and_module_inventory",
+        "proof_scenario", "redacted_environment_audit",
+    }
+    if set(value) != required:
+        raise RuntimeError("runtime provenance exact member set drift")
+    binding_digest = sha256_value(domain.binding)
+    expected_rows = [
+        {
+            "field": name,
+            "verification_mode": (
+                "fixed_schema_or_cross_field_derivation"
+                if index <= 4 else "independent_process_observation"
+            ),
+            "matched": True,
+        }
+        for index, name in enumerate(PROCESS_BINDING_FIELDS)
+    ]
+    if (
+        value.get("audit_schema") != "SimultaneousPhysicalDomainRuntimeProvenance.v1"
+        or value.get("proof_scenario") != PROOF_SCENARIO
+        or value.get("captured_before_first_materialization") is not True
+        or value.get("domain_role") != domain.role
+        or value.get("operational_process_instance_id") != domain.instance_id
+        or value.get("process_binding_raw_sha256") != binding_digest
+        or value.get("observed_process_binding") != domain.binding
+        or value.get("binding_verification_rows") != expected_rows
+        or value.get("observed_launch_argv") != domain.launch_argv
+        or value.get("redacted_environment_audit") != domain.environment_audit
+        or value.get("project_config_and_module_inventory") != _project_inventory()
+        or value.get("observed_inherited_descriptor_map") != domain.descriptor_map
+        or value.get("descriptor_kernel_identities")
+        != domain.spawn_descriptor_kernel_identities
+    ):
+        raise RuntimeError("runtime provenance is not bound to the exact live launch")
+
+    entry_map = value.get("entry_map_file_identity")
+    expected_entry_path = _real(
+        EDITOR.parents[5] / "Content" / "Maps" / "Entry.umap"
+    )
+    if (
+        not isinstance(entry_map, dict)
+        or set(entry_map) != {"package_identity", "raw_sha256", "realpath"}
+        or entry_map.get("package_identity") != ENTRY_MAP
+        or entry_map.get("realpath") != str(expected_entry_path)
+        or entry_map.get("raw_sha256") != _sha_file(expected_entry_path)
+    ):
+        raise RuntimeError("runtime entry-map file identity did not independently verify")
+
+    actor_rows = value.get("initial_world_actor_class_inventory")
+    if not isinstance(actor_rows, list) or not actor_rows:
+        raise RuntimeError("initial world actor inventory is absent")
+    actor_classes: list[str] = []
+    for row in actor_rows:
+        if (
+            not isinstance(row, dict)
+            or set(row) != {"actor_count", "class_path"}
+            or type(row.get("actor_count")) is not int
+            or row["actor_count"] <= 0
+            or not isinstance(row.get("class_path"), str)
+        ):
+            raise RuntimeError("initial world actor inventory row drift")
+        actor_classes.append(row["class_path"])
+    prohibited_initial = {
+        "/Script/CityMaterializationProof.SimultaneousPhysicalDomainProofAdapter",
+        "/Script/CityMaterializationProof.SimultaneousPhysicalDomainRepresentationActor",
+        "/Script/CityMaterializationProof.SimultaneousPhysicalRebindProbe",
+    }
+    if (
+        len(set(actor_classes)) != len(actor_classes)
+        or actor_classes != sorted(actor_classes, key=str.casefold)
+        or "/Script/CityMaterializationProof.CityProofGameMode" not in actor_classes
+        or "/Script/CityMaterializationProof.SimultaneousPhysicalDomainCommandRouter"
+        not in actor_classes
+        or any(name in actor_classes for name in prohibited_initial)
+        or any(name.endswith("Pawn") for name in actor_classes)
+    ):
+        raise RuntimeError("initial actor inventory was not captured before Phase-3 materialization")
+
+    image_rows = value.get("loaded_image_identities")
+    if not isinstance(image_rows, list) or not image_rows:
+        raise RuntimeError("loaded-image inventory is absent")
+    filesystem_catalog: list[dict[str, Any]] = []
+    seen_images: set[tuple[str, str]] = set()
+    executable_seen = False
+    module_seen = False
+    filesystem_count = 0
+    shared_cache_count = 0
+    for row in image_rows:
+        if not isinstance(row, dict) or set(row) != {
+            "filesystem_regular_file", "mach_o_uuid", "path_resolution",
+            "realpath", "reported_path",
+        }:
+            raise RuntimeError("loaded-image identity row drift")
+        realpath = row.get("realpath")
+        uuid = row.get("mach_o_uuid")
+        if (
+            not isinstance(realpath, str) or not realpath.startswith("/")
+            or not isinstance(row.get("reported_path"), str)
+            or not isinstance(uuid, str) or len(uuid) != 36
+            or uuid != uuid.lower()
+            or tuple(index for index, char in enumerate(uuid) if char == "-")
+            != (8, 13, 18, 23)
+            or any(char not in "0123456789abcdef-" for char in uuid)
+            or (realpath, uuid) in seen_images
+        ):
+            raise RuntimeError("loaded-image path/UUID identity drift")
+        seen_images.add((realpath, uuid))
+        if row.get("filesystem_regular_file") is True:
+            if row.get("path_resolution") != "filesystem_realpath":
+                raise RuntimeError("filesystem loaded image lacks realpath resolution")
+            identity = _independent_file_identity(Path(realpath))
+            if uuid not in identity["mach_o_uuids"]:
+                raise RuntimeError(f"live Mach-O UUID differs from file identity: {realpath}")
+            _RUNTIME_LOADED_IMAGE_CATALOG[realpath] = identity
+            filesystem_catalog.append(identity)
+            filesystem_count += 1
+        elif row.get("filesystem_regular_file") is False:
+            if row.get("path_resolution") != "dyld_shared_cache_logical_path":
+                raise RuntimeError("non-filesystem loaded image lacks shared-cache classification")
+            shared_cache_count += 1
+        else:
+            raise RuntimeError("loaded image has non-boolean filesystem classification")
+        executable_seen |= realpath == str(_real(EDITOR))
+        module_seen |= realpath == str(_real(MODULE))
+    if not executable_seen or not module_seen or filesystem_count == 0 or shared_cache_count == 0:
+        raise RuntimeError("loaded-image inventory omits executable, module, or cache backing class")
+    shared_cache = _shared_cache_inventory()
+    filesystem_catalog.sort(key=lambda member: member["realpath"])
+    validation = {
+        "validation_schema": "SimultaneousPhysicalDomainRuntimeProvenanceValidation.v1",
+        "binding_field_count": len(expected_rows),
+        "all_binding_fields_independently_matched": all(
+            row["matched"] for row in expected_rows
+        ),
+        "descriptor_kernel_identities_match_spawn_endpoints": True,
+        "entry_map_file_independently_rehashed": True,
+        "initial_actor_inventory_raw_sha256": sha256_value(actor_rows),
+        "pre_materialization_phase3_actor_count": 0,
+        "loaded_image_count": len(image_rows),
+        "filesystem_loaded_image_count": filesystem_count,
+        "dyld_shared_cache_loaded_image_count": shared_cache_count,
+        "loaded_image_inventory_raw_sha256": sha256_value(image_rows),
+        "filesystem_loaded_image_catalog_raw_sha256": sha256_value(filesystem_catalog),
+        "dyld_shared_cache_inventory_raw_sha256": shared_cache["inventory_raw_sha256"],
+        "runtime_provenance_raw_sha256": sha256_value(value),
+        "proof_semantic_input": False,
+    }
+    return validation
+
+
+def _validate_runtime_trace(domain: LiveDomain) -> dict[str, Any]:
+    rows = domain.runtime_input_trace
+    if not rows:
+        raise RuntimeError("runtime input trace is absent")
+    required = {
+        "domain_role", "input_class", "metadata", "observed_raw_sha256",
+        "operation", "operational_process_instance_id",
+        "process_binding_raw_sha256", "proof_scenario", "sequence",
+        "source_identity", "trace_schema",
+    }
+    expected_binding_digest = sha256_value(domain.binding)
+    for index, row in enumerate(rows, start=1):
+        if (
+            not isinstance(row, dict) or set(row) != required
+            or row.get("trace_schema")
+            != "SimultaneousPhysicalDomainRuntimeInputTraceEvent.v1"
+            or row.get("proof_scenario") != PROOF_SCENARIO
+            or row.get("domain_role") != domain.role
+            or row.get("operational_process_instance_id") != domain.instance_id
+            or row.get("process_binding_raw_sha256") != expected_binding_digest
+            or row.get("sequence") != index
+            or not _is_sha256_text(row.get("observed_raw_sha256"))
+            or not isinstance(row.get("metadata"), dict)
+        ):
+            raise RuntimeError("runtime trace sequence or process binding drift")
+
+    command_rows = [row for row in rows if row["input_class"] == "stdin_command"]
+    if len(command_rows) != len(domain.commands):
+        raise RuntimeError("runtime trace does not account for every stdin command")
+    for command, row in zip(domain.commands, command_rows):
+        if (
+            row["operation"] != "canonical_line_read"
+            or row["source_identity"] != "fd:0"
+            or row["observed_raw_sha256"] != sha256_bytes(_canonical_line(command))
+            or row["metadata"] != {
+                "command_schema": command["command_schema"],
+                "descriptor": "fd_0_original_control_pipe_read_endpoint",
+            }
+        ):
+            raise RuntimeError("stdin trace row does not bind the exact command bytes")
+
+    allowed_pairs = {
+        ("stdin_command", "canonical_line_read"),
+        ("bundle_directory", "exact_member_inventory"),
+        ("bundle_file", "opened_descriptor_raw_read"),
+        ("engine_asset_package", "LoadObject_dependency"),
+        ("live_world_state", "independent_probe_read"),
+    }
+    directory_count = file_count = engine_asset_count = live_world_count = 0
+    for row in rows:
+        pair = (row["input_class"], row["operation"])
+        if pair not in allowed_pairs:
+            raise RuntimeError(f"undeclared runtime input trace operation: {pair}")
+        if row["input_class"] == "bundle_directory":
+            source = _real(Path(row["source_identity"]))
+            names = row["metadata"].get("sorted_member_names")
+            if (
+                not source.is_relative_to(_real(domain.root))
+                or not isinstance(names, list) or names != sorted(names)
+                or row["observed_raw_sha256"]
+                != sha256_bytes(canonical_json(names).encode("utf-8"))
+            ):
+                raise RuntimeError("bundle-directory trace is not exact or domain-private")
+            directory_count += 1
+        elif row["input_class"] == "bundle_file":
+            source = _real(Path(row["source_identity"]))
+            info = source.stat()
+            metadata = row["metadata"]
+            if (
+                not source.is_relative_to(_real(domain.root))
+                or metadata.get("descriptor_access") != "read_only_no_follow"
+                or metadata.get("device") != str(info.st_dev)
+                or metadata.get("inode") != str(info.st_ino)
+                or metadata.get("size") != info.st_size
+                or row["observed_raw_sha256"] != _sha_file(source)
+            ):
+                raise RuntimeError("bundle-file trace is not bound to the opened descriptor")
+            file_count += 1
+        elif row["input_class"] == "engine_asset_package":
+            source = _real(Path(row["source_identity"]))
+            package = row["metadata"].get("package_identity")
+            if (
+                package not in (
+                    "/Engine/BasicShapes/Cube",
+                    "/Engine/BasicShapes/BasicShapeMaterial",
+                )
+                or not source.is_relative_to(_real(EDITOR.parents[5] / "Content"))
+                or row["observed_raw_sha256"] != _sha_file(source)
+            ):
+                raise RuntimeError("engine-asset trace is not bound to the exact package file")
+            engine_asset_count += 1
+        elif row["input_class"] == "live_world_state":
+            stage = row["metadata"].get("read_stage")
+            if (
+                row["source_identity"] != stage
+                or stage not in (
+                    "player_and_input_inventory",
+                    "representation_actor_enumeration",
+                    "mesh_label_component_state",
+                )
+                or not isinstance(row["metadata"].get("inspection_id"), str)
+            ):
+                raise RuntimeError("live-world trace stage drift")
+            live_world_count += 1
+    inspection_commands = [
+        command for command in domain.commands
+        if command.get("operation") == "inspect_published_route_once"
+    ]
+    inspection_ids = {command.get("inspection_id") for command in inspection_commands}
+    traced_inspection_ids = {
+        row["metadata"].get("inspection_id") for row in rows
+        if row["input_class"] == "live_world_state"
+    }
+    if (
+        directory_count < 1 or file_count < 3 or engine_asset_count < 2
+        or live_world_count > len(inspection_commands) * 3
+        or not traced_inspection_ids.issubset(inspection_ids)
+    ):
+        raise RuntimeError("runtime trace omits a required launch input class")
+    return {
+        "validation_schema": "SimultaneousPhysicalDomainRuntimeInputTraceValidation.v1",
+        "event_count": len(rows),
+        "last_sequence": rows[-1]["sequence"],
+        "stdin_command_event_count": len(command_rows),
+        "bundle_directory_event_count": directory_count,
+        "bundle_file_event_count": file_count,
+        "engine_asset_event_count": engine_asset_count,
+        "live_world_event_count": live_world_count,
+        "all_events_contiguous_and_process_bound": True,
+        "all_stdin_commands_byte_bound": True,
+        "alternate_runtime_input_path_observed": False,
+        "runtime_input_trace_raw_sha256": sha256_value(rows),
+    }
+
+
+def _compact_runtime_provenance(
+    provenance: Mapping[str, Any],
+    validation: Mapping[str, Any],
+) -> dict[str, Any]:
+    child_report = copy.deepcopy(dict(provenance))
+    loaded_images = child_report.pop("loaded_image_identities")
+    catalog_key = sha256_value(loaded_images)
+    if catalog_key != validation.get("loaded_image_inventory_raw_sha256"):
+        raise RuntimeError("runtime provenance catalog key differs from validation")
+    prior = _RUNTIME_LOADED_IMAGE_INVENTORY_CATALOG.setdefault(
+        catalog_key, copy.deepcopy(loaded_images)
+    )
+    if prior != loaded_images:
+        raise RuntimeError("loaded-image inventory catalog digest collision")
+    return {
+        "evidence_schema": "SimultaneousPhysicalDomainCompactRuntimeProvenance.v1",
+        "child_report_without_loaded_image_identities": child_report,
+        "loaded_image_inventory_reference": {
+            "catalog_owner_artifact": (
+                "simultaneous_physical_domains_proof_semantic_input_audit.json"
+            ),
+            "catalog_raw_sha256": catalog_key,
+            "loaded_image_count": len(loaded_images),
+        },
+        "reconstructed_child_report_raw_sha256": validation[
+            "runtime_provenance_raw_sha256"
+        ],
+    }
+
+
 def _checkpoint(domains: Mapping[str, LiveDomain], checkpoint: str) -> dict[str, Any]:
     samples = [domains[role].assert_alive(checkpoint) for role in DOMAIN_ROLES]
     return {
@@ -699,10 +1358,22 @@ def _checkpoint(domains: Mapping[str, LiveDomain], checkpoint: str) -> dict[str,
     }
 
 
+def _accept_runtime_provenance(domain: LiveDomain) -> dict[str, Any]:
+    if domain.runtime_provenance is not None:
+        raise RuntimeError("runtime provenance may be accepted only once")
+    provenance = domain.next_object(_is_runtime_provenance)
+    domain.runtime_provenance = copy.deepcopy(provenance)
+    domain.runtime_provenance_validation = _validate_runtime_provenance(
+        domain, provenance
+    )
+    return provenance
+
+
 def _accept_launch(
     domain: LiveDomain,
     guard: PhysicalCurrentHeadGuard,
 ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    _accept_runtime_provenance(domain)
     receipt = domain.next_object(_is_receipt)
     validate_materialization_receipt(receipt, domain.binding)
     domain.send(inspection_invocation(domain.role, "launch_physical_0001"))
@@ -945,12 +1616,65 @@ def _publish_head_observation(control_root: Path) -> dict[str, Any]:
 
 
 def _domain_evidence(domain: LiveDomain) -> dict[str, Any]:
+    if not domain.exited:
+        domain.drain()
+    if domain.runtime_provenance is None or domain.runtime_provenance_validation is None:
+        raise RuntimeError("accepted domain lacks pre-materialization runtime provenance")
+    trace_validation = _validate_runtime_trace(domain)
+    compact_provenance = _compact_runtime_provenance(
+        domain.runtime_provenance,
+        domain.runtime_provenance_validation,
+    )
+    registry_row = {
+        "witness_id": domain.witness_id,
+        "domain_role": domain.role,
+        "operational_process_instance_id": domain.instance_id,
+        "process_binding_raw_sha256": sha256_value(domain.binding),
+        "runtime_provenance_raw_sha256": domain.runtime_provenance_validation[
+            "runtime_provenance_raw_sha256"
+        ],
+        "runtime_input_trace_raw_sha256": trace_validation[
+            "runtime_input_trace_raw_sha256"
+        ],
+        "runtime_trace_event_count": trace_validation["event_count"],
+        "stdin_command_event_count": trace_validation[
+            "stdin_command_event_count"
+        ],
+        "all_stdin_commands_byte_bound": trace_validation[
+            "all_stdin_commands_byte_bound"
+        ],
+        "alternate_runtime_input_path_observed": trace_validation[
+            "alternate_runtime_input_path_observed"
+        ],
+        "loaded_image_inventory_raw_sha256": domain.runtime_provenance_validation[
+            "loaded_image_inventory_raw_sha256"
+        ],
+        "filesystem_loaded_image_catalog_raw_sha256": (
+            domain.runtime_provenance_validation[
+                "filesystem_loaded_image_catalog_raw_sha256"
+            ]
+        ),
+        "binding_field_count": domain.runtime_provenance_validation[
+            "binding_field_count"
+        ],
+        "closure_verified": True,
+    }
+    prior = _RUNTIME_PROVENANCE_REGISTRY.setdefault(
+        domain.instance_id, registry_row
+    )
+    if prior != registry_row:
+        raise RuntimeError("operational process provenance registry collision")
     return {
         "binding": domain.binding,
         "binding_command": bind_invocation(domain.binding),
         "launch_argv": domain.launch_argv,
         "launch_environment_audit": domain.environment_audit,
         "inherited_descriptor_map": domain.descriptor_map,
+        "spawn_descriptor_kernel_identities": domain.spawn_descriptor_kernel_identities,
+        "runtime_provenance": compact_provenance,
+        "runtime_provenance_validation": domain.runtime_provenance_validation,
+        "runtime_input_trace": domain.runtime_input_trace,
+        "runtime_input_trace_validation": trace_validation,
         "launch_input_inventory": domain.launch_inventory,
         "stdin_commands": domain.commands,
         "refresh_input_inventory_before": domain.refresh_inventory_before,
@@ -1346,6 +2070,7 @@ def _acquire_physical_observation_fault_case(
         head_publication: dict[str, Any] | None = None
         emitted_observation: dict[str, Any] | None = None
         if head_role == "H0":
+            _accept_runtime_provenance(target)
             target_receipt = target.next_object(_is_receipt)
             validate_materialization_receipt(target_receipt, target.binding)
             peer_receipt, peer_observation, peer_disposition = _accept_launch(peer, guard)
@@ -1534,6 +2259,7 @@ def _acquire_live_command_attack(runtime_root: Path, attack: str) -> dict[str, A
         command_count_before = len(target.commands)
         transition: dict[str, Any] | None = None
         if attack in ("inspection_expected_outcome", "undeclared_semantic_input"):
+            _accept_runtime_provenance(target)
             target_receipt = target.next_object(_is_receipt)
             validate_materialization_receipt(target_receipt, target.binding)
             _accept_launch(peer, guard)
@@ -1638,6 +2364,8 @@ def _acquire_live_command_attack(runtime_root: Path, attack: str) -> dict[str, A
             "live_stdin_command_count_delta": len(target.commands) - command_count_before,
             "target_alive_after_rejection": target.assert_alive(f"authority/{attack}/target"),
             "peer_alive_after_rejection": peer.assert_alive(f"authority/{attack}/peer"),
+            "target_domain_evidence": _domain_evidence(target),
+            "peer_domain_evidence": _domain_evidence(peer),
             "canonical_before_after_measurement": relation,
             "canonical_unchanged": relation["relation_verified"],
             "canonical_transition": transition,
@@ -1865,6 +2593,7 @@ def _live_authority_failures(
         },
         "cases": cases,
         "case_count": len(cases),
+        "fresh_live_command_attack_count": len(live_commands),
         "all_real_validation_paths_executed": len(cases) == 37,
         "all_rejected_or_protocol_invalid_as_frozen": all(
             case["rejected_or_protocol_invalid_as_frozen"] for case in cases
@@ -1875,56 +2604,138 @@ def _live_authority_failures(
     }
 
 
-def _source_audit() -> dict[str, Any]:
-    source_root = ROOT / "CityMaterializationProof" / "Source" / "CityMaterializationProof"
-    unreal_paths = tuple(sorted(source_root.glob("SimultaneousPhysical*")))
-    if len(unreal_paths) != 8:
-        raise RuntimeError(f"Phase-3 Unreal source closure is not exact eight: {unreal_paths}")
-    unreal_text = {path.name: path.read_text(encoding="utf-8") for path in unreal_paths}
+def _extract_cpp_definition(text: str, marker: str) -> dict[str, Any]:
+    marker_at = text.find(marker)
+    if marker_at < 0:
+        raise ValueError(f"C++ definition marker is absent: {marker}")
+    signature_at = text.rfind("\n", 0, marker_at) + 1
+    open_brace = text.find("{", marker_at)
+    semicolon = text.find(";", marker_at, open_brace if open_brace >= 0 else len(text))
+    if open_brace < 0 or semicolon >= 0:
+        raise ValueError(f"C++ marker resolves to a declaration, not a definition: {marker}")
+    depth = 0
+    state = "normal"
+    escape = False
+    index = open_brace
+    while index < len(text):
+        char = text[index]
+        following = text[index + 1] if index + 1 < len(text) else ""
+        if state == "line_comment":
+            if char == "\n":
+                state = "normal"
+        elif state == "block_comment":
+            if char == "*" and following == "/":
+                state = "normal"
+                index += 1
+        elif state in ("string", "character"):
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif (state == "string" and char == '"') or (
+                state == "character" and char == "'"
+            ):
+                state = "normal"
+        elif char == "/" and following == "/":
+            state = "line_comment"
+            index += 1
+        elif char == "/" and following == "*":
+            state = "block_comment"
+            index += 1
+        elif char == '"':
+            state = "string"
+        elif char == "'":
+            state = "character"
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return {
+                    "marker": marker,
+                    "signature": text[signature_at:open_brace].strip(),
+                    "body": text[open_brace + 1:index],
+                    "full": text[signature_at:index + 1],
+                    "start": signature_at,
+                    "body_start": open_brace + 1,
+                    "end": index + 1,
+                    "line": text.count("\n", 0, signature_at) + 1,
+                }
+        index += 1
+    raise ValueError(f"unbalanced C++ function definition: {marker}")
+
+
+def _token_line(text: str, token: str, *, start: int = 0, end: int | None = None) -> int:
+    at = text.find(token, start, len(text) if end is None else end)
+    if at < 0:
+        raise ValueError(f"source token is absent: {token}")
+    return text.count("\n", 0, at) + 1
+
+
+def _phase3_source_checks(
+    unreal_text: Mapping[str, str],
+    game_mode: str,
+    python_text: Mapping[str, str],
+    phase1: str,
+) -> dict[str, bool]:
     router = unreal_text["SimultaneousPhysicalDomainCommandRouter.cpp"]
     adapter = unreal_text["SimultaneousPhysicalDomainProofAdapter.cpp"]
+    adapter_header = unreal_text["SimultaneousPhysicalDomainProofAdapter.h"]
     probe = unreal_text["SimultaneousPhysicalRebindProbe.cpp"]
     actor = unreal_text["SimultaneousPhysicalDomainRepresentationActor.cpp"]
-    game_mode_path = source_root / "CityProofGameMode.cpp"
-    game_mode = game_mode_path.read_text(encoding="utf-8")
-    phase1 = (ROOT / "proof_kernel" / "canonical_spatial_topology_identity.py").read_text(encoding="utf-8")
-    python_paths = tuple(
-        ROOT / "proof_kernel" / name
-        for name in (
-            "simultaneous_physical_domains.py",
-            "simultaneous_physical_domains_harness.py",
-            "test_simultaneous_physical_domains.py",
-            "verify_simultaneous_physical_domains_release.py",
-        )
-    )
-    python_text = {path.name: path.read_text(encoding="utf-8") for path in python_paths}
-    forbidden_unreal = (
-        "current_head_observation.json", "physical_current_head_guard", "harness_refresh_eligibility",
-        "CanonicalSpatialTopologyBoundary", "resolve_next_due", "canonical_ancestry",
-    )
     phase3_unreal = "\n".join(unreal_text.values())
     non_probe_unreal = "\n".join(
         value for name, value in unreal_text.items()
-        if name not in ("SimultaneousPhysicalRebindProbe.cpp", "SimultaneousPhysicalRebindProbe.h")
-    )
-    exact_no_player_pawn_constructor = all(
-        token in game_mode
-        for token in (
-            "if (IsSimultaneousPhysicalDomainProcess())",
-            "DefaultPawnClass = nullptr;",
-            "SpectatorClass = nullptr;",
-            "PlayerControllerClass = APlayerController::StaticClass();",
-            "ReplaySpectatorPlayerControllerClass = APlayerController::StaticClass();",
-            "bStartPlayersAsSpectators = true;",
+        if name not in (
+            "SimultaneousPhysicalRebindProbe.cpp",
+            "SimultaneousPhysicalRebindProbe.h",
         )
     )
-    phase3_dispatch_skips_legacy_player_path = all(
-        token in game_mode
-        for token in (
-            "else if (bSimultaneousPhysicalDomainProcess)",
-            "GetWorld()->SpawnActor<ASimultaneousPhysicalDomainCommandRouter>",
-            "if (!bSimultaneousPhysicalDomainProcess)",
-            "Controller->Possess(Pawn);",
+    constructor = _extract_cpp_definition(
+        adapter,
+        "ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(",
+    )
+    launch = _extract_cpp_definition(
+        adapter, "ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch("
+    )
+    refresh = _extract_cpp_definition(
+        adapter, "ASimultaneousPhysicalDomainProofAdapter::RefreshOnce("
+    )
+    accept_binding = _extract_cpp_definition(
+        router, "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding("
+    )
+    observed_binding = _extract_cpp_definition(
+        router, "BuildObservedBindingAndRuntimeProvenance("
+    )
+    declaration_at = adapter_header.find("bool BuildAuthoritativeCandidate(")
+    declaration_end = adapter_header.find(") const;", declaration_at)
+    declaration = (
+        adapter_header[declaration_at:declaration_end + len(") const;")]
+        if declaration_at >= 0 and declaration_end >= 0 else ""
+    )
+    exact_parameters = (
+        "const TSharedPtr<FJsonObject>& Payload",
+        "const TSharedPtr<FJsonObject>& Projection",
+        "FSPDAuthoritativeRepresentation& OutRepresentation",
+        "FSPDInjectedFaultPlan* FaultPlan",
+        "FString& OutReason",
+    )
+    forbidden_constructor_inputs = (
+        "Binding", "Tuple", "HeadRole", "CurrentHead", "OperationReceipt",
+        "getenv(", "GetEnvironmentVariable", "FCommandLine::Get",
+        "LoadVisibleTuple", "CreateFileReader", "LoadFileToArray", "fopen(",
+    )
+    field_array_at = observed_binding["body"].find("const TCHAR* Fields[] = {")
+    field_array_end = observed_binding["body"].find("};", field_array_at)
+    field_array = (
+        observed_binding["body"][field_array_at:field_array_end]
+        if field_array_at >= 0 and field_array_end >= 0 else ""
+    )
+    all_binding_fields_observed = (
+        field_array.count('TEXT("') == len(PROCESS_BINDING_FIELDS)
+        and all(
+            field_array.count(f'TEXT("{field_name}")') == 1
+            for field_name in PROCESS_BINDING_FIELDS
         )
     )
     checks = {
@@ -1932,42 +2743,135 @@ def _source_audit() -> dict[str, Any]:
         "canonical_transition_calls_sealed_phase1_resolver": "def resolve_next_due" in phase1,
         "head_observation_absent_from_unreal": "current_head_observation.json" not in phase3_unreal,
         "physical_guard_absent_from_unreal": "physical_current_head_guard" not in phase3_unreal,
-        "adapter_constructor_has_payload_projection_only": "LoadVisibleTuple" in adapter and "CurrentHead" not in adapter,
+        "authoritative_constructor_header_parameters_are_exact": (
+            all(parameter in declaration for parameter in exact_parameters)
+            and all(token not in declaration for token in ("Binding", "Tuple", "HeadRole"))
+        ),
+        "authoritative_constructor_definition_parameters_are_exact": (
+            all(parameter in constructor["signature"] for parameter in exact_parameters)
+            and all(
+                token not in constructor["signature"]
+                for token in ("Binding", "Tuple", "HeadRole")
+            )
+        ),
+        "authoritative_constructor_body_reads_only_payload_projection_and_code_constants": (
+            "Payload" in constructor["body"]
+            and "Projection" in constructor["body"]
+            and all(token not in constructor["body"] for token in forbidden_constructor_inputs)
+        ),
+        "authoritative_constructor_has_exact_two_call_sites": (
+            adapter.count("BuildAuthoritativeCandidate(") == 3
+            and "BuildAuthoritativeCandidate(Tuple.Payload, Tuple.Projection, Candidate, nullptr, OutReason)"
+            in launch["body"]
+            and "BuildAuthoritativeCandidate(Tuple.Payload, Tuple.Projection, Candidate, FaultPlan, OutReason)"
+            in refresh["body"]
+        ),
+        "binding_verifier_covers_exact_22_fields": (
+            all_binding_fields_observed
+            and "const TCHAR* Fields[]" in observed_binding["body"]
+            and "UE_ARRAY_COUNT(Fields)" in observed_binding["body"]
+            and "CanonicalizeValue(*DeclaredValue) != CanonicalizeValue(*ObservedValue)"
+            in observed_binding["body"]
+        ),
+        "runtime_provenance_emitted_before_phase3_actor_spawn": (
+            accept_binding["body"].index("EmitStructuredObject(RuntimeProvenance)")
+            < accept_binding["body"].index(
+                "SpawnActor<ASimultaneousPhysicalDomainProofAdapter>"
+            )
+        ),
+        "loaded_image_inventory_is_live_dyld_and_requires_executable_module": all(
+            token in router for token in (
+                "_dyld_image_count()", "_dyld_get_image_name(Index)",
+                "_dyld_get_image_header(Index)", "LoadedMachOUuid",
+                "bExecutableObserved", "bModuleObserved",
+                "CaptureLoadedImageIdentities(ExecutableRealpath, ModuleRealpath",
+            )
+        ),
+        "initial_actor_inventory_precedes_phase3_actor_spawn": (
+            "CaptureInitialActorClassInventory(World, ActorInventory)"
+            in observed_binding["body"]
+            and accept_binding["body"].index("VerifyObservableBinding")
+            < accept_binding["body"].index(
+                "SpawnActor<ASimultaneousPhysicalDomainProofAdapter>"
+            )
+        ),
+        "descriptor_kernel_identity_covers_fd_0_1_2": all(
+            token in router for token in (
+                "for (int Descriptor = 0; Descriptor <= 2; ++Descriptor)",
+                "fstat(Descriptor, &Info)", "fcntl(Descriptor, F_GETFL)",
+                "original_control_pipe_read_endpoint",
+                "original_structured_output_pipe_write_endpoint",
+                "original_diagnostic_pipe_write_endpoint",
+            )
+        ),
+        "stdin_commands_are_runtime_traced": (
+            router.count("SimultaneousPhysicalDomainRuntimeAudit::RecordStdinCommand(Command);")
+            == 2
+        ),
+        "bundle_directory_and_file_reads_are_runtime_traced": (
+            adapter.count("SimultaneousPhysicalDomainRuntimeAudit::RecordDirectoryInventory(")
+            == 1
+            and adapter.count("SimultaneousPhysicalDomainRuntimeAudit::RecordBundleFileRead(")
+            == 1
+            and "O_RDONLY | O_NOFOLLOW" in adapter
+            and "const ssize_t Read = ::read(" in adapter
+        ),
+        "engine_asset_dependencies_are_runtime_traced": (
+            actor.count("LoadObject<") == 2
+            and actor.count("SimultaneousPhysicalDomainRuntimeAudit::RecordEngineAssetRead(")
+            == 2
+        ),
+        "independent_live_world_reads_are_runtime_traced": (
+            probe.count("SimultaneousPhysicalDomainRuntimeAudit::RecordLiveWorldRead(")
+            == 3
+            and "TActorIterator<ASimultaneousPhysicalDomainRepresentationActor>" in probe
+        ),
+        "constructor_contains_no_alternate_input_reader": all(
+            token not in constructor["body"] for token in forbidden_constructor_inputs[5:]
+        ),
         "probe_has_no_adapter_include_or_pointer": "SimultaneousPhysicalDomainProofAdapter" not in probe,
-        "probe_reads_live_actor_components": "TActorIterator<ASimultaneousPhysicalDomainRepresentationActor>" in probe,
         "probe_has_no_expected_state_command": "expected_physical" not in probe.lower(),
         "refresh_only_from_stdin_router": "refresh_once" in router and "FileWatcher" not in phase3_unreal,
         "fault_selector_only_from_exact_stdin_router": all(
             token in router for token in (
                 "SimultaneousPhysicalDomainFaultArmInvocation.v1",
-                "arm_exact_fault_once",
-                "AcceptFaultArm",
+                "arm_exact_fault_once", "AcceptFaultArm",
             )
         ) and all(token not in phase3_unreal for token in ("-fault", "FAULT_STAGE=", "getenv(")),
-        "w3_step_only_from_exact_stdin_router": all(
-            token in router for token in (
-                "SimultaneousPhysicalDomainLocalStepInvocation.v1",
-                "execute_nonconsequential_step_once",
-                "ExecuteNonconsequentialStepOnce",
-            )
+        "no_socket_or_network_channel": all(
+            token not in phase3_unreal for token in ("FSocket", "socket(", "Tcp", "Udp")
         ),
-        "no_socket_or_network_channel": all(token not in phase3_unreal for token in ("FSocket", "socket(", "Tcp", "Udp")),
         "representation_receipt_authority_only": "representation_only" in adapter,
         "other_domain_input_absent": "other_domain_root" not in phase3_unreal.lower(),
-        "occupancy_movement_streaming_absent": all(token not in phase3_unreal for token in ("WorldPartition", "Occupancy", "NavigationSystem")),
-        "phase3_constructor_disables_all_pawn_classes_and_uses_inert_base_controller": exact_no_player_pawn_constructor,
-        "phase3_dispatch_cannot_enter_legacy_player_path": phase3_dispatch_skips_legacy_player_path,
+        "occupancy_movement_streaming_absent": all(
+            token not in phase3_unreal
+            for token in ("WorldPartition", "Occupancy", "NavigationSystem")
+        ),
+        "phase3_constructor_disables_all_pawn_classes_and_uses_inert_base_controller": all(
+            token in game_mode for token in (
+                "if (IsSimultaneousPhysicalDomainProcess())",
+                "DefaultPawnClass = nullptr;", "SpectatorClass = nullptr;",
+                "PlayerControllerClass = APlayerController::StaticClass();",
+                "ReplaySpectatorPlayerControllerClass = APlayerController::StaticClass();",
+                "bStartPlayersAsSpectators = true;",
+            )
+        ),
+        "phase3_dispatch_cannot_enter_legacy_player_path": all(
+            token in game_mode for token in (
+                "else if (bSimultaneousPhysicalDomainProcess)",
+                "GetWorld()->SpawnActor<ASimultaneousPhysicalDomainCommandRouter>",
+                "if (!bSimultaneousPhysicalDomainProcess)", "Controller->Possess(Pawn);",
+            )
+        ),
         "phase3_actors_have_no_player_or_input_api": all(
-            token not in non_probe_unreal
-            for token in (
+            token not in non_probe_unreal for token in (
                 "APlayerController", "APawn", "EnableInput(", "DisableInput(",
                 "BindAction(", "BindAxis(", "AutoReceiveInput", "InputComponent",
                 "GetFirstPlayerController", "CreatePlayer", "Possess(",
             )
         ),
         "probe_player_inventory_is_negative_gate_only": all(
-            token in probe
-            for token in (
+            token in probe for token in (
                 "TActorIterator<APlayerController>", "TActorIterator<APawn>",
                 "PlayerControllerWithPawnCount", "phase3_player_input_isolation_failed",
             )
@@ -1976,71 +2880,314 @@ def _source_audit() -> dict[str, Any]:
             probe.index("phase3_player_input_isolation_failed")
             < probe.index("SimultaneousPhysicalDomainPhysicalObservation.v1")
         ),
-        "retention_poison_is_checked_before_H1_candidate_derivation_and_after_publication": all(
-            token in adapter
+        "retention_poison_precedes_candidate_and_clear_check_follows_publication": (
+            "HasExactDiscardRequiredH0Poison" in refresh["body"]
+            and "IsDiscardRequiredPoisonClear" in refresh["body"]
+            and refresh["body"].index("HasExactDiscardRequiredH0Poison")
+            < refresh["body"].index("BuildAuthoritativeCandidate(")
+            < refresh["body"].index("IsDiscardRequiredPoisonClear")
+        ),
+        "python_harness_validates_runtime_provenance_and_trace": all(
+            token in python_text["simultaneous_physical_domains_harness.py"]
             for token in (
-                "HasExactDiscardRequiredH0Poison",
-                "BuildAuthoritativeCandidate(Binding, Tuple, Candidate, FaultPlan",
-                "IsDiscardRequiredPoisonClear",
-                "BuildRetentionExecutionObservation",
+                "_validate_runtime_provenance", "_validate_runtime_trace",
+                "_acquire_binding_field_adversaries", "_shared_cache_inventory",
             )
-        ) and adapter.index("HasExactDiscardRequiredH0Poison") < adapter.index("BuildAuthoritativeCandidate(Binding, Tuple, Candidate, FaultPlan"),
+        ),
+        "python_input_audit_defaults_fail_closed": (
+            '"proof_semantic_closure_complete": False'
+            in python_text["simultaneous_physical_domains.py"]
+        ),
         "python_harness_owns_guard_and_refresh_acceptance": all(
             token in python_text["simultaneous_physical_domains_harness.py"]
             for token in (
-                "PhysicalCurrentHeadGuard",
-                "_arm_fault",
+                "PhysicalCurrentHeadGuard", "_arm_fault",
                 "_acquire_live_refresh_fault_matrix",
                 "_acquire_live_physical_observation_fault_matrix",
-                "guard.classify_stale",
-                "guard.open_for_h1()",
+                "guard.classify_stale", "guard.open_for_h1()",
                 "guard.assert_refresh_eligible",
             )
         ),
         "guard_stale_classification_precedes_open_in_harness": (
-            python_text["simultaneous_physical_domains_harness.py"].index("guard.classify_stale")
-            < python_text["simultaneous_physical_domains_harness.py"].index("guard.open_for_h1()")
+            python_text["simultaneous_physical_domains_harness.py"].index(
+                "guard.classify_stale"
+            )
+            < python_text["simultaneous_physical_domains_harness.py"].index(
+                "guard.open_for_h1()"
+            )
         ),
-        "all_four_frozen_python_paths_audited": all(path.is_file() for path in python_paths),
     }
+    return checks
+
+
+def _source_audit() -> dict[str, Any]:
+    source_root = ROOT / "CityMaterializationProof" / "Source" / "CityMaterializationProof"
+    unreal_paths = tuple(sorted(source_root.glob("SimultaneousPhysical*")))
+    if len(unreal_paths) != 8:
+        raise RuntimeError(f"Phase-3 Unreal source closure is not exact eight: {unreal_paths}")
+    unreal_text = {path.name: path.read_text(encoding="utf-8") for path in unreal_paths}
+    game_mode_path = source_root / "CityProofGameMode.cpp"
+    game_mode = game_mode_path.read_text(encoding="utf-8")
+    phase1_path = ROOT / "proof_kernel" / "canonical_spatial_topology_identity.py"
+    phase1 = phase1_path.read_text(encoding="utf-8")
+    python_paths = tuple(
+        ROOT / "proof_kernel" / name for name in (
+            "simultaneous_physical_domains.py",
+            "simultaneous_physical_domains_harness.py",
+            "test_simultaneous_physical_domains.py",
+            "verify_simultaneous_physical_domains_release.py",
+        )
+    )
+    python_text = {path.name: path.read_text(encoding="utf-8") for path in python_paths}
+    checks = _phase3_source_checks(unreal_text, game_mode, python_text, phase1)
+
+    def site(
+        file_name: str,
+        function_marker: str,
+        token: str,
+        input_class: str,
+        evidence_record: str,
+        purpose: str,
+    ) -> dict[str, Any]:
+        text = game_mode if file_name == "CityProofGameMode.cpp" else unreal_text[file_name]
+        definition = _extract_cpp_definition(text, function_marker)
+        return {
+            "source_path": str((source_root / file_name).relative_to(ROOT)),
+            "function": function_marker.rstrip("("),
+            "line": _token_line(
+                text, token, start=definition["start"], end=definition["end"]
+            ),
+            "source_token": token,
+            "input_class": input_class,
+            "evidence_record": evidence_record,
+            "purpose": purpose,
+            "authoritative_constructor_input": False,
+        }
+
+    read_sites = [
+        site("CityProofGameMode.cpp", "IsSimultaneousPhysicalDomainProcess(",
+             "FCommandLine::Get()", "operational_dispatch_argv",
+             "observed_launch_argv", "select the bounded Phase-3 process branch"),
+        site("SimultaneousPhysicalDomainCommandRouter.cpp", "CaptureOriginalArgv(",
+             "_NSGetArgv()", "launch_argv", "runtime_provenance",
+             "independently reconstruct the ordered launch argv"),
+        site("SimultaneousPhysicalDomainCommandRouter.cpp", "BuildRedactedEnvironmentAudit(",
+             "_NSGetEnviron()", "launch_environment", "runtime_provenance",
+             "independently hash the complete child-visible environment"),
+        site("SimultaneousPhysicalDomainCommandRouter.cpp", "CaptureDescriptorState(",
+             "fstat(Descriptor, &Info)", "inherited_descriptors", "runtime_provenance",
+             "identify fd 0/1/2 FIFO endpoints and access modes"),
+        site("SimultaneousPhysicalDomainCommandRouter.cpp", "CaptureLoadedImageIdentities(",
+             "_dyld_image_count()", "loaded_images", "runtime_provenance",
+             "inventory the exact live dyld image set before materialization"),
+        site("SimultaneousPhysicalDomainCommandRouter.cpp", "CaptureInitialActorClassInventory(",
+             "TActorIterator<AActor>", "initial_world_actors", "runtime_provenance",
+             "inventory actors before adapter, probe, or representation spawn"),
+        site("SimultaneousPhysicalDomainCommandRouter.cpp", "BuildObservedBindingAndRuntimeProvenance(",
+             "proc_pidinfo(Pid, PROC_PIDTBSDINFO", "process_birth", "runtime_provenance",
+             "independently bind the live PID and macOS process-start tuple"),
+        site("SimultaneousPhysicalDomainCommandRouter.cpp", "BuildObservedBindingAndRuntimeProvenance(",
+             "_NSGetExecutablePath", "executable_identity", "runtime_provenance",
+             "resolve and hash the actual running executable"),
+        site("SimultaneousPhysicalDomainCommandRouter.cpp", "BuildObservedBindingAndRuntimeProvenance(",
+             "FPaths::GetProjectFilePath()", "project_identity", "runtime_provenance",
+             "resolve and hash project, config, module, and entry-map files"),
+        site("SimultaneousPhysicalDomainProofAdapter.cpp", "StrictDirectory(",
+             "IFileManager::Get().FindFiles", "bundle_directory",
+             "SimultaneousPhysicalDomainRuntimeInputTraceEvent.v1",
+             "enumerate the exact three-member visible tuple"),
+        site("SimultaneousPhysicalDomainProofAdapter.cpp", "LoadStoredBytesNoFollow(",
+             "open(PathUtf8.Get(), O_RDONLY | O_NOFOLLOW)", "bundle_file",
+             "SimultaneousPhysicalDomainRuntimeInputTraceEvent.v1",
+             "read each tuple member from one no-follow descriptor"),
+        site("SimultaneousPhysicalDomainRepresentationActor.cpp",
+             "ASimultaneousPhysicalDomainRepresentationActor::ASimultaneousPhysicalDomainRepresentationActor(",
+             "LoadObject<UStaticMesh>", "engine_asset_package",
+             "SimultaneousPhysicalDomainRuntimeInputTraceEvent.v1",
+             "load and hash the exact two engine asset packages"),
+        site("SimultaneousPhysicalRebindProbe.cpp",
+             "ASimultaneousPhysicalRebindProbe::InspectPublishedRoute(",
+             "TActorIterator<ASimultaneousPhysicalDomainRepresentationActor>",
+             "live_world_state", "SimultaneousPhysicalDomainRuntimeInputTraceEvent.v1",
+             "enumerate the independent live representation surface"),
+    ]
+
+    edge_specs = (
+        ("CityProofGameMode.cpp", "ACityProofGameMode::BeginPlay(",
+         "GetWorld()->SpawnActor<ASimultaneousPhysicalDomainCommandRouter>",
+         "ACityProofGameMode::BeginPlay", "ASimultaneousPhysicalDomainCommandRouter"),
+        ("SimultaneousPhysicalDomainCommandRouter.cpp",
+         "ASimultaneousPhysicalDomainCommandRouter::Tick(", "HandleLine(Line)",
+         "ASimultaneousPhysicalDomainCommandRouter::Tick",
+         "ASimultaneousPhysicalDomainCommandRouter::HandleLine"),
+        ("SimultaneousPhysicalDomainCommandRouter.cpp",
+         "ASimultaneousPhysicalDomainCommandRouter::HandleLine(", "AcceptBinding(Command",
+         "ASimultaneousPhysicalDomainCommandRouter::HandleLine",
+         "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding"),
+        ("SimultaneousPhysicalDomainCommandRouter.cpp",
+         "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding(",
+         "VerifyObservableBinding(*Binding", "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding",
+         "ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding"),
+        ("SimultaneousPhysicalDomainCommandRouter.cpp",
+         "ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding(",
+         "BuildObservedBindingAndRuntimeProvenance(",
+         "ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding",
+         "BuildObservedBindingAndRuntimeProvenance"),
+        ("SimultaneousPhysicalDomainCommandRouter.cpp",
+         "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding(",
+         "Adapter->MaterializeLaunch", "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding",
+         "ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch"),
+        ("SimultaneousPhysicalDomainProofAdapter.cpp",
+         "ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch(",
+         "LoadVisibleTuple(", "ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch",
+         "ASimultaneousPhysicalDomainProofAdapter::LoadVisibleTuple"),
+        ("SimultaneousPhysicalDomainProofAdapter.cpp",
+         "ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch(",
+         "BuildAuthoritativeCandidate(",
+         "ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch",
+         "ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate"),
+        ("SimultaneousPhysicalDomainProofAdapter.cpp",
+         "ASimultaneousPhysicalDomainProofAdapter::RefreshOnce(",
+         "BuildAuthoritativeCandidate(", "ASimultaneousPhysicalDomainProofAdapter::RefreshOnce",
+         "ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate"),
+        ("SimultaneousPhysicalDomainProofAdapter.cpp",
+         "ASimultaneousPhysicalDomainProofAdapter::PublishCandidate(",
+         "NewRepresentation->PublishRepresentation(",
+         "ASimultaneousPhysicalDomainProofAdapter::PublishCandidate",
+         "ASimultaneousPhysicalDomainRepresentationActor::PublishRepresentation"),
+        ("SimultaneousPhysicalDomainCommandRouter.cpp",
+         "ASimultaneousPhysicalDomainCommandRouter::HandleLine(",
+         "Probe->InspectPublishedRoute", "ASimultaneousPhysicalDomainCommandRouter::HandleLine",
+         "ASimultaneousPhysicalRebindProbe::InspectPublishedRoute"),
+    )
+    graph_edges = []
+    for file_name, marker, token, caller, callee in edge_specs:
+        text = game_mode if file_name == "CityProofGameMode.cpp" else unreal_text[file_name]
+        definition = _extract_cpp_definition(text, marker)
+        graph_edges.append({
+            "caller": caller,
+            "callee": callee,
+            "source_path": str((source_root / file_name).relative_to(ROOT)),
+            "source_line": _token_line(
+                text, token, start=definition["start"], end=definition["end"]
+            ),
+            "call_token": token,
+            "verified": True,
+        })
+
+    adversary_sources: list[tuple[str, str, str, str]] = []
+    adapter = unreal_text["SimultaneousPhysicalDomainProofAdapter.cpp"]
+    router = unreal_text["SimultaneousPhysicalDomainCommandRouter.cpp"]
+    actor = unreal_text["SimultaneousPhysicalDomainRepresentationActor.cpp"]
+    probe = unreal_text["SimultaneousPhysicalRebindProbe.cpp"]
+    constructor = _extract_cpp_definition(
+        adapter,
+        "ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(",
+    )
+    for adversary_id, snippet in (
+        ("constructor_reads_binding", "\n    const FString Hidden = Binding.DomainRole;"),
+        ("constructor_reads_environment", "\n    const char* Hidden = getenv(\"SPD_HEAD\");"),
+        ("constructor_uses_alternate_reader", "\n    FFileHelper::LoadFileToArray(HiddenBytes, TEXT(\"hidden\"));"),
+    ):
+        mutated = adapter[:constructor["body_start"]] + snippet + adapter[constructor["body_start"]:]
+        adversary_sources.append((adversary_id, "SimultaneousPhysicalDomainProofAdapter.cpp", adapter, mutated))
+    adversary_sources.extend((
+        ("constructor_call_receives_binding", "SimultaneousPhysicalDomainProofAdapter.cpp", adapter,
+         adapter.replace(
+             "BuildAuthoritativeCandidate(Tuple.Payload, Tuple.Projection, Candidate, nullptr, OutReason)",
+             "BuildAuthoritativeCandidate(Binding.CompleteBinding, Tuple.Projection, Candidate, nullptr, OutReason)",
+             1,
+         )),
+        ("bundle_file_trace_removed", "SimultaneousPhysicalDomainProofAdapter.cpp", adapter,
+         adapter.replace("SimultaneousPhysicalDomainRuntimeAudit::RecordBundleFileRead(",
+                         "SimultaneousPhysicalDomainRuntimeAudit::MissingBundleFileRead(", 1)),
+        ("engine_asset_trace_removed", "SimultaneousPhysicalDomainRepresentationActor.cpp", actor,
+         actor.replace("SimultaneousPhysicalDomainRuntimeAudit::RecordEngineAssetRead(",
+                       "SimultaneousPhysicalDomainRuntimeAudit::MissingEngineAssetRead(", 1)),
+        ("live_world_trace_removed", "SimultaneousPhysicalRebindProbe.cpp", probe,
+         probe.replace("SimultaneousPhysicalDomainRuntimeAudit::RecordLiveWorldRead(",
+                       "SimultaneousPhysicalDomainRuntimeAudit::MissingLiveWorldRead(", 1)),
+        ("loaded_image_inventory_removed", "SimultaneousPhysicalDomainCommandRouter.cpp", router,
+         router.replace("CaptureLoadedImageIdentities(ExecutableRealpath, ModuleRealpath",
+                        "MissingLoadedImageIdentities(ExecutableRealpath, ModuleRealpath", 1)),
+        ("initial_actor_inventory_removed", "SimultaneousPhysicalDomainCommandRouter.cpp", router,
+         router.replace("CaptureInitialActorClassInventory(World, ActorInventory)",
+                        "MissingInitialActorClassInventory(World, ActorInventory)", 1)),
+        ("binding_field_loop_omits_diagnostic_pipe", "SimultaneousPhysicalDomainCommandRouter.cpp", router,
+         router.replace(
+             '        TEXT("diagnostic_pipe_id"),\n    };',
+             '    };', 1,
+         )),
+    ))
+    adversary_rows = []
+    for adversary_id, file_name, original, mutated in adversary_sources:
+        if mutated == original:
+            raise RuntimeError(f"source adversary did not mutate its target: {adversary_id}")
+        mutated_sources = dict(unreal_text)
+        mutated_sources[file_name] = mutated
+        mutated_checks = _phase3_source_checks(
+            mutated_sources, game_mode, python_text, phase1
+        )
+        failed = sorted(name for name, passed in mutated_checks.items() if not passed)
+        if not failed:
+            raise RuntimeError(f"source audit accepted adversary: {adversary_id}")
+        adversary_rows.append({
+            "adversary_id": adversary_id,
+            "mutated_source_path": str((source_root / file_name).relative_to(ROOT)),
+            "mutated_source_raw_sha256": sha256_bytes(mutated.encode("utf-8")),
+            "rejected": True,
+            "failed_checks": failed,
+        })
+
     source_hashes = {
         str(path.relative_to(ROOT)): _sha_file(path)
         for path in (*unreal_paths, game_mode_path, *python_paths)
     }
+    constructor = _extract_cpp_definition(
+        unreal_text["SimultaneousPhysicalDomainProofAdapter.cpp"],
+        "ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(",
+    )
     return {
         "audit_schema": "SimultaneousPhysicalDomainsSourceAudit.v1",
         "proof_scenario": PROOF_SCENARIO,
+        "audit_method": "function_scoped_signature_body_callsite_and_runtime_read_dataflow",
         "checks": checks,
+        "check_count": len(checks),
         "all_checks_passed": all(checks.values()),
-        "forbidden_unreal_semantic_inputs": list(forbidden_unreal),
-        "canonical_resolver_owner": "proof_kernel/canonical_spatial_topology_identity.py",
-        "reachable_phase3_dispatch_and_input_graph": {
-            "dispatch": ["ACityProofGameMode::ACityProofGameMode", "ACityProofGameMode::BeginPlay"],
-            "stdin_router": [
-                "FSPDInputRunnable::Run", "ASimultaneousPhysicalDomainCommandRouter::Tick",
-                "ASimultaneousPhysicalDomainCommandRouter::HandleLine",
-                "ASimultaneousPhysicalDomainCommandRouter::AcceptBinding",
-                "ASimultaneousPhysicalDomainCommandRouter::AcceptFaultArm",
-                "ASimultaneousPhysicalDomainCommandRouter::EmitInjectedFaultResult",
-                "ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding",
-            ],
-            "adapter": [
-                "MaterializeLaunch", "RefreshOnce", "LoadVisibleTuple", "PublishCandidate",
-                "BuildAuthoritativeCandidate", "ExecuteNonconsequentialStepOnce",
-                "BuildMaterializationReceipt", "BuildRetentionExecutionObservation",
-            ],
-            "representation": [
-                "PublishRepresentation", "InstallDiscardRequiredH0Poison",
-                "HasExactDiscardRequiredH0Poison", "IsDiscardRequiredPoisonClear",
-            ],
-            "independent_probe": ["BindProcessIdentity", "InspectPublishedRoute"],
-            "harness_acceptance": [
-                "_accept_launch", "_publish_head_observation", "PhysicalCurrentHeadGuard",
-                "_refresh_success", "_refresh_rejection", "_observe_stale_local_execution",
-                "_arm_fault", "_acquire_refresh_fault_case",
-                "_acquire_physical_observation_fault_case", "_live_authority_failures",
+        "authoritative_constructor_contract": {
+            "source_path": (
+                "CityMaterializationProof/Source/CityMaterializationProof/"
+                "SimultaneousPhysicalDomainProofAdapter.cpp"
+            ),
+            "definition_line": constructor["line"],
+            "signature": constructor["signature"],
+            "permitted_authoritative_inputs": ["Payload", "Projection"],
+            "operational_or_prevalidated_tuple_inputs": [],
+            "call_sites": [
+                "ASimultaneousPhysicalDomainProofAdapter::MaterializeLaunch",
+                "ASimultaneousPhysicalDomainProofAdapter::RefreshOnce",
             ],
         },
+        "proof_semantic_runtime_input_read_sites": read_sites,
+        "runtime_input_read_site_count": len(read_sites),
+        "reachable_phase3_dispatch_and_input_graph": {
+            "graph_schema": "SimultaneousPhysicalDomainsSourceCallGraph.v1",
+            "edges": graph_edges,
+            "edge_count": len(graph_edges),
+            "all_edges_source_verified": all(edge["verified"] for edge in graph_edges),
+        },
+        "source_audit_adversaries": {
+            "matrix_schema": "SimultaneousPhysicalDomainsSourceAuditAdversaryMatrix.v1",
+            "case_count": len(adversary_rows),
+            "cases": adversary_rows,
+            "all_rejected": all(row["rejected"] for row in adversary_rows),
+        },
+        "forbidden_unreal_semantic_inputs": [
+            "current_head_observation.json", "physical_current_head_guard",
+            "harness_refresh_eligibility", "CanonicalSpatialTopologyBoundary",
+            "resolve_next_due", "canonical_ancestry", "other_domain_root",
+        ],
+        "canonical_resolver_owner": "proof_kernel/canonical_spatial_topology_identity.py",
         "phase3_unreal_source_paths": [str(path.relative_to(ROOT)) for path in unreal_paths],
         "bounded_game_mode_dispatch_path": str(game_mode_path.relative_to(ROOT)),
         "phase3_python_source_paths": [str(path.relative_to(ROOT)) for path in python_paths],
@@ -2217,6 +3364,9 @@ def _w5_equivalence_from_live(
 def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
     if output_directory.exists():
         raise ValueError("output artifact directory must not already exist")
+    _RUNTIME_LOADED_IMAGE_CATALOG.clear()
+    _RUNTIME_LOADED_IMAGE_INVENTORY_CATALOG.clear()
+    _RUNTIME_PROVENANCE_REGISTRY.clear()
     output_directory.mkdir(parents=True, exist_ok=False)
     runtime_parent.mkdir(parents=True, exist_ok=True)
     acquired: dict[str, dict[str, Any]] = {}
@@ -2245,6 +3395,18 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
     live_physical_faults = _acquire_live_physical_observation_fault_matrix(
         runtime_parent / "live_physical_observation_faults"
     )
+    live_authority_failures = _live_authority_failures(
+        acquired,
+        live_refresh_faults=live_refresh_faults,
+        live_physical_faults=live_physical_faults,
+        runtime_parent=runtime_parent / "live_authority_commands",
+    )
+    binding_field_adversaries = _acquire_binding_field_adversaries(
+        runtime_parent / "binding_field_adversaries"
+    )
+    source_audit = _source_audit()
+    if not source_audit["all_checks_passed"]:
+        raise RuntimeError("Phase-3 source audit failed")
     mapping = {
         "physical_W1_domain_A_H0_materialization_receipt.json": w1["launch_receipts"]["domain_A"],
         "physical_W1_domain_A_H0_observation.json": w1["launch_observations"]["domain_A"],
@@ -2275,12 +3437,7 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
         "physical_W6_asymmetric_B_synchronized_witness.json": acquired["w6_asymmetric_b_synchronized"],
         "physical_W7_destroy_A_witness.json": acquired["w7_destroy_a"],
         "physical_W7_destroy_B_witness.json": acquired["w7_destroy_b"],
-        "simultaneous_physical_domains_current_head_authority_failures.json": _live_authority_failures(
-            acquired,
-            live_refresh_faults=live_refresh_faults,
-            live_physical_faults=live_physical_faults,
-            runtime_parent=runtime_parent / "live_authority_commands",
-        ),
+        "simultaneous_physical_domains_current_head_authority_failures.json": live_authority_failures,
         "simultaneous_physical_domains_refresh_fault_atomicity.json": live_refresh_faults,
         "simultaneous_physical_domains_physical_observation_fault_atomicity.json": live_physical_faults,
     }
@@ -2297,8 +3454,105 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
         "physical_observation_case_count": live_physical_faults["head_role_case_count"],
         "fault_arm_channel": "original_process_stdin_exact_declared_command_only",
     }
-    input_audit["all_launches_exact_surface"] = True
-    input_audit["all_refreshes_original_stdin_pipe_only"] = True
+    expected_valid_process_count = (
+        len(primary_witness_ids) * len(DOMAIN_ROLES)
+        + live_refresh_faults["case_count"] * len(DOMAIN_ROLES)
+        + live_physical_faults["head_role_case_count"] * len(DOMAIN_ROLES)
+        + live_authority_failures["fresh_live_command_attack_count"]
+        * len(DOMAIN_ROLES)
+    )
+    if expected_valid_process_count != 154:
+        raise RuntimeError("unexpected valid live Unreal process population")
+    provenance_registry = sorted(
+        _RUNTIME_PROVENANCE_REGISTRY.values(),
+        key=lambda row: row["operational_process_instance_id"],
+    )
+    loaded_image_inventory_catalog = {
+        digest: copy.deepcopy(rows)
+        for digest, rows in sorted(
+            _RUNTIME_LOADED_IMAGE_INVENTORY_CATALOG.items()
+        )
+    }
+    loaded_image_file_catalog = [
+        copy.deepcopy(identity)
+        for _, identity in sorted(_RUNTIME_LOADED_IMAGE_CATALOG.items())
+    ]
+    all_process_closures = (
+        len(provenance_registry) == expected_valid_process_count
+        and len({
+            row["operational_process_instance_id"] for row in provenance_registry
+        }) == expected_valid_process_count
+        and all(
+            row["closure_verified"]
+            and row["binding_field_count"] == len(PROCESS_BINDING_FIELDS)
+            and row["all_stdin_commands_byte_bound"]
+            and not row["alternate_runtime_input_path_observed"]
+            and row["loaded_image_inventory_raw_sha256"]
+            in loaded_image_inventory_catalog
+            for row in provenance_registry
+        )
+    )
+    all_binding_adversaries = (
+        binding_field_adversaries["field_count"] == len(PROCESS_BINDING_FIELDS)
+        and binding_field_adversaries["fresh_live_unreal_process_count"]
+        == len(PROCESS_BINDING_FIELDS)
+        and binding_field_adversaries["all_fields_mutated_exactly_once"]
+        and binding_field_adversaries["all_rejected_before_materialization"]
+    )
+    source_adversaries = source_audit["source_audit_adversaries"]
+    source_closure = (
+        source_audit["all_checks_passed"]
+        and source_audit["check_count"] == 36
+        and source_adversaries["case_count"] == 10
+        and source_adversaries["all_rejected"]
+    )
+    input_audit["binding_field_adversaries"] = binding_field_adversaries
+    input_audit["runtime_valid_process_expected_count"] = expected_valid_process_count
+    input_audit["runtime_valid_process_observed_count"] = len(provenance_registry)
+    input_audit["runtime_process_provenance_registry"] = provenance_registry
+    input_audit["runtime_loaded_image_inventory_catalog"] = (
+        loaded_image_inventory_catalog
+    )
+    input_audit["runtime_loaded_image_inventory_catalog_entry_count"] = len(
+        loaded_image_inventory_catalog
+    )
+    input_audit["runtime_loaded_image_file_catalog"] = loaded_image_file_catalog
+    input_audit["runtime_loaded_image_file_catalog_entry_count"] = len(
+        loaded_image_file_catalog
+    )
+    input_audit["runtime_loaded_image_file_catalog_raw_sha256"] = sha256_value(
+        loaded_image_file_catalog
+    )
+    input_audit["dyld_shared_cache_inventory"] = _shared_cache_inventory()
+    input_audit["source_audit_raw_sha256"] = sha256_value(source_audit)
+    input_audit["source_audit_check_count"] = source_audit["check_count"]
+    input_audit["source_audit_adversary_count"] = source_adversaries[
+        "case_count"
+    ]
+    input_audit["all_launches_exact_surface"] = all_process_closures
+    input_audit["all_refreshes_original_stdin_pipe_only"] = (
+        all_process_closures
+        and all(
+            row["all_stdin_commands_byte_bound"]
+            and not row["alternate_runtime_input_path_observed"]
+            for row in provenance_registry
+        )
+    )
+    input_audit["proof_semantic_closure_complete"] = (
+        all_process_closures
+        and all_binding_adversaries
+        and source_closure
+        and bool(loaded_image_inventory_catalog)
+        and bool(loaded_image_file_catalog)
+        and input_audit["head_observation_visible_to_unreal"] is False
+        and input_audit["physical_guard_visible_to_unreal"] is False
+        and input_audit["other_domain_state_visible_to_unreal"] is False
+        and input_audit["expected_physical_result_visible_to_probe"] is False
+        and input_audit["alternate_refresh_channels"] == []
+        and input_audit["project_Content_ProofRecords_reads"] == []
+    )
+    if not input_audit["proof_semantic_closure_complete"]:
+        raise RuntimeError("runtime proof-semantic closure is incomplete")
     write_json(output_directory / "simultaneous_physical_domains_proof_semantic_input_audit.json", input_audit)
 
     physical_rebind = {
@@ -2334,9 +3588,6 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
         "all_branches_equal": all(value.get("canonical_R1_byte_identical") for value in acquired.values()),
     }
     write_json(output_directory / "simultaneous_physical_domains_canonical_equivalence_oracle.json", canonical_equivalence)
-    source_audit = _source_audit()
-    if not source_audit["all_checks_passed"]:
-        raise RuntimeError("Phase-3 source audit failed")
     write_json(output_directory / "simultaneous_physical_domains_source_audit.json", source_audit)
 
     replay = {
@@ -2422,4 +3673,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-    fault_arm_invocation,

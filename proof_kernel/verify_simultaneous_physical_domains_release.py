@@ -149,6 +149,19 @@ NON_ARTIFACT_MEMBERS = (
     + UNREAL_PROJECT_MEMBERS
 )
 
+PROCESS_BINDING_FIELDS = (
+    "binding_schema", "proof_scenario", "witness_id", "domain_role",
+    "harness_launch_id", "pid", "macos_process_start", "executable_realpath",
+    "executable_raw_sha256", "unreal_engine_build_identity",
+    "entry_map_package_identity", "project_realpath", "project_raw_sha256",
+    "project_config_and_module_inventory_raw_sha256", "process_root_realpath",
+    "launch_argv_raw_sha256", "launch_environment_audit_raw_sha256",
+    "launch_cwd_realpath", "inherited_descriptor_map_raw_sha256",
+    "control_pipe_id", "structured_output_pipe_id", "diagnostic_pipe_id",
+)
+
+_RUNTIME_INPUT_AUDIT_CACHE: dict[str, Any] | None = None
+
 
 AUTHORITY_EXECUTION_EXPECTATIONS = (
     ("validate_materialization_receipt", "materialization_receipt_emission", "representation_digest_mismatch"),
@@ -299,6 +312,15 @@ def _load(name: str) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"artifact is not an object: {name}")
     return value
+
+
+def _runtime_input_audit() -> dict[str, Any]:
+    global _RUNTIME_INPUT_AUDIT_CACHE
+    if _RUNTIME_INPUT_AUDIT_CACHE is None:
+        _RUNTIME_INPUT_AUDIT_CACHE = _load(
+            "simultaneous_physical_domains_proof_semantic_input_audit.json"
+        )
+    return _RUNTIME_INPUT_AUDIT_CACHE
 
 
 def _expect_equal(name: str, expected: Mapping[str, Any]) -> None:
@@ -478,21 +500,442 @@ def _validated_process_binding(
     return validated, instance_id, binding_digest, birth
 
 
+def _path_is_within(child: Any, parent: Any) -> bool:
+    if not isinstance(child, str) or not isinstance(parent, str):
+        return False
+    try:
+        return os.path.commonpath((child, parent)) == os.path.normpath(parent)
+    except ValueError:
+        return False
+
+
+def _verify_compact_runtime_provenance(
+    evidence: Mapping[str, Any],
+    *,
+    binding: Mapping[str, Any],
+    instance_id: str,
+    binding_digest: str,
+    input_audit: Mapping[str, Any],
+) -> None:
+    compact = evidence.get("runtime_provenance")
+    compact_required = {
+        "evidence_schema", "child_report_without_loaded_image_identities",
+        "loaded_image_inventory_reference",
+        "reconstructed_child_report_raw_sha256",
+    }
+    if not isinstance(compact, dict) or set(compact) != compact_required:
+        raise ValueError("compact runtime provenance exact member set drift")
+    reference = compact.get("loaded_image_inventory_reference")
+    if not isinstance(reference, dict) or set(reference) != {
+        "catalog_owner_artifact", "catalog_raw_sha256", "loaded_image_count",
+    }:
+        raise ValueError("loaded-image catalog reference drift")
+    catalog = input_audit.get("runtime_loaded_image_inventory_catalog")
+    catalog_digest = reference.get("catalog_raw_sha256")
+    if (
+        compact.get("evidence_schema")
+        != "SimultaneousPhysicalDomainCompactRuntimeProvenance.v1"
+        or reference.get("catalog_owner_artifact")
+        != "simultaneous_physical_domains_proof_semantic_input_audit.json"
+        or not isinstance(catalog, dict)
+        or not _is_sha256_text(catalog_digest)
+        or catalog_digest not in catalog
+    ):
+        raise ValueError("loaded-image catalog reference is not resolvable")
+    loaded_images = catalog[catalog_digest]
+    if (
+        not isinstance(loaded_images, list)
+        or reference.get("loaded_image_count") != len(loaded_images)
+        or sha256_value(loaded_images) != catalog_digest
+    ):
+        raise ValueError("loaded-image catalog reference digest/count mismatch")
+    child_without_images = compact.get("child_report_without_loaded_image_identities")
+    if not isinstance(child_without_images, dict):
+        raise ValueError("compact runtime provenance child report is absent")
+    report = copy.deepcopy(child_without_images)
+    report["loaded_image_identities"] = copy.deepcopy(loaded_images)
+    if (
+        not _is_sha256_text(compact.get("reconstructed_child_report_raw_sha256"))
+        or sha256_value(report)
+        != compact.get("reconstructed_child_report_raw_sha256")
+    ):
+        raise ValueError("compact runtime provenance reconstruction digest mismatch")
+
+    report_required = {
+        "audit_schema", "binding_verification_rows",
+        "captured_before_first_materialization", "descriptor_kernel_identities",
+        "domain_role", "entry_map_file_identity",
+        "initial_world_actor_class_inventory", "loaded_image_identities",
+        "observed_inherited_descriptor_map", "observed_launch_argv",
+        "observed_process_binding", "operational_process_instance_id",
+        "process_binding_raw_sha256", "project_config_and_module_inventory",
+        "proof_scenario", "redacted_environment_audit",
+    }
+    expected_rows = [
+        {
+            "field": field_name,
+            "verification_mode": (
+                "fixed_schema_or_cross_field_derivation"
+                if index <= 4 else "independent_process_observation"
+            ),
+            "matched": True,
+        }
+        for index, field_name in enumerate(PROCESS_BINDING_FIELDS)
+    ]
+    if (
+        set(report) != report_required
+        or report.get("audit_schema")
+        != "SimultaneousPhysicalDomainRuntimeProvenance.v1"
+        or report.get("proof_scenario") != binding["proof_scenario"]
+        or report.get("captured_before_first_materialization") is not True
+        or report.get("domain_role") != binding["domain_role"]
+        or report.get("operational_process_instance_id") != instance_id
+        or report.get("process_binding_raw_sha256") != binding_digest
+        or report.get("observed_process_binding") != binding
+        or report.get("binding_verification_rows") != expected_rows
+        or report.get("observed_launch_argv") != evidence.get("launch_argv")
+        or report.get("redacted_environment_audit")
+        != evidence.get("launch_environment_audit")
+        or report.get("observed_inherited_descriptor_map")
+        != evidence.get("inherited_descriptor_map")
+        or report.get("descriptor_kernel_identities")
+        != evidence.get("spawn_descriptor_kernel_identities")
+    ):
+        raise ValueError("runtime provenance is not exact and process-bound")
+
+    descriptor_rows = report["descriptor_kernel_identities"]
+    expected_descriptor_modes = {
+        0: "read_only", 1: "write_only", 2: "write_only",
+    }
+    if not isinstance(descriptor_rows, list) or len(descriptor_rows) != 3:
+        raise ValueError("runtime descriptor kernel identity set drift")
+    for row, expected_fd in zip(descriptor_rows, (0, 1, 2)):
+        if (
+            not isinstance(row, dict)
+            or set(row) != {"access_mode", "device", "fd", "file_type", "inode"}
+            or row.get("fd") != expected_fd
+            or row.get("file_type") != "fifo"
+            or row.get("access_mode") != expected_descriptor_modes[expected_fd]
+            or not isinstance(row.get("device"), str)
+            or not isinstance(row.get("inode"), str)
+        ):
+            raise ValueError("runtime descriptor kernel identity row drift")
+
+    project_inventory = report.get("project_config_and_module_inventory")
+    project_members = (
+        project_inventory.get("members")
+        if isinstance(project_inventory, dict) else None
+    )
+    if (
+        not isinstance(project_inventory, dict)
+        or set(project_inventory) != {"inventory_schema", "members"}
+        or project_inventory.get("inventory_schema")
+        != "SimultaneousPhysicalDomainProjectModuleInventory.v1"
+        or not isinstance(project_members, list)
+        or len(project_members) != 5
+        or any(
+            not isinstance(row, dict)
+            or set(row) != {"raw_sha256", "realpath"}
+            or not isinstance(row.get("realpath"), str)
+            or not _is_sha256_text(row.get("raw_sha256"))
+            for row in project_members
+        )
+        or sha256_value(project_inventory)
+        != binding["project_config_and_module_inventory_raw_sha256"]
+        or binding["project_realpath"]
+        not in {row["realpath"] for row in project_members}
+        or not any(
+            row["realpath"].endswith(
+                "/Binaries/Mac/libUnrealEditor-CityMaterializationProof.dylib"
+            )
+            for row in project_members
+        )
+    ):
+        raise ValueError("runtime project/config/module inventory drift")
+
+    entry_map = report.get("entry_map_file_identity")
+    if (
+        not isinstance(entry_map, dict)
+        or set(entry_map) != {"package_identity", "raw_sha256", "realpath"}
+        or entry_map.get("package_identity") != binding["entry_map_package_identity"]
+        or not isinstance(entry_map.get("realpath"), str)
+        or not entry_map["realpath"].endswith("/Content/Maps/Entry.umap")
+        or not _is_sha256_text(entry_map.get("raw_sha256"))
+    ):
+        raise ValueError("runtime entry-map file identity drift")
+
+    actor_rows = report.get("initial_world_actor_class_inventory")
+    if not isinstance(actor_rows, list) or not actor_rows:
+        raise ValueError("runtime initial actor inventory is absent")
+    actor_classes = []
+    for row in actor_rows:
+        if (
+            not isinstance(row, dict)
+            or set(row) != {"actor_count", "class_path"}
+            or type(row.get("actor_count")) is not int
+            or row["actor_count"] <= 0
+            or not isinstance(row.get("class_path"), str)
+        ):
+            raise ValueError("runtime initial actor inventory row drift")
+        actor_classes.append(row["class_path"])
+    prohibited = {
+        "/Script/CityMaterializationProof.SimultaneousPhysicalDomainProofAdapter",
+        "/Script/CityMaterializationProof.SimultaneousPhysicalDomainRepresentationActor",
+        "/Script/CityMaterializationProof.SimultaneousPhysicalRebindProbe",
+    }
+    if (
+        actor_classes != sorted(actor_classes, key=str.casefold)
+        or len(actor_classes) != len(set(actor_classes))
+        or "/Script/CityMaterializationProof.CityProofGameMode" not in actor_classes
+        or "/Script/CityMaterializationProof.SimultaneousPhysicalDomainCommandRouter"
+        not in actor_classes
+        or any(name in prohibited or name.endswith("Pawn") for name in actor_classes)
+    ):
+        raise ValueError("runtime initial actor inventory is not pre-materialization")
+
+    file_catalog = input_audit.get("runtime_loaded_image_file_catalog")
+    if not isinstance(file_catalog, list):
+        raise ValueError("runtime loaded-image file catalog is absent")
+    file_by_path = {
+        row.get("realpath"): row for row in file_catalog if isinstance(row, dict)
+    }
+    filesystem_catalog = []
+    seen_images: set[tuple[str, str]] = set()
+    filesystem_count = shared_cache_count = 0
+    executable_seen = module_seen = False
+    for row in loaded_images:
+        if not isinstance(row, dict) or set(row) != {
+            "filesystem_regular_file", "mach_o_uuid", "path_resolution",
+            "realpath", "reported_path",
+        }:
+            raise ValueError("runtime loaded-image identity row drift")
+        realpath = row.get("realpath")
+        uuid = row.get("mach_o_uuid")
+        image_key = (realpath, uuid)
+        if (
+            not isinstance(realpath, str) or not realpath.startswith("/")
+            or not isinstance(row.get("reported_path"), str)
+            or not isinstance(uuid, str) or len(uuid) != 36
+            or uuid != uuid.lower()
+            or tuple(index for index, char in enumerate(uuid) if char == "-")
+            != (8, 13, 18, 23)
+            or any(char not in "0123456789abcdef-" for char in uuid)
+            or image_key in seen_images
+        ):
+            raise ValueError("runtime loaded-image path/UUID identity drift")
+        seen_images.add(image_key)
+        if row.get("filesystem_regular_file") is True:
+            identity = file_by_path.get(realpath)
+            if (
+                row.get("path_resolution") != "filesystem_realpath"
+                or not isinstance(identity, dict)
+                or uuid not in identity.get("mach_o_uuids", [])
+            ):
+                raise ValueError("runtime filesystem image lacks catalog identity")
+            filesystem_catalog.append(copy.deepcopy(identity))
+            filesystem_count += 1
+        elif row.get("filesystem_regular_file") is False:
+            if row.get("path_resolution") != "dyld_shared_cache_logical_path":
+                raise ValueError("runtime shared-cache image classification drift")
+            shared_cache_count += 1
+        else:
+            raise ValueError("runtime image filesystem classification is not boolean")
+        executable_seen |= realpath == binding["executable_realpath"]
+        module_seen |= realpath.endswith(
+            "/Binaries/Mac/libUnrealEditor-CityMaterializationProof.dylib"
+        )
+    if not executable_seen or not module_seen or not filesystem_count or not shared_cache_count:
+        raise ValueError("runtime loaded-image inventory omits a required backing class")
+    filesystem_catalog.sort(key=lambda row: row["realpath"])
+
+    shared_cache = input_audit.get("dyld_shared_cache_inventory")
+    validation = evidence.get("runtime_provenance_validation")
+    expected_validation = {
+        "validation_schema": "SimultaneousPhysicalDomainRuntimeProvenanceValidation.v1",
+        "binding_field_count": len(PROCESS_BINDING_FIELDS),
+        "all_binding_fields_independently_matched": True,
+        "descriptor_kernel_identities_match_spawn_endpoints": True,
+        "entry_map_file_independently_rehashed": True,
+        "initial_actor_inventory_raw_sha256": sha256_value(actor_rows),
+        "pre_materialization_phase3_actor_count": 0,
+        "loaded_image_count": len(loaded_images),
+        "filesystem_loaded_image_count": filesystem_count,
+        "dyld_shared_cache_loaded_image_count": shared_cache_count,
+        "loaded_image_inventory_raw_sha256": sha256_value(loaded_images),
+        "filesystem_loaded_image_catalog_raw_sha256": sha256_value(
+            filesystem_catalog
+        ),
+        "dyld_shared_cache_inventory_raw_sha256": (
+            shared_cache.get("inventory_raw_sha256")
+            if isinstance(shared_cache, dict) else None
+        ),
+        "runtime_provenance_raw_sha256": sha256_value(report),
+        "proof_semantic_input": False,
+    }
+    if validation != expected_validation:
+        raise ValueError("runtime provenance validation is not independently reproducible")
+
+
+def _verify_runtime_input_trace(
+    evidence: Mapping[str, Any],
+    *,
+    binding: Mapping[str, Any],
+    instance_id: str,
+    binding_digest: str,
+) -> None:
+    rows = evidence.get("runtime_input_trace")
+    commands = evidence.get("stdin_commands")
+    required = {
+        "domain_role", "input_class", "metadata", "observed_raw_sha256",
+        "operation", "operational_process_instance_id",
+        "process_binding_raw_sha256", "proof_scenario", "sequence",
+        "source_identity", "trace_schema",
+    }
+    if not isinstance(rows, list) or not rows or not isinstance(commands, list):
+        raise ValueError("runtime input trace is absent")
+    for index, row in enumerate(rows, start=1):
+        if (
+            not isinstance(row, dict) or set(row) != required
+            or row.get("trace_schema")
+            != "SimultaneousPhysicalDomainRuntimeInputTraceEvent.v1"
+            or row.get("proof_scenario") != binding["proof_scenario"]
+            or row.get("domain_role") != binding["domain_role"]
+            or row.get("operational_process_instance_id") != instance_id
+            or row.get("process_binding_raw_sha256") != binding_digest
+            or row.get("sequence") != index
+            or not _is_sha256_text(row.get("observed_raw_sha256"))
+            or not isinstance(row.get("metadata"), dict)
+        ):
+            raise ValueError("runtime input trace sequence/process binding drift")
+    command_rows = [row for row in rows if row["input_class"] == "stdin_command"]
+    if len(command_rows) != len(commands):
+        raise ValueError("runtime input trace omits a stdin command")
+    for command, row in zip(commands, command_rows):
+        expected_hash = hashlib.sha256(
+            (canonical_json(command) + "\n").encode("utf-8")
+        ).hexdigest()
+        if (
+            row["operation"] != "canonical_line_read"
+            or row["source_identity"] != "fd:0"
+            or row["observed_raw_sha256"] != expected_hash
+            or row["metadata"] != {
+                "command_schema": command["command_schema"],
+                "descriptor": "fd_0_original_control_pipe_read_endpoint",
+            }
+        ):
+            raise ValueError("runtime stdin trace is not bound to exact command bytes")
+
+    allowed_pairs = {
+        ("stdin_command", "canonical_line_read"),
+        ("bundle_directory", "exact_member_inventory"),
+        ("bundle_file", "opened_descriptor_raw_read"),
+        ("engine_asset_package", "LoadObject_dependency"),
+        ("live_world_state", "independent_probe_read"),
+    }
+    directory_count = file_count = engine_asset_count = live_world_count = 0
+    process_root = binding["process_root_realpath"]
+    for row in rows:
+        pair = (row["input_class"], row["operation"])
+        if pair not in allowed_pairs:
+            raise ValueError("runtime input trace contains an undeclared operation")
+        metadata = row["metadata"]
+        if row["input_class"] == "bundle_directory":
+            names = metadata.get("sorted_member_names")
+            if (
+                not _path_is_within(row["source_identity"], process_root)
+                or not isinstance(names, list) or names != sorted(names)
+                or row["observed_raw_sha256"]
+                != hashlib.sha256(canonical_json(names).encode("utf-8")).hexdigest()
+            ):
+                raise ValueError("runtime bundle-directory trace drift")
+            directory_count += 1
+        elif row["input_class"] == "bundle_file":
+            if (
+                not _path_is_within(row["source_identity"], process_root)
+                or metadata.get("descriptor_access") != "read_only_no_follow"
+                or not isinstance(metadata.get("device"), str)
+                or not isinstance(metadata.get("inode"), str)
+                or type(metadata.get("size")) is not int
+                or metadata["size"] <= 0
+            ):
+                raise ValueError("runtime opened bundle-file trace drift")
+            file_count += 1
+        elif row["input_class"] == "engine_asset_package":
+            if (
+                metadata.get("package_identity") not in (
+                    "/Engine/BasicShapes/Cube",
+                    "/Engine/BasicShapes/BasicShapeMaterial",
+                )
+                or not isinstance(row["source_identity"], str)
+                or not row["source_identity"].startswith("/")
+            ):
+                raise ValueError("runtime engine asset trace drift")
+            engine_asset_count += 1
+        elif row["input_class"] == "live_world_state":
+            stage = metadata.get("read_stage")
+            if (
+                row["source_identity"] != stage
+                or stage not in (
+                    "player_and_input_inventory",
+                    "representation_actor_enumeration",
+                    "mesh_label_component_state",
+                )
+                or not isinstance(metadata.get("inspection_id"), str)
+            ):
+                raise ValueError("runtime live-world trace drift")
+            live_world_count += 1
+    inspections = [
+        command for command in commands
+        if command.get("operation") == "inspect_published_route_once"
+    ]
+    inspection_ids = {command.get("inspection_id") for command in inspections}
+    traced_ids = {
+        row["metadata"].get("inspection_id") for row in rows
+        if row["input_class"] == "live_world_state"
+    }
+    if (
+        directory_count < 1 or file_count < 3 or engine_asset_count < 2
+        or live_world_count > len(inspections) * 3
+        or not traced_ids.issubset(inspection_ids)
+    ):
+        raise ValueError("runtime trace omits a required launch input class")
+    expected_validation = {
+        "validation_schema": "SimultaneousPhysicalDomainRuntimeInputTraceValidation.v1",
+        "event_count": len(rows),
+        "last_sequence": rows[-1]["sequence"],
+        "stdin_command_event_count": len(command_rows),
+        "bundle_directory_event_count": directory_count,
+        "bundle_file_event_count": file_count,
+        "engine_asset_event_count": engine_asset_count,
+        "live_world_event_count": live_world_count,
+        "all_events_contiguous_and_process_bound": True,
+        "all_stdin_commands_byte_bound": True,
+        "alternate_runtime_input_path_observed": False,
+        "runtime_input_trace_raw_sha256": sha256_value(rows),
+    }
+    if evidence.get("runtime_input_trace_validation") != expected_validation:
+        raise ValueError("runtime input trace validation is not independently reproducible")
+
+
 def _verify_domain_evidence(
     value: Any,
     *,
     expected_role: str,
     expected_witness_id: str,
+    input_audit: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, Any], str, str, tuple[int, int, int]]:
     required = {
         "binding", "binding_command", "head_observation_visible_to_unreal",
         "inherited_descriptor_map", "launch_argv", "launch_environment_audit",
         "launch_input_inventory", "other_domain_root_visible_to_unreal",
         "physical_guard_visible_to_unreal", "refresh_input_inventory_after",
-        "refresh_input_inventory_before", "stdin_commands",
+        "refresh_input_inventory_before", "runtime_input_trace",
+        "runtime_input_trace_validation", "runtime_provenance",
+        "runtime_provenance_validation", "spawn_descriptor_kernel_identities",
+        "stdin_commands",
     }
     if not isinstance(value, dict) or set(value) != required:
-        raise ValueError("fault domain evidence exact member set drift")
+        raise ValueError("runtime domain evidence exact member set drift")
     binding, instance_id, binding_digest, birth = _validated_process_binding(
         value["binding"],
         expected_role=expected_role,
@@ -511,7 +954,21 @@ def _verify_domain_evidence(
         or value.get("other_domain_root_visible_to_unreal") is not False
         or not isinstance(value.get("stdin_commands"), list)
     ):
-        raise ValueError("fault domain evidence is not bound to its process/input closure")
+        raise ValueError("runtime domain evidence is not bound to its process/input closure")
+    audit = _runtime_input_audit() if input_audit is None else input_audit
+    _verify_compact_runtime_provenance(
+        value,
+        binding=binding,
+        instance_id=instance_id,
+        binding_digest=binding_digest,
+        input_audit=audit,
+    )
+    _verify_runtime_input_trace(
+        value,
+        binding=binding,
+        instance_id=instance_id,
+        binding_digest=binding_digest,
+    )
     return binding, instance_id, binding_digest, birth
 
 
@@ -849,7 +1306,8 @@ def _verify_live_authority_attack(
         "actual_command", "actual_validation_path", "attack",
         "canonical_before_after_measurement", "canonical_transition",
         "canonical_unchanged", "live_stdin_command_count_delta",
-        "peer_alive_after_rejection", "rejection", "target_alive_after_rejection",
+        "peer_alive_after_rejection", "peer_domain_evidence", "rejection",
+        "target_alive_after_rejection", "target_domain_evidence",
         "target_executable_raw_sha256", "target_process_binding",
     }
     if not isinstance(value, dict) or set(value) != required or value.get("attack") != attack:
@@ -921,12 +1379,21 @@ def _verify_live_authority_attack(
     if value.get("canonical_transition") != expected_transition:
         raise ValueError(f"authority live transition binding drift: {attack}")
 
-    binding, target_id, target_digest, target_birth = _validated_process_binding(
-        value.get("target_process_binding"),
+    binding, target_id, target_digest, target_birth = _verify_domain_evidence(
+        value.get("target_domain_evidence"),
         expected_role="domain_A",
         expected_witness_id="f_refresh_fault",
     )
-    if value.get("target_executable_raw_sha256") != binding.get("executable_raw_sha256"):
+    peer_binding, peer_id, peer_digest, peer_birth = _verify_domain_evidence(
+        value.get("peer_domain_evidence"),
+        expected_role="domain_B",
+        expected_witness_id="f_refresh_fault",
+    )
+    if (
+        value.get("target_process_binding") != binding
+        or value.get("target_executable_raw_sha256")
+        != binding.get("executable_raw_sha256")
+    ):
         raise ValueError(f"authority live executable binding drift: {attack}")
     _verify_liveness_sample(
         value.get("target_alive_after_rejection"),
@@ -935,10 +1402,12 @@ def _verify_live_authority_attack(
         binding=binding,
         instance_id=target_id,
     )
-    peer_id, peer_digest, peer_birth = _verify_liveness_sample(
+    _verify_liveness_sample(
         value.get("peer_alive_after_rejection"),
         expected_role="domain_B",
         expected_checkpoint=None,
+        binding=peer_binding,
+        instance_id=peer_id,
     )
     if target_id == peer_id or target_digest == peer_digest or target_birth == peer_birth:
         raise ValueError(f"authority live target/peer identity collision: {attack}")
@@ -1133,7 +1602,8 @@ def _verify_authority_payload(value: Mapping[str, Any]) -> None:
     if set(value) != {
         "all_canonical_measurements_recomputed", "all_real_validation_paths_executed",
         "all_rejected_or_protocol_invalid_as_frozen", "authority_case_actions",
-        "case_count", "cases", "oracle_schema", "proof_scenario",
+        "case_count", "cases", "fresh_live_command_attack_count",
+        "oracle_schema", "proof_scenario",
     }:
         raise ValueError("authority oracle exact member set drift")
     exact_table = {
@@ -1147,6 +1617,7 @@ def _verify_authority_payload(value: Mapping[str, Any]) -> None:
         or value.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
         or value.get("authority_case_actions") != exact_table
         or value.get("case_count") != 37
+        or value.get("fresh_live_command_attack_count") != 6
         or [case.get("case_id") for case in cases or []] != list(range(1, 38))
         or [case.get("action_id") for case in cases or []] != list(AUTHORITY_CASE_ACTIONS)
         or value.get("all_real_validation_paths_executed") is not True
@@ -1282,6 +1753,444 @@ def _verify_other_witnesses() -> None:
             raise ValueError(f"destruction isolation failed: {name}")
 
 
+def _binding_field_expected_reason(field_name: str) -> str:
+    if field_name in ("binding_schema", "proof_scenario"):
+        return "binding_structure_mismatch"
+    if field_name in ("witness_id", "domain_role", "harness_launch_id"):
+        return "binding_fixed_identity_or_cross_field_mismatch"
+    return f"binding_field_mismatch/{field_name}"
+
+
+def _verify_binding_field_adversaries(value: Any) -> None:
+    if not isinstance(value, dict) or set(value) != {
+        "all_fields_mutated_exactly_once", "all_rejected_before_materialization",
+        "cases", "field_count", "field_order", "fresh_live_unreal_process_count",
+        "matrix_schema", "proof_scenario",
+    }:
+        raise ValueError("binding-field adversary matrix exact member set drift")
+    cases = value.get("cases")
+    if (
+        value.get("matrix_schema")
+        != "SimultaneousPhysicalDomainBindingFieldAdversaryMatrix.v1"
+        or value.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+        or value.get("field_order") != list(PROCESS_BINDING_FIELDS)
+        or value.get("field_count") != len(PROCESS_BINDING_FIELDS)
+        or value.get("fresh_live_unreal_process_count") != len(PROCESS_BINDING_FIELDS)
+        or value.get("all_fields_mutated_exactly_once") is not True
+        or value.get("all_rejected_before_materialization") is not True
+        or not isinstance(cases, list)
+        or len(cases) != len(PROCESS_BINDING_FIELDS)
+    ):
+        raise ValueError("binding-field adversary matrix summary drift")
+    expected_case_members = {
+        "adversarial_bind_command", "adversarial_process_binding", "case_id",
+        "case_schema", "changed_top_level_fields", "expected_reason_code",
+        "mutated_field", "nominal_process_binding", "observed_failure",
+        "operational_process_instance_id_recomputed",
+        "rejected_before_materialization", "rejected_before_runtime_provenance",
+        "runtime_trace_event_count", "termination",
+    }
+    failure_members = {
+        "diagnostic_schema", "domain_role", "local_publication_stage",
+        "operational_process_instance_id", "process_binding_raw_sha256",
+        "proof_scenario", "reason_code", "represented_hash_if_known",
+    }
+    termination_members = {
+        "canonical_input_from_terminated_output", "diagnostic_stream_raw_sha256",
+        "domain_role", "pid", "terminated", "wait_status",
+    }
+    births = set()
+    for index, (field_name, case) in enumerate(
+        zip(PROCESS_BINDING_FIELDS, cases), start=1
+    ):
+        if not isinstance(case, dict) or set(case) != expected_case_members:
+            raise ValueError("binding-field adversary case exact member set drift")
+        nominal = case.get("nominal_process_binding")
+        adversarial = case.get("adversarial_process_binding")
+        if not isinstance(nominal, dict) or not isinstance(adversarial, dict):
+            raise ValueError("binding-field adversary lacks two bindings")
+        _validated_process_binding(
+            nominal, expected_role="domain_A", expected_witness_id="w1_a_then_b"
+        )
+        changed = [
+            name for name in PROCESS_BINDING_FIELDS
+            if nominal.get(name) != adversarial.get(name)
+        ]
+        expected_reason = _binding_field_expected_reason(field_name)
+        failure = case.get("observed_failure")
+        termination = case.get("termination")
+        birth = (
+            nominal["pid"], nominal["macos_process_start"]["seconds"],
+            nominal["macos_process_start"]["microseconds"],
+        )
+        if (
+            set(nominal) != set(PROCESS_BINDING_FIELDS)
+            or set(adversarial) != set(PROCESS_BINDING_FIELDS)
+            or case.get("case_schema")
+            != "SimultaneousPhysicalDomainBindingFieldAdversary.v1"
+            or case.get("case_id") != f"binding_field_{index:02d}_{field_name}"
+            or case.get("mutated_field") != field_name
+            or case.get("changed_top_level_fields") != [field_name]
+            or changed != [field_name]
+            or case.get("adversarial_bind_command") != bind_invocation(adversarial)
+            or case.get("operational_process_instance_id_recomputed") is not True
+            or case.get("expected_reason_code") != expected_reason
+            or case.get("rejected_before_runtime_provenance") is not True
+            or case.get("rejected_before_materialization") is not True
+            or case.get("runtime_trace_event_count") != 0
+            or birth in births
+        ):
+            raise ValueError(f"binding-field adversary drift: {field_name}")
+        births.add(birth)
+        if (
+            not isinstance(failure, dict) or set(failure) != failure_members
+            or failure.get("diagnostic_schema")
+            != "SimultaneousPhysicalDomainFailure.v1"
+            or failure.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+            or failure.get("domain_role") != "unbound"
+            or failure.get("local_publication_stage")
+            != "process_binding_identity_verification"
+            or failure.get("reason_code") != expected_reason
+            or failure.get("operational_process_instance_id") != ""
+            or failure.get("process_binding_raw_sha256") != ""
+            or failure.get("represented_hash_if_known") != ""
+        ):
+            raise ValueError(f"binding-field rejection evidence drift: {field_name}")
+        if (
+            not isinstance(termination, dict)
+            or set(termination) != termination_members
+            or termination.get("domain_role") != "domain_A"
+            or termination.get("pid") != nominal["pid"]
+            or termination.get("terminated") is not True
+            or type(termination.get("wait_status")) is not int
+            or not _is_sha256_text(termination.get("diagnostic_stream_raw_sha256"))
+            or termination.get("canonical_input_from_terminated_output") is not False
+        ):
+            raise ValueError(f"binding-field termination evidence drift: {field_name}")
+
+
+def _verify_runtime_input_audit_contract(value: Any) -> None:
+    required = {
+        "all_launches_exact_surface", "all_refreshes_original_stdin_pipe_only",
+        "alternate_refresh_channels", "audit_schema", "binding_field_adversaries",
+        "dyld_shared_cache_inventory", "expected_physical_result_visible_to_probe",
+        "fault_process_audits", "head_observation_visible_to_unreal",
+        "other_domain_state_visible_to_unreal", "physical_guard_visible_to_unreal",
+        "project_Content_ProofRecords_reads", "proof_scenario",
+        "proof_semantic_closure_complete", "runtime_loaded_image_file_catalog",
+        "runtime_loaded_image_file_catalog_entry_count",
+        "runtime_loaded_image_file_catalog_raw_sha256",
+        "runtime_loaded_image_inventory_catalog",
+        "runtime_loaded_image_inventory_catalog_entry_count",
+        "runtime_process_provenance_registry", "runtime_valid_process_expected_count",
+        "runtime_valid_process_observed_count", "semantic_command_line_selectors",
+        "semantic_environment_keys", "semantic_inherited_descriptors",
+        "source_audit_adversary_count", "source_audit_check_count",
+        "source_audit_raw_sha256", "witness_domain_audits",
+    }
+    if not isinstance(value, dict) or set(value) != required:
+        raise ValueError("proof-semantic input audit exact member set drift")
+    if (
+        value.get("audit_schema")
+        != "SimultaneousPhysicalDomainsProofSemanticInputAudit.v1"
+        or value.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+        or value.get("semantic_environment_keys") != []
+        or value.get("semantic_command_line_selectors") != []
+        or value.get("semantic_inherited_descriptors") != [
+            "fd_0_original_control_pipe_read_endpoint",
+            "fd_1_original_structured_output_pipe_write_endpoint",
+        ]
+        or value.get("head_observation_visible_to_unreal") is not False
+        or value.get("physical_guard_visible_to_unreal") is not False
+        or value.get("other_domain_state_visible_to_unreal") is not False
+        or value.get("expected_physical_result_visible_to_probe") is not False
+        or value.get("alternate_refresh_channels") != []
+        or value.get("project_Content_ProofRecords_reads") != []
+        or value.get("proof_semantic_closure_complete") is not True
+        or value.get("all_launches_exact_surface") is not True
+        or value.get("all_refreshes_original_stdin_pipe_only") is not True
+        or value.get("runtime_valid_process_expected_count") != 154
+        or value.get("runtime_valid_process_observed_count") != 154
+        or value.get("source_audit_check_count") != 36
+        or value.get("source_audit_adversary_count") != 10
+        or not _is_sha256_text(value.get("source_audit_raw_sha256"))
+        or value.get("fault_process_audits") != {
+            "refresh_case_count": 36,
+            "physical_observation_case_count": 24,
+            "fault_arm_channel": "original_process_stdin_exact_declared_command_only",
+        }
+    ):
+        raise ValueError("proof-semantic input audit closure summary drift")
+    source_audit = _load("simultaneous_physical_domains_source_audit.json")
+    if (
+        value.get("source_audit_raw_sha256") != sha256_value(source_audit)
+        or source_audit.get("all_checks_passed") is not True
+        or source_audit.get("check_count") != 36
+        or source_audit.get("source_audit_adversaries", {}).get("case_count") != 10
+        or source_audit.get("source_audit_adversaries", {}).get("all_rejected")
+        is not True
+    ):
+        raise ValueError("proof-semantic input audit source binding drift")
+    _verify_binding_field_adversaries(value.get("binding_field_adversaries"))
+
+    inventory_catalog = value.get("runtime_loaded_image_inventory_catalog")
+    if (
+        not isinstance(inventory_catalog, dict) or not inventory_catalog
+        or value.get("runtime_loaded_image_inventory_catalog_entry_count")
+        != len(inventory_catalog)
+    ):
+        raise ValueError("loaded-image inventory catalog summary drift")
+    for digest, rows in inventory_catalog.items():
+        if (
+            not _is_sha256_text(digest) or not isinstance(rows, list) or not rows
+            or sha256_value(rows) != digest
+        ):
+            raise ValueError("loaded-image inventory catalog digest drift")
+
+    file_catalog = value.get("runtime_loaded_image_file_catalog")
+    if (
+        not isinstance(file_catalog, list) or not file_catalog
+        or value.get("runtime_loaded_image_file_catalog_entry_count")
+        != len(file_catalog)
+        or value.get("runtime_loaded_image_file_catalog_raw_sha256")
+        != sha256_value(file_catalog)
+    ):
+        raise ValueError("loaded-image file catalog summary drift")
+    file_paths = []
+    for row in file_catalog:
+        if (
+            not isinstance(row, dict)
+            or set(row) != {
+                "device", "inode", "mach_o_uuids", "raw_sha256", "realpath",
+                "size",
+            }
+            or not isinstance(row.get("realpath"), str)
+            or not row["realpath"].startswith("/")
+            or not isinstance(row.get("device"), str)
+            or not isinstance(row.get("inode"), str)
+            or type(row.get("size")) is not int or row["size"] <= 0
+            or not _is_sha256_text(row.get("raw_sha256"))
+            or not isinstance(row.get("mach_o_uuids"), list)
+            or not row["mach_o_uuids"]
+            or any(
+                not isinstance(uuid, str) or len(uuid) != 36 or uuid != uuid.lower()
+                for uuid in row["mach_o_uuids"]
+            )
+        ):
+            raise ValueError("loaded-image file catalog identity drift")
+        file_paths.append(row["realpath"])
+    if file_paths != sorted(file_paths) or len(file_paths) != len(set(file_paths)):
+        raise ValueError("loaded-image file catalog order/uniqueness drift")
+    referenced_files = {
+        row["realpath"]
+        for rows in inventory_catalog.values()
+        for row in rows
+        if isinstance(row, dict) and row.get("filesystem_regular_file") is True
+    }
+    if referenced_files != set(file_paths):
+        raise ValueError("loaded-image file catalog does not equal inventory union")
+
+    shared_cache = value.get("dyld_shared_cache_inventory")
+    members = shared_cache.get("members") if isinstance(shared_cache, dict) else None
+    if (
+        not isinstance(shared_cache, dict)
+        or set(shared_cache) != {
+            "inventory_raw_sha256", "inventory_schema", "members",
+        }
+        or shared_cache.get("inventory_schema")
+        != "SimultaneousPhysicalDomainDyldSharedCacheInventory.v1"
+        or not isinstance(members, list) or len(members) != 4
+        or any(
+            not isinstance(row, dict)
+            or set(row) != {"raw_sha256", "realpath", "size"}
+            or not isinstance(row.get("realpath"), str)
+            or type(row.get("size")) is not int or row["size"] <= 0
+            or not _is_sha256_text(row.get("raw_sha256"))
+            for row in members
+        )
+        or shared_cache.get("inventory_raw_sha256")
+        != sha256_value({
+            "inventory_schema": shared_cache.get("inventory_schema"),
+            "members": members,
+        })
+    ):
+        raise ValueError("dyld shared-cache backing inventory drift")
+
+    registry = value.get("runtime_process_provenance_registry")
+    registry_members = {
+        "all_stdin_commands_byte_bound", "alternate_runtime_input_path_observed",
+        "binding_field_count", "closure_verified", "domain_role",
+        "filesystem_loaded_image_catalog_raw_sha256",
+        "loaded_image_inventory_raw_sha256", "operational_process_instance_id",
+        "process_binding_raw_sha256", "runtime_input_trace_raw_sha256",
+        "runtime_provenance_raw_sha256", "runtime_trace_event_count",
+        "stdin_command_event_count", "witness_id",
+    }
+    if not isinstance(registry, list) or len(registry) != 154:
+        raise ValueError("runtime process provenance registry count drift")
+    ids = []
+    for row in registry:
+        if (
+            not isinstance(row, dict) or set(row) != registry_members
+            or row.get("witness_id") not in WITNESS_IDS
+            or row.get("domain_role") not in DOMAIN_ROLES
+            or not _is_sha256_text(row.get("operational_process_instance_id"))
+            or not _is_sha256_text(row.get("process_binding_raw_sha256"))
+            or not _is_sha256_text(row.get("runtime_provenance_raw_sha256"))
+            or not _is_sha256_text(row.get("runtime_input_trace_raw_sha256"))
+            or not _is_sha256_text(row.get("loaded_image_inventory_raw_sha256"))
+            or not _is_sha256_text(
+                row.get("filesystem_loaded_image_catalog_raw_sha256")
+            )
+            or type(row.get("runtime_trace_event_count")) is not int
+            or row["runtime_trace_event_count"] <= 0
+            or type(row.get("stdin_command_event_count")) is not int
+            or row["stdin_command_event_count"] <= 0
+            or row.get("binding_field_count") != len(PROCESS_BINDING_FIELDS)
+            or row.get("closure_verified") is not True
+            or row.get("all_stdin_commands_byte_bound") is not True
+            or row.get("alternate_runtime_input_path_observed") is not False
+            or row.get("loaded_image_inventory_raw_sha256") not in inventory_catalog
+        ):
+            raise ValueError("runtime process provenance registry row drift")
+        ids.append(row["operational_process_instance_id"])
+    if ids != sorted(ids) or len(ids) != len(set(ids)):
+        raise ValueError("runtime process provenance registry order/uniqueness drift")
+
+    primary_ids = [name for name in WITNESS_IDS if not name.startswith("f_")]
+    witness_audits = value.get("witness_domain_audits")
+    if (
+        not isinstance(witness_audits, dict)
+        or set(witness_audits) != set(primary_ids)
+        or any(
+            not isinstance(witness_audits[name], dict)
+            or set(witness_audits[name]) != set(DOMAIN_ROLES)
+            for name in primary_ids
+        )
+    ):
+        raise ValueError("primary witness domain-audit index drift")
+
+
+def _verify_runtime_evidence_population(input_audit: Mapping[str, Any]) -> None:
+    evidence_rows: list[dict[str, Any]] = []
+
+    def visit(value: Any) -> None:
+        if (
+            isinstance(value, dict)
+            and isinstance(value.get("runtime_provenance"), dict)
+            and value["runtime_provenance"].get("evidence_schema")
+            == "SimultaneousPhysicalDomainCompactRuntimeProvenance.v1"
+        ):
+            evidence_rows.append(value)
+            return
+        if isinstance(value, dict):
+            for member in value.values():
+                visit(member)
+        elif isinstance(value, list):
+            for member in value:
+                visit(member)
+
+    input_name = "simultaneous_physical_domains_proof_semantic_input_audit.json"
+    for name in ARTIFACT_NAMES:
+        if name != input_name:
+            visit(_load(name))
+    if len(evidence_rows) != 170:
+        raise ValueError(
+            f"runtime evidence occurrence count drift: {len(evidence_rows)} != 170"
+        )
+
+    derived_registry = []
+    evidence_by_primary: dict[tuple[str, str], Mapping[str, Any]] = {}
+    unique_evidence: dict[str, Mapping[str, Any]] = {}
+    births: dict[tuple[int, int, int], str] = {}
+    referenced_catalogs = set()
+    for evidence in evidence_rows:
+        declared = evidence.get("binding")
+        if not isinstance(declared, dict):
+            raise ValueError("runtime evidence lacks a declared binding")
+        binding, instance_id, binding_digest, birth = _verify_domain_evidence(
+            evidence,
+            expected_role=declared.get("domain_role"),
+            expected_witness_id=declared.get("witness_id"),
+            input_audit=input_audit,
+        )
+        if instance_id in unique_evidence:
+            if unique_evidence[instance_id] != evidence:
+                raise ValueError(
+                    "re-embedded runtime process evidence is not byte-identical"
+                )
+            if births.get(birth) != instance_id:
+                raise ValueError("re-embedded runtime evidence birth tuple drift")
+            continue
+        if birth in births:
+            raise ValueError("runtime evidence reuses a process birth tuple")
+        unique_evidence[instance_id] = evidence
+        births[birth] = instance_id
+        provenance_validation = evidence["runtime_provenance_validation"]
+        trace_validation = evidence["runtime_input_trace_validation"]
+        derived_registry.append({
+            "witness_id": binding["witness_id"],
+            "domain_role": binding["domain_role"],
+            "operational_process_instance_id": instance_id,
+            "process_binding_raw_sha256": binding_digest,
+            "runtime_provenance_raw_sha256": provenance_validation[
+                "runtime_provenance_raw_sha256"
+            ],
+            "runtime_input_trace_raw_sha256": trace_validation[
+                "runtime_input_trace_raw_sha256"
+            ],
+            "runtime_trace_event_count": trace_validation["event_count"],
+            "stdin_command_event_count": trace_validation[
+                "stdin_command_event_count"
+            ],
+            "all_stdin_commands_byte_bound": trace_validation[
+                "all_stdin_commands_byte_bound"
+            ],
+            "alternate_runtime_input_path_observed": trace_validation[
+                "alternate_runtime_input_path_observed"
+            ],
+            "loaded_image_inventory_raw_sha256": provenance_validation[
+                "loaded_image_inventory_raw_sha256"
+            ],
+            "filesystem_loaded_image_catalog_raw_sha256": provenance_validation[
+                "filesystem_loaded_image_catalog_raw_sha256"
+            ],
+            "binding_field_count": provenance_validation["binding_field_count"],
+            "closure_verified": True,
+        })
+        referenced_catalogs.add(
+            provenance_validation["loaded_image_inventory_raw_sha256"]
+        )
+        if not binding["witness_id"].startswith("f_"):
+            key = (binding["witness_id"], binding["domain_role"])
+            if key in evidence_by_primary:
+                raise ValueError("primary witness runtime evidence is duplicated")
+            evidence_by_primary[key] = evidence
+    if len(unique_evidence) != 154 or len(births) != 154:
+        raise ValueError("runtime unique process evidence population drift")
+    derived_registry.sort(key=lambda row: row["operational_process_instance_id"])
+    if derived_registry != input_audit["runtime_process_provenance_registry"]:
+        raise ValueError("runtime process provenance registry is not artifact-derived")
+    if referenced_catalogs != set(
+        input_audit["runtime_loaded_image_inventory_catalog"]
+    ):
+        raise ValueError("runtime loaded-image inventory catalog has an unbound entry")
+    witness_audits = input_audit["witness_domain_audits"]
+    for witness_id, roles in witness_audits.items():
+        for role, evidence in roles.items():
+            if evidence != evidence_by_primary.get((witness_id, role)):
+                raise ValueError("primary witness domain audit differs from released evidence")
+
+    source = _load("simultaneous_physical_domains_source_audit.json")
+    if (
+        input_audit.get("source_audit_raw_sha256") != sha256_value(source)
+        or input_audit.get("source_audit_check_count") != source.get("check_count")
+        or input_audit.get("source_audit_adversary_count")
+        != source.get("source_audit_adversaries", {}).get("case_count")
+    ):
+        raise ValueError("runtime input audit is not bound to the source audit")
+
+
 def _verify_oracles(w1: Mapping[str, Any], w2: Mapping[str, Any]) -> None:
     _expect_equal("simultaneous_physical_domains_canonical_transition_run.json", canonical_transition_run())
     _expect_equal("simultaneous_physical_domains_projection_matrix.json", projection_matrix())
@@ -1317,17 +2226,8 @@ def _verify_oracles(w1: Mapping[str, Any], w2: Mapping[str, Any]) -> None:
     ):
         raise ValueError("head/guard executable failure surface drift")
     input_audit = _load("simultaneous_physical_domains_proof_semantic_input_audit.json")
-    if not all((
-        input_audit["proof_semantic_closure_complete"],
-        input_audit["all_launches_exact_surface"],
-        input_audit["all_refreshes_original_stdin_pipe_only"],
-        not input_audit["head_observation_visible_to_unreal"],
-        not input_audit["physical_guard_visible_to_unreal"],
-        input_audit["semantic_environment_keys"] == [],
-        input_audit["semantic_command_line_selectors"] == [],
-        input_audit["alternate_refresh_channels"] == [],
-    )):
-        raise ValueError("proof-semantic input closure failed")
+    _verify_runtime_input_audit_contract(input_audit)
+    _verify_runtime_evidence_population(input_audit)
     rebind = _load("simultaneous_physical_domains_physical_rebind_oracle.json")
     if not all((
         rebind["receipt_independent_probe"],
@@ -1581,7 +2481,52 @@ def _run_verifier_negative_tests() -> int:
         payload["cases"][10][field] = replacement
         reject(label, payload, _verify_authority_payload)
 
-    if rejected != 33:
+    domain_source = refresh_source["cases"][0]["target_domain_evidence"]
+    domain_verifier = lambda evidence: _verify_domain_evidence(
+        evidence,
+        expected_role="domain_A",
+        expected_witness_id="f_refresh_fault",
+        input_audit=_runtime_input_audit(),
+    )
+    payload = copy.deepcopy(domain_source)
+    payload["runtime_provenance"][
+        "child_report_without_loaded_image_identities"
+    ]["captured_before_first_materialization"] = False
+    reject("runtime_provenance_report_tamper", payload, domain_verifier)
+    payload = copy.deepcopy(domain_source)
+    payload["runtime_input_trace"][0]["observed_raw_sha256"] = "0" * 64
+    reject("runtime_input_trace_tamper", payload, domain_verifier)
+    payload = copy.deepcopy(_runtime_input_audit())
+    catalog_digest = domain_source["runtime_provenance"][
+        "loaded_image_inventory_reference"
+    ]["catalog_raw_sha256"]
+    payload["runtime_loaded_image_inventory_catalog"].pop(catalog_digest)
+    reject(
+        "runtime_loaded_image_catalog_missing",
+        payload,
+        lambda audit: _verify_domain_evidence(
+            domain_source,
+            expected_role="domain_A",
+            expected_witness_id="f_refresh_fault",
+            input_audit=audit,
+        ),
+    )
+    payload = copy.deepcopy(_runtime_input_audit())
+    payload["runtime_process_provenance_registry"].pop()
+    reject("runtime_process_registry_missing", payload, _verify_runtime_input_audit_contract)
+    payload = copy.deepcopy(_runtime_input_audit())
+    payload["binding_field_adversaries"]["cases"].pop()
+    reject("binding_field_adversary_missing", payload, _verify_runtime_input_audit_contract)
+    payload = copy.deepcopy(_runtime_input_audit())
+    payload["binding_field_adversaries"]["cases"][0][
+        "rejected_before_materialization"
+    ] = False
+    reject("binding_field_adversary_accepted", payload, _verify_runtime_input_audit_contract)
+    payload = copy.deepcopy(_runtime_input_audit())
+    payload["source_audit_raw_sha256"] = "0" * 64
+    reject("source_audit_digest_tamper", payload, _verify_runtime_input_audit_contract)
+
+    if rejected != 40:
         raise ValueError(f"negative verifier rejection count drift: {rejected}")
     return rejected
 
@@ -1594,16 +2539,21 @@ def _run_focused_tests() -> None:
         [sys.executable, "-m", "unittest", "test_simultaneous_physical_domains.py"],
         cwd=ROOT / "proof_kernel", env=environment, capture_output=True, text=True,
     )
-    if result.returncode != 0 or "Ran 33 tests" not in result.stderr or "OK" not in result.stderr:
+    if result.returncode != 0 or "Ran 38 tests" not in result.stderr or "OK" not in result.stderr:
         raise ValueError(f"focused Phase-3 tests failed:\n{result.stdout}\n{result.stderr}")
 
 
 def verify_artifacts() -> None:
+    global _RUNTIME_INPUT_AUDIT_CACHE
     if not artifact_role_set_valid(RECORDS):
         raise ValueError("artifact directory is not exact 44-member regular-file set")
     for name in ARTIFACT_NAMES:
         _strict_member(RECORDS / name)
         _load(name)
+    _RUNTIME_INPUT_AUDIT_CACHE = _load(
+        "simultaneous_physical_domains_proof_semantic_input_audit.json"
+    )
+    _verify_runtime_input_audit_contract(_RUNTIME_INPUT_AUDIT_CACHE)
     w1 = _verify_primary("W1")
     w2 = _verify_primary("W2")
     _verify_other_witnesses()
@@ -1666,7 +2616,7 @@ def main() -> int:
     arguments = parser.parse_args()
     if arguments.command == "artifacts":
         verify_artifacts()
-        print("verified exact 44/44 Phase-3 artifacts; verifier adversaries 33/33 rejected; evidence remains unsealed")
+        print("verified exact 44/44 Phase-3 artifacts; verifier adversaries 40/40 rejected; evidence remains unsealed")
         return 0
     if arguments.command == "write-release":
         count = write_release()
@@ -1674,7 +2624,7 @@ def main() -> int:
         if not EVIDENCE.is_file() or not MANIFEST.is_file():
             raise SystemExit("release verification unavailable: evidence document or manifest missing")
         count = verify_release()
-    print(f"verified {count}/{count} release members; verifier adversaries 33/33 rejected; manifest excludes itself; evidence remains unsealed")
+    print(f"verified {count}/{count} release members; verifier adversaries 40/40 rejected; manifest excludes itself; evidence remains unsealed")
     return 0
 
 

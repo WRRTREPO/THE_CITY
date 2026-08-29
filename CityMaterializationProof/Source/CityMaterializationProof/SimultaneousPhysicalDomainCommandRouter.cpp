@@ -4,18 +4,28 @@
 #include "SimultaneousPhysicalRebindProbe.h"
 #include "CityMaterializationProof.h"
 #include "Dom/JsonObject.h"
+#include "EngineUtils.h"
 #include "HAL/FileManager.h"
 #include "HAL/PlatformProcess.h"
 #include "HAL/Runnable.h"
 #include "HAL/RunnableThread.h"
 #include "Misc/App.h"
+#include "Misc/EngineVersion.h"
 #include "Misc/FileHelper.h"
+#include "Misc/PackageName.h"
 #include "Misc/Paths.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
 
 #include <openssl/sha.h>
+#include <crt_externs.h>
 #include <fcntl.h>
+#include <libproc.h>
+#include <limits.h>
+#include <mach-o/dyld.h>
+#include <mach-o/loader.h>
+#include <stdlib.h>
+#include <sys/proc_info.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
@@ -124,10 +134,96 @@ bool DuplicateMemberScan(const FString& Canonical)
     return ObjectKeys.Num() != 0 || !Reader->GetErrorMessage().IsEmpty();
 }
 
-bool DescriptorIsPipe(int Descriptor)
+bool ResolveRealpath(const FString& Input, FString& OutRealpath)
 {
+    FTCHARToUTF8 InputUtf8(*Input);
+    char Resolved[PATH_MAX] {};
+    if (realpath(InputUtf8.Get(), Resolved) == nullptr)
+    {
+        return false;
+    }
+    OutRealpath = UTF8_TO_TCHAR(Resolved);
+    return FPaths::IsRelative(OutRealpath) == false;
+}
+
+bool HashRegularFileRawSha256(const FString& Realpath, FString& OutDigest)
+{
+    FTCHARToUTF8 PathUtf8(*Realpath);
+    const int Descriptor = open(PathUtf8.Get(), O_RDONLY | O_NOFOLLOW);
+    if (Descriptor < 0)
+    {
+        return false;
+    }
     struct stat Info {};
-    return fstat(Descriptor, &Info) == 0 && S_ISFIFO(Info.st_mode);
+    if (fstat(Descriptor, &Info) != 0 || !S_ISREG(Info.st_mode))
+    {
+        close(Descriptor);
+        return false;
+    }
+    SHA256_CTX Context {};
+    SHA256_Init(&Context);
+    TArray<uint8> Buffer;
+    Buffer.SetNumUninitialized(1024 * 1024);
+    bool bSucceeded = true;
+    while (true)
+    {
+        const ssize_t Count = ::read(Descriptor, Buffer.GetData(), Buffer.Num());
+        if (Count == 0) break;
+        if (Count < 0)
+        {
+            bSucceeded = false;
+            break;
+        }
+        SHA256_Update(&Context, Buffer.GetData(), static_cast<size_t>(Count));
+    }
+    close(Descriptor);
+    uint8 Digest[SHA256_DIGEST_LENGTH] {};
+    if (!bSucceeded)
+    {
+        return false;
+    }
+    SHA256_Final(Digest, &Context);
+    OutDigest.Reset();
+    for (int32 Index = 0; Index < SHA256_DIGEST_LENGTH; ++Index)
+    {
+        OutDigest += FString::Printf(TEXT("%02x"), Digest[Index]);
+    }
+    return true;
+}
+
+FString UuidString(const uint8* Bytes)
+{
+    FString Result;
+    for (int32 Index = 0; Index < 16; ++Index)
+    {
+        if (Index == 4 || Index == 6 || Index == 8 || Index == 10) Result += TEXT("-");
+        Result += FString::Printf(TEXT("%02x"), Bytes[Index]);
+    }
+    return Result;
+}
+
+bool LoadedMachOUuid(const mach_header* Header, FString& OutUuid)
+{
+    if (Header == nullptr ||
+        (Header->magic != MH_MAGIC && Header->magic != MH_MAGIC_64))
+    {
+        return false;
+    }
+    const uint8* Cursor = reinterpret_cast<const uint8*>(Header) +
+        (Header->magic == MH_MAGIC_64 ? sizeof(mach_header_64) : sizeof(mach_header));
+    for (uint32 Index = 0; Index < Header->ncmds; ++Index)
+    {
+        const load_command* Command = reinterpret_cast<const load_command*>(Cursor);
+        if (Command->cmdsize < sizeof(load_command)) return false;
+        if (Command->cmd == LC_UUID && Command->cmdsize >= sizeof(uuid_command))
+        {
+            const uuid_command* Uuid = reinterpret_cast<const uuid_command*>(Command);
+            OutUuid = UuidString(Uuid->uuid);
+            return true;
+        }
+        Cursor += Command->cmdsize;
+    }
+    return false;
 }
 }
 
@@ -234,52 +330,6 @@ FString Sha256Utf8(const FString& Value)
     return Sha256Bytes(Bytes);
 }
 
-bool LoadExactStoredJsonNoFollow(const FString& Path, TArray<uint8>& OutBytes, TSharedPtr<FJsonObject>& OutObject)
-{
-    FTCHARToUTF8 PathUtf8(*Path);
-    const int Descriptor = open(PathUtf8.Get(), O_RDONLY | O_NOFOLLOW);
-    if (Descriptor < 0)
-    {
-        return false;
-    }
-    struct stat Info {};
-    if (fstat(Descriptor, &Info) != 0 || !S_ISREG(Info.st_mode) || Info.st_nlink != 1 || Info.st_size < 3 || Info.st_size > 16 * 1024 * 1024)
-    {
-        close(Descriptor);
-        return false;
-    }
-    OutBytes.SetNumUninitialized(static_cast<int32>(Info.st_size));
-    ssize_t Total = 0;
-    while (Total < Info.st_size)
-    {
-        const ssize_t Read = ::read(Descriptor, OutBytes.GetData() + Total, static_cast<size_t>(Info.st_size - Total));
-        if (Read <= 0)
-        {
-            close(Descriptor);
-            return false;
-        }
-        Total += Read;
-    }
-    close(Descriptor);
-    if (OutBytes.Last() != '\n')
-    {
-        return false;
-    }
-    int32 Newlines = 0;
-    for (uint8 Byte : OutBytes)
-    {
-        if (Byte == '\r') return false;
-        if (Byte == '\n') ++Newlines;
-    }
-    if (Newlines != 1)
-    {
-        return false;
-    }
-    FUTF8ToTCHAR Converted(reinterpret_cast<const ANSICHAR*>(OutBytes.GetData()), OutBytes.Num() - 1);
-    const FString Canonical(Converted.Length(), Converted.Get());
-    return ParseCanonicalObject(Canonical, OutObject);
-}
-
 bool HasExactKeys(const TSharedPtr<FJsonObject>& Object, std::initializer_list<const TCHAR*> Keys)
 {
     if (!Object.IsValid() || Object->Values.Num() != static_cast<int32>(Keys.size()))
@@ -316,6 +366,578 @@ void EmitStructuredObject(const TSharedPtr<FJsonObject>& Object)
     fwrite(Utf8.Get(), 1, Utf8.Length(), stdout);
     fwrite("\n", 1, 1, stdout);
     fflush(stdout);
+}
+}
+
+namespace
+{
+FString GRuntimeAuditRole;
+FString GRuntimeAuditInstanceId;
+FString GRuntimeAuditBindingDigest;
+int32 GRuntimeAuditSequence = 0;
+bool GRuntimeAuditReady = false;
+
+void EmitRuntimeInputTrace(
+    const FString& InputClass,
+    const FString& Operation,
+    const FString& SourceIdentity,
+    const FString& RawSha256,
+    const TSharedPtr<FJsonObject>& Metadata)
+{
+    using namespace SimultaneousPhysicalDomainJson;
+    if (!GRuntimeAuditReady || !IsLowerSha256(RawSha256)) return;
+    TSharedPtr<FJsonObject> Event = MakeShared<FJsonObject>();
+    Event->SetStringField(TEXT("trace_schema"), TEXT("SimultaneousPhysicalDomainRuntimeInputTraceEvent.v1"));
+    Event->SetStringField(TEXT("proof_scenario"), Scenario);
+    Event->SetStringField(TEXT("domain_role"), GRuntimeAuditRole);
+    Event->SetStringField(TEXT("operational_process_instance_id"), GRuntimeAuditInstanceId);
+    Event->SetStringField(TEXT("process_binding_raw_sha256"), GRuntimeAuditBindingDigest);
+    Event->SetNumberField(TEXT("sequence"), ++GRuntimeAuditSequence);
+    Event->SetStringField(TEXT("input_class"), InputClass);
+    Event->SetStringField(TEXT("operation"), Operation);
+    Event->SetStringField(TEXT("source_identity"), SourceIdentity);
+    Event->SetStringField(TEXT("observed_raw_sha256"), RawSha256);
+    Event->SetObjectField(TEXT("metadata"), Metadata.IsValid() ? Metadata : MakeShared<FJsonObject>());
+    EmitStructuredObject(Event);
+}
+}
+
+namespace SimultaneousPhysicalDomainRuntimeAudit
+{
+bool ResolveAndHashRegularFile(const FString& Path, FString& OutRealpath, FString& OutRawSha256)
+{
+    return ResolveRealpath(Path, OutRealpath) && HashRegularFileRawSha256(OutRealpath, OutRawSha256);
+}
+
+void Initialize(
+    const FString& DomainRole,
+    const FString& OperationalProcessInstanceId,
+    const FString& ProcessBindingRawSha256)
+{
+    GRuntimeAuditRole = DomainRole;
+    GRuntimeAuditInstanceId = OperationalProcessInstanceId;
+    GRuntimeAuditBindingDigest = ProcessBindingRawSha256;
+    GRuntimeAuditSequence = 0;
+    GRuntimeAuditReady =
+        (DomainRole == TEXT("domain_A") || DomainRole == TEXT("domain_B")) &&
+        SimultaneousPhysicalDomainJson::IsLowerSha256(OperationalProcessInstanceId) &&
+        SimultaneousPhysicalDomainJson::IsLowerSha256(ProcessBindingRawSha256);
+}
+
+void RecordStdinCommand(const TSharedPtr<FJsonObject>& Command)
+{
+    using namespace SimultaneousPhysicalDomainJson;
+    FString Schema;
+    if (!Command.IsValid() || !Command->TryGetStringField(TEXT("command_schema"), Schema)) return;
+    const FString Canonical = CanonicalizeObject(Command);
+    TSharedPtr<FJsonObject> Metadata = MakeShared<FJsonObject>();
+    Metadata->SetStringField(TEXT("command_schema"), Schema);
+    Metadata->SetStringField(TEXT("descriptor"), TEXT("fd_0_original_control_pipe_read_endpoint"));
+    EmitRuntimeInputTrace(TEXT("stdin_command"), TEXT("canonical_line_read"), TEXT("fd:0"), Sha256Utf8(Canonical + TEXT("\n")), Metadata);
+}
+
+void RecordDirectoryInventory(const FString& DirectoryRealpath, const TArray<FString>& SortedMemberNames)
+{
+    TArray<TSharedPtr<FJsonValue>> Values;
+    for (const FString& Name : SortedMemberNames) Values.Add(MakeShared<FJsonValueString>(Name));
+    const TSharedPtr<FJsonValue> ArrayValue = MakeShared<FJsonValueArray>(Values);
+    TSharedPtr<FJsonObject> Metadata = MakeShared<FJsonObject>();
+    Metadata->SetArrayField(TEXT("sorted_member_names"), Values);
+    EmitRuntimeInputTrace(
+        TEXT("bundle_directory"), TEXT("exact_member_inventory"), DirectoryRealpath,
+        SimultaneousPhysicalDomainJson::Sha256Utf8(SimultaneousPhysicalDomainJson::CanonicalizeValue(ArrayValue)), Metadata);
+}
+
+void RecordBundleFileRead(
+    const FString& FileRealpath,
+    const FString& RawSha256,
+    int64 Size,
+    uint64 Device,
+    uint64 Inode)
+{
+    TSharedPtr<FJsonObject> Metadata = MakeShared<FJsonObject>();
+    Metadata->SetStringField(TEXT("device"), FString::Printf(TEXT("%llu"), Device));
+    Metadata->SetStringField(TEXT("inode"), FString::Printf(TEXT("%llu"), Inode));
+    Metadata->SetNumberField(TEXT("size"), static_cast<double>(Size));
+    Metadata->SetStringField(TEXT("descriptor_access"), TEXT("read_only_no_follow"));
+    EmitRuntimeInputTrace(TEXT("bundle_file"), TEXT("opened_descriptor_raw_read"), FileRealpath, RawSha256, Metadata);
+}
+
+void RecordEngineAssetRead(
+    const FString& PackageIdentity,
+    const FString& FileRealpath,
+    const FString& RawSha256)
+{
+    TSharedPtr<FJsonObject> Metadata = MakeShared<FJsonObject>();
+    Metadata->SetStringField(TEXT("package_identity"), PackageIdentity);
+    EmitRuntimeInputTrace(TEXT("engine_asset_package"), TEXT("LoadObject_dependency"), FileRealpath, RawSha256, Metadata);
+}
+
+void RecordLiveWorldRead(
+    const FString& InspectionId,
+    const FString& ReadStage,
+    const FString& ObservedValueRawSha256)
+{
+    TSharedPtr<FJsonObject> Metadata = MakeShared<FJsonObject>();
+    Metadata->SetStringField(TEXT("inspection_id"), InspectionId);
+    Metadata->SetStringField(TEXT("read_stage"), ReadStage);
+    EmitRuntimeInputTrace(TEXT("live_world_state"), TEXT("independent_probe_read"), ReadStage, ObservedValueRawSha256, Metadata);
+}
+}
+
+namespace
+{
+bool CaptureOriginalArgv(TArray<FString>& OutArgv)
+{
+    int* ArgcPointer = _NSGetArgc();
+    char*** ArgvPointer = _NSGetArgv();
+    if (ArgcPointer == nullptr || ArgvPointer == nullptr || *ArgvPointer == nullptr || *ArgcPointer < 2)
+    {
+        return false;
+    }
+    for (int Index = 0; Index < *ArgcPointer; ++Index)
+    {
+        const char* Raw = (*ArgvPointer)[Index];
+        if (Raw == nullptr) return false;
+        OutArgv.Add(UTF8_TO_TCHAR(Raw));
+    }
+    return true;
+}
+
+bool BuildRedactedEnvironmentAudit(
+    TSharedPtr<FJsonObject>& OutAudit,
+    TMap<FString, FString>& OutEnvironment)
+{
+    char*** EnvironmentPointer = _NSGetEnviron();
+    if (EnvironmentPointer == nullptr || *EnvironmentPointer == nullptr) return false;
+    for (char** Cursor = *EnvironmentPointer; *Cursor != nullptr; ++Cursor)
+    {
+        const FString Entry = UTF8_TO_TCHAR(*Cursor);
+        FString Key;
+        FString Value;
+        if (!Entry.Split(TEXT("="), &Key, &Value, ESearchCase::CaseSensitive, ESearchDir::FromStart) ||
+            Key.IsEmpty() || OutEnvironment.Contains(Key))
+        {
+            return false;
+        }
+        OutEnvironment.Add(Key, Value);
+    }
+    TArray<FString> Keys;
+    OutEnvironment.GetKeys(Keys);
+    Keys.Sort([](const FString& A, const FString& B)
+    {
+        return FCString::Strcmp(*A, *B) < 0;
+    });
+    TArray<TSharedPtr<FJsonValue>> Entries;
+    for (const FString& Key : Keys)
+    {
+        TSharedPtr<FJsonObject> Item = MakeShared<FJsonObject>();
+        Item->SetStringField(TEXT("key"), Key);
+        Item->SetStringField(
+            TEXT("value_raw_sha256"),
+            SimultaneousPhysicalDomainJson::Sha256Utf8(OutEnvironment.FindChecked(Key)));
+        Entries.Add(MakeShared<FJsonValueObject>(Item));
+    }
+    OutAudit = MakeShared<FJsonObject>();
+    OutAudit->SetStringField(TEXT("audit_schema"), TEXT("SimultaneousPhysicalDomainLaunchEnvironmentAudit.v1"));
+    OutAudit->SetArrayField(TEXT("sorted_entries"), Entries);
+    OutAudit->SetBoolField(TEXT("plaintext_values_released"), false);
+    OutAudit->SetArrayField(TEXT("proof_semantic_key_allowlist"), {});
+    return true;
+}
+
+bool CaptureDescriptorState(
+    const FString& DomainRole,
+    TSharedPtr<FJsonObject>& OutLogicalMap,
+    TArray<TSharedPtr<FJsonValue>>& OutKernelIdentities)
+{
+    OutLogicalMap = MakeShared<FJsonObject>();
+    OutLogicalMap->SetStringField(TEXT("descriptor_map_schema"), TEXT("SimultaneousPhysicalDomainInheritedDescriptorMap.v1"));
+    const TCHAR* LogicalRoles[] = {
+        TEXT("original_control_pipe_read_endpoint"),
+        TEXT("original_structured_output_pipe_write_endpoint"),
+        TEXT("original_diagnostic_pipe_write_endpoint"),
+    };
+    const TCHAR* LogicalSuffixes[] = {TEXT("control/0001"), TEXT("stdout/0001"), TEXT("stderr/0001")};
+    for (int Descriptor = 0; Descriptor <= 2; ++Descriptor)
+    {
+        struct stat Info {};
+        const int Flags = fcntl(Descriptor, F_GETFL);
+        const int ExpectedAccess = Descriptor == STDIN_FILENO ? O_RDONLY : O_WRONLY;
+        if (fstat(Descriptor, &Info) != 0 || !S_ISFIFO(Info.st_mode) || Flags < 0 ||
+            (Flags & O_ACCMODE) != ExpectedAccess)
+        {
+            return false;
+        }
+        TSharedPtr<FJsonObject> Logical = MakeShared<FJsonObject>();
+        Logical->SetStringField(TEXT("role"), LogicalRoles[Descriptor]);
+        Logical->SetStringField(
+            TEXT("pipe_id"), FString::Printf(TEXT("%s/%s"), *DomainRole, LogicalSuffixes[Descriptor]));
+        OutLogicalMap->SetObjectField(FString::Printf(TEXT("fd_%d"), Descriptor), Logical);
+
+        TSharedPtr<FJsonObject> Kernel = MakeShared<FJsonObject>();
+        Kernel->SetNumberField(TEXT("fd"), Descriptor);
+        Kernel->SetStringField(TEXT("file_type"), TEXT("fifo"));
+        Kernel->SetStringField(TEXT("access_mode"), Descriptor == STDIN_FILENO ? TEXT("read_only") : TEXT("write_only"));
+        Kernel->SetStringField(TEXT("device"), FString::Printf(TEXT("%llu"), static_cast<unsigned long long>(Info.st_dev)));
+        Kernel->SetStringField(TEXT("inode"), FString::Printf(TEXT("%llu"), static_cast<unsigned long long>(Info.st_ino)));
+        OutKernelIdentities.Add(MakeShared<FJsonValueObject>(Kernel));
+    }
+    OutLogicalMap->SetStringField(TEXT("all_other_descriptors_at_exec"), TEXT("closed"));
+    return true;
+}
+
+bool BuildProjectModuleInventory(
+    const FString& ProjectRealpath,
+    TSharedPtr<FJsonObject>& OutInventory,
+    FString& OutInventoryDigest,
+    FString& OutModuleRealpath)
+{
+    const FString ProjectDirectory = FPaths::GetPath(ProjectRealpath);
+    TArray<FString> CandidatePaths = {
+        ProjectRealpath,
+        FPaths::Combine(ProjectDirectory, TEXT("Config/DefaultEngine.ini")),
+        FPaths::Combine(ProjectDirectory, TEXT("Config/DefaultGame.ini")),
+        FPaths::Combine(ProjectDirectory, TEXT("Config/DefaultInput.ini")),
+        FPaths::Combine(ProjectDirectory, TEXT("Binaries/Mac/libUnrealEditor-CityMaterializationProof.dylib")),
+    };
+    TArray<TSharedPtr<FJsonValue>> Members;
+    for (int32 Index = 0; Index < CandidatePaths.Num(); ++Index)
+    {
+        FString Realpath;
+        FString Digest;
+        if (!ResolveRealpath(CandidatePaths[Index], Realpath) || !HashRegularFileRawSha256(Realpath, Digest))
+        {
+            return false;
+        }
+        if (Index == CandidatePaths.Num() - 1) OutModuleRealpath = Realpath;
+        TSharedPtr<FJsonObject> Member = MakeShared<FJsonObject>();
+        Member->SetStringField(TEXT("realpath"), Realpath);
+        Member->SetStringField(TEXT("raw_sha256"), Digest);
+        Members.Add(MakeShared<FJsonValueObject>(Member));
+    }
+    OutInventory = MakeShared<FJsonObject>();
+    OutInventory->SetStringField(TEXT("inventory_schema"), TEXT("SimultaneousPhysicalDomainProjectModuleInventory.v1"));
+    OutInventory->SetArrayField(TEXT("members"), Members);
+    OutInventoryDigest = SimultaneousPhysicalDomainJson::Sha256Utf8(
+        SimultaneousPhysicalDomainJson::CanonicalizeObject(OutInventory) + TEXT("\n"));
+    return true;
+}
+
+bool CaptureLoadedImageIdentities(
+    const FString& ExecutableRealpath,
+    const FString& ModuleRealpath,
+    TArray<TSharedPtr<FJsonValue>>& OutImages)
+{
+    struct FImageIdentity
+    {
+        FString ReportedPath;
+        FString Realpath;
+        FString Resolution;
+        FString Uuid;
+        bool bFilesystemRegular = false;
+    };
+    TArray<FImageIdentity> Images;
+    bool bExecutableObserved = false;
+    bool bModuleObserved = false;
+    const uint32 Count = _dyld_image_count();
+    for (uint32 Index = 0; Index < Count; ++Index)
+    {
+        const char* RawName = _dyld_get_image_name(Index);
+        FString Uuid;
+        if (RawName == nullptr || !LoadedMachOUuid(_dyld_get_image_header(Index), Uuid)) return false;
+        FImageIdentity Identity;
+        Identity.ReportedPath = UTF8_TO_TCHAR(RawName);
+        struct stat Info {};
+        FString Resolved;
+        if (ResolveRealpath(Identity.ReportedPath, Resolved))
+        {
+            FTCHARToUTF8 ResolvedUtf8(*Resolved);
+            if (stat(ResolvedUtf8.Get(), &Info) != 0 || !S_ISREG(Info.st_mode)) return false;
+            Identity.Realpath = Resolved;
+            Identity.Resolution = TEXT("filesystem_realpath");
+            Identity.bFilesystemRegular = true;
+        }
+        else
+        {
+            if (FPaths::IsRelative(Identity.ReportedPath)) return false;
+            Identity.Realpath = Identity.ReportedPath;
+            Identity.Resolution = TEXT("dyld_shared_cache_logical_path");
+        }
+        Identity.Uuid = Uuid;
+        bExecutableObserved |= Identity.Realpath == ExecutableRealpath;
+        bModuleObserved |= Identity.Realpath == ModuleRealpath;
+        Images.Add(MoveTemp(Identity));
+    }
+    Images.Sort([](const FImageIdentity& A, const FImageIdentity& B)
+    {
+        if (A.Realpath != B.Realpath) return A.Realpath < B.Realpath;
+        return A.Uuid < B.Uuid;
+    });
+    FString PreviousKey;
+    for (const FImageIdentity& Identity : Images)
+    {
+        const FString Key = Identity.Realpath + TEXT("\n") + Identity.Uuid;
+        if (Key == PreviousKey) continue;
+        PreviousKey = Key;
+        TSharedPtr<FJsonObject> Item = MakeShared<FJsonObject>();
+        Item->SetStringField(TEXT("reported_path"), Identity.ReportedPath);
+        Item->SetStringField(TEXT("realpath"), Identity.Realpath);
+        Item->SetStringField(TEXT("path_resolution"), Identity.Resolution);
+        Item->SetStringField(TEXT("mach_o_uuid"), Identity.Uuid);
+        Item->SetBoolField(TEXT("filesystem_regular_file"), Identity.bFilesystemRegular);
+        OutImages.Add(MakeShared<FJsonValueObject>(Item));
+    }
+    return bExecutableObserved && bModuleObserved && OutImages.Num() > 0;
+}
+
+bool CaptureInitialActorClassInventory(UWorld* World, TArray<TSharedPtr<FJsonValue>>& OutInventory)
+{
+    if (World == nullptr) return false;
+    TMap<FString, int32> Counts;
+    for (TActorIterator<AActor> It(World); It; ++It)
+    {
+        const AActor* Actor = *It;
+        if (Actor == nullptr || Actor->GetClass() == nullptr) return false;
+        Counts.FindOrAdd(Actor->GetClass()->GetPathName()) += 1;
+    }
+    TArray<FString> Classes;
+    Counts.GetKeys(Classes);
+    Classes.Sort();
+    for (const FString& ClassPath : Classes)
+    {
+        TSharedPtr<FJsonObject> Item = MakeShared<FJsonObject>();
+        Item->SetStringField(TEXT("class_path"), ClassPath);
+        Item->SetNumberField(TEXT("actor_count"), Counts.FindChecked(ClassPath));
+        OutInventory.Add(MakeShared<FJsonValueObject>(Item));
+    }
+    return OutInventory.Num() > 0;
+}
+
+bool BuildObservedBindingAndRuntimeProvenance(
+    UWorld* World,
+    const TSharedPtr<FJsonObject>& Binding,
+    TSharedPtr<FJsonObject>& OutRuntimeProvenance,
+    FString& OutReason)
+{
+    using namespace SimultaneousPhysicalDomainJson;
+    TArray<FString> Argv;
+    TSharedPtr<FJsonObject> EnvironmentAudit;
+    TMap<FString, FString> Environment;
+    if (!CaptureOriginalArgv(Argv) || !BuildRedactedEnvironmentAudit(EnvironmentAudit, Environment))
+    {
+        OutReason = TEXT("binding_runtime_launch_surface_unavailable");
+        return false;
+    }
+    uint32 ExecutableBufferSize = 0;
+    _NSGetExecutablePath(nullptr, &ExecutableBufferSize);
+    TArray<char> ExecutableBuffer;
+    ExecutableBuffer.SetNumZeroed(static_cast<int32>(ExecutableBufferSize) + 1);
+    if (ExecutableBufferSize == 0 || _NSGetExecutablePath(ExecutableBuffer.GetData(), &ExecutableBufferSize) != 0)
+    {
+        OutReason = TEXT("binding_executable_path_observation_failed");
+        return false;
+    }
+    FString ExecutableRealpath;
+    FString ArgvExecutableRealpath;
+    FString ProjectRealpath;
+    FString ArgvProjectRealpath;
+    if (!ResolveRealpath(UTF8_TO_TCHAR(ExecutableBuffer.GetData()), ExecutableRealpath) ||
+        !ResolveRealpath(Argv[0], ArgvExecutableRealpath) || ExecutableRealpath != ArgvExecutableRealpath ||
+        !ResolveRealpath(FPaths::GetProjectFilePath(), ProjectRealpath) ||
+        !ResolveRealpath(Argv[1], ArgvProjectRealpath) || ProjectRealpath != ArgvProjectRealpath)
+    {
+        OutReason = TEXT("binding_executable_or_project_realpath_observation_failed");
+        return false;
+    }
+
+    FString UserDirectory;
+    FString WinX;
+    for (const FString& Argument : Argv)
+    {
+        if (Argument.StartsWith(TEXT("-UserDir="))) UserDirectory = Argument.Mid(9);
+        if (Argument.StartsWith(TEXT("-WinX="))) WinX = Argument.Mid(6);
+    }
+    FString UserDirectoryRealpath;
+    FString ProcessRootRealpath;
+    if (UserDirectory.IsEmpty() || !ResolveRealpath(UserDirectory, UserDirectoryRealpath) ||
+        !ResolveRealpath(FPaths::GetPath(UserDirectoryRealpath), ProcessRootRealpath))
+    {
+        OutReason = TEXT("binding_process_root_observation_failed");
+        return false;
+    }
+    const FString ObservedRole = FPaths::GetCleanFilename(ProcessRootRealpath);
+    if ((ObservedRole != TEXT("domain_A") && ObservedRole != TEXT("domain_B")) ||
+        (ObservedRole == TEXT("domain_A") ? WinX != TEXT("30") : WinX != TEXT("990")))
+    {
+        OutReason = TEXT("binding_domain_role_observation_failed");
+        return false;
+    }
+
+    FString LaunchCwdRealpath;
+    const FString* Pwd = Environment.Find(TEXT("PWD"));
+    if (Pwd == nullptr || !ResolveRealpath(*Pwd, LaunchCwdRealpath))
+    {
+        OutReason = TEXT("binding_launch_cwd_observation_failed");
+        return false;
+    }
+    FString ProjectParentRealpath;
+    if (!ResolveRealpath(FPaths::Combine(FPaths::GetPath(ProjectRealpath), TEXT("..")), ProjectParentRealpath) ||
+        LaunchCwdRealpath != ProjectParentRealpath)
+    {
+        OutReason = TEXT("binding_launch_cwd_project_relation_failed");
+        return false;
+    }
+
+    proc_bsdinfo ProcessInfo {};
+    const int32 Pid = FPlatformProcess::GetCurrentProcessId();
+    if (proc_pidinfo(Pid, PROC_PIDTBSDINFO, 0, &ProcessInfo, sizeof(ProcessInfo)) != sizeof(ProcessInfo) ||
+        static_cast<int32>(ProcessInfo.pbi_pid) != Pid)
+    {
+        OutReason = TEXT("binding_process_start_observation_failed");
+        return false;
+    }
+
+    FString ExecutableDigest;
+    FString ProjectDigest;
+    TSharedPtr<FJsonObject> ProjectInventory;
+    FString ProjectInventoryDigest;
+    FString ModuleRealpath;
+    if (!HashRegularFileRawSha256(ExecutableRealpath, ExecutableDigest) ||
+        !HashRegularFileRawSha256(ProjectRealpath, ProjectDigest) ||
+        !BuildProjectModuleInventory(ProjectRealpath, ProjectInventory, ProjectInventoryDigest, ModuleRealpath))
+    {
+        OutReason = TEXT("binding_executable_project_inventory_hash_failed");
+        return false;
+    }
+
+    TSharedPtr<FJsonObject> DescriptorMap;
+    TArray<TSharedPtr<FJsonValue>> DescriptorKernelIdentities;
+    if (!CaptureDescriptorState(ObservedRole, DescriptorMap, DescriptorKernelIdentities))
+    {
+        OutReason = TEXT("binding_original_descriptor_observation_failed");
+        return false;
+    }
+
+    TArray<TSharedPtr<FJsonValue>> ArgvValues;
+    for (const FString& Argument : Argv) ArgvValues.Add(MakeShared<FJsonValueString>(Argument));
+    const FString ArgvDigest = Sha256Utf8(CanonicalizeValue(MakeShared<FJsonValueArray>(ArgvValues)));
+    const FString EnvironmentDigest = Sha256Utf8(CanonicalizeObject(EnvironmentAudit) + TEXT("\n"));
+    const FString DescriptorMapDigest = Sha256Utf8(CanonicalizeObject(DescriptorMap) + TEXT("\n"));
+
+    const FString EntryMapIdentity = World != nullptr && World->GetOutermost() != nullptr
+        ? World->GetOutermost()->GetName() : TEXT("");
+    FString EntryMapRealpath;
+    FString EntryMapDigest;
+    const FString EntryMapPath = FPaths::Combine(FPaths::EngineContentDir(), TEXT("Maps/Entry.umap"));
+    if (EntryMapIdentity != TEXT("/Engine/Maps/Entry") ||
+        !SimultaneousPhysicalDomainRuntimeAudit::ResolveAndHashRegularFile(EntryMapPath, EntryMapRealpath, EntryMapDigest))
+    {
+        OutReason = TEXT("binding_entry_map_observation_failed");
+        return false;
+    }
+
+    TSharedPtr<FJsonObject> Observed = MakeShared<FJsonObject>();
+    Observed->SetStringField(TEXT("binding_schema"), BindingSchema);
+    FString WitnessId;
+    Binding->TryGetStringField(TEXT("witness_id"), WitnessId);
+    Observed->SetStringField(TEXT("proof_scenario"), Scenario);
+    Observed->SetStringField(TEXT("witness_id"), WitnessId);
+    Observed->SetStringField(TEXT("domain_role"), ObservedRole);
+    Observed->SetStringField(TEXT("harness_launch_id"), FString::Printf(TEXT("%s/%s/launch_0001"), *WitnessId, *ObservedRole));
+    Observed->SetNumberField(TEXT("pid"), Pid);
+    TSharedPtr<FJsonObject> ProcessStart = MakeShared<FJsonObject>();
+    ProcessStart->SetNumberField(TEXT("seconds"), static_cast<double>(ProcessInfo.pbi_start_tvsec));
+    ProcessStart->SetNumberField(TEXT("microseconds"), static_cast<double>(ProcessInfo.pbi_start_tvusec));
+    Observed->SetObjectField(TEXT("macos_process_start"), ProcessStart);
+    Observed->SetStringField(TEXT("executable_realpath"), ExecutableRealpath);
+    Observed->SetStringField(TEXT("executable_raw_sha256"), ExecutableDigest);
+    Observed->SetStringField(TEXT("unreal_engine_build_identity"), FEngineVersion::Current().ToString(EVersionComponent::Branch));
+    Observed->SetStringField(TEXT("entry_map_package_identity"), EntryMapIdentity);
+    Observed->SetStringField(TEXT("project_realpath"), ProjectRealpath);
+    Observed->SetStringField(TEXT("project_raw_sha256"), ProjectDigest);
+    Observed->SetStringField(TEXT("project_config_and_module_inventory_raw_sha256"), ProjectInventoryDigest);
+    Observed->SetStringField(TEXT("process_root_realpath"), ProcessRootRealpath);
+    Observed->SetStringField(TEXT("launch_argv_raw_sha256"), ArgvDigest);
+    Observed->SetStringField(TEXT("launch_environment_audit_raw_sha256"), EnvironmentDigest);
+    Observed->SetStringField(TEXT("launch_cwd_realpath"), LaunchCwdRealpath);
+    Observed->SetStringField(TEXT("inherited_descriptor_map_raw_sha256"), DescriptorMapDigest);
+    Observed->SetStringField(TEXT("control_pipe_id"), FString::Printf(TEXT("%s/control/0001"), *ObservedRole));
+    Observed->SetStringField(TEXT("structured_output_pipe_id"), FString::Printf(TEXT("%s/stdout/0001"), *ObservedRole));
+    Observed->SetStringField(TEXT("diagnostic_pipe_id"), FString::Printf(TEXT("%s/stderr/0001"), *ObservedRole));
+
+    const TCHAR* Fields[] = {
+        TEXT("binding_schema"), TEXT("proof_scenario"), TEXT("witness_id"), TEXT("domain_role"), TEXT("harness_launch_id"),
+        TEXT("pid"), TEXT("macos_process_start"), TEXT("executable_realpath"), TEXT("executable_raw_sha256"),
+        TEXT("unreal_engine_build_identity"), TEXT("entry_map_package_identity"), TEXT("project_realpath"),
+        TEXT("project_raw_sha256"), TEXT("project_config_and_module_inventory_raw_sha256"), TEXT("process_root_realpath"),
+        TEXT("launch_argv_raw_sha256"), TEXT("launch_environment_audit_raw_sha256"), TEXT("launch_cwd_realpath"),
+        TEXT("inherited_descriptor_map_raw_sha256"), TEXT("control_pipe_id"), TEXT("structured_output_pipe_id"),
+        TEXT("diagnostic_pipe_id"),
+    };
+    TArray<TSharedPtr<FJsonValue>> VerificationRows;
+    for (int32 Index = 0; Index < UE_ARRAY_COUNT(Fields); ++Index)
+    {
+        const TSharedPtr<FJsonValue>* DeclaredValue = Binding->Values.Find(Fields[Index]);
+        const TSharedPtr<FJsonValue>* ObservedValue = Observed->Values.Find(Fields[Index]);
+        if (DeclaredValue == nullptr || ObservedValue == nullptr ||
+            CanonicalizeValue(*DeclaredValue) != CanonicalizeValue(*ObservedValue))
+        {
+            UE_LOG(
+                LogTemp,
+                Error,
+                TEXT("SimultaneousPhysicalDomain binding mismatch field=%s declared=%s observed=%s"),
+                Fields[Index],
+                DeclaredValue == nullptr ? TEXT("<missing>") : *CanonicalizeValue(*DeclaredValue),
+                ObservedValue == nullptr ? TEXT("<missing>") : *CanonicalizeValue(*ObservedValue));
+            if (FString(Fields[Index]) == TEXT("launch_environment_audit_raw_sha256"))
+            {
+                UE_LOG(
+                    LogTemp,
+                    Error,
+                    TEXT("SimultaneousPhysicalDomain observed redacted environment audit=%s"),
+                    *CanonicalizeObject(EnvironmentAudit));
+            }
+            OutReason = FString::Printf(TEXT("binding_field_mismatch/%s"), Fields[Index]);
+            return false;
+        }
+        TSharedPtr<FJsonObject> Row = MakeShared<FJsonObject>();
+        Row->SetStringField(TEXT("field"), Fields[Index]);
+        Row->SetStringField(
+            TEXT("verification_mode"),
+            Index <= 4 ? TEXT("fixed_schema_or_cross_field_derivation") : TEXT("independent_process_observation"));
+        Row->SetBoolField(TEXT("matched"), true);
+        VerificationRows.Add(MakeShared<FJsonValueObject>(Row));
+    }
+
+    TArray<TSharedPtr<FJsonValue>> LoadedImages;
+    TArray<TSharedPtr<FJsonValue>> ActorInventory;
+    if (!CaptureLoadedImageIdentities(ExecutableRealpath, ModuleRealpath, LoadedImages) ||
+        !CaptureInitialActorClassInventory(World, ActorInventory))
+    {
+        OutReason = TEXT("runtime_provenance_inventory_capture_failed");
+        return false;
+    }
+    TSharedPtr<FJsonObject> EntryMapFile = MakeShared<FJsonObject>();
+    EntryMapFile->SetStringField(TEXT("package_identity"), EntryMapIdentity);
+    EntryMapFile->SetStringField(TEXT("realpath"), EntryMapRealpath);
+    EntryMapFile->SetStringField(TEXT("raw_sha256"), EntryMapDigest);
+
+    OutRuntimeProvenance = MakeShared<FJsonObject>();
+    OutRuntimeProvenance->SetStringField(TEXT("audit_schema"), TEXT("SimultaneousPhysicalDomainRuntimeProvenance.v1"));
+    OutRuntimeProvenance->SetStringField(TEXT("proof_scenario"), Scenario);
+    OutRuntimeProvenance->SetBoolField(TEXT("captured_before_first_materialization"), true);
+    OutRuntimeProvenance->SetObjectField(TEXT("observed_process_binding"), Observed);
+    OutRuntimeProvenance->SetArrayField(TEXT("binding_verification_rows"), VerificationRows);
+    OutRuntimeProvenance->SetArrayField(TEXT("observed_launch_argv"), ArgvValues);
+    OutRuntimeProvenance->SetObjectField(TEXT("redacted_environment_audit"), EnvironmentAudit);
+    OutRuntimeProvenance->SetObjectField(TEXT("project_config_and_module_inventory"), ProjectInventory);
+    OutRuntimeProvenance->SetObjectField(TEXT("observed_inherited_descriptor_map"), DescriptorMap);
+    OutRuntimeProvenance->SetArrayField(TEXT("descriptor_kernel_identities"), DescriptorKernelIdentities);
+    OutRuntimeProvenance->SetArrayField(TEXT("loaded_image_identities"), LoadedImages);
+    OutRuntimeProvenance->SetArrayField(TEXT("initial_world_actor_class_inventory"), ActorInventory);
+    OutRuntimeProvenance->SetObjectField(TEXT("entry_map_file_identity"), EntryMapFile);
+    return true;
 }
 }
 
@@ -422,7 +1044,10 @@ void ASimultaneousPhysicalDomainCommandRouter::EndPlay(const EEndPlayReason::Typ
     Super::EndPlay(EndPlayReason);
 }
 
-bool ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding(const TSharedPtr<FJsonObject>& Binding, FString& OutReason) const
+bool ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding(
+    const TSharedPtr<FJsonObject>& Binding,
+    TSharedPtr<FJsonObject>& OutRuntimeProvenance,
+    FString& OutReason) const
 {
     using namespace SimultaneousPhysicalDomainJson;
     if (!HasExactKeys(Binding, {
@@ -442,58 +1067,17 @@ bool ASimultaneousPhysicalDomainCommandRouter::VerifyObservableBinding(const TSh
     FString DomainRole;
     FString WitnessId;
     FString HarnessLaunchId;
-    FString ProcessRoot;
-    double PidNumber = 0;
     if (!Binding->TryGetStringField(TEXT("domain_role"), DomainRole) ||
         (DomainRole != TEXT("domain_A") && DomainRole != TEXT("domain_B")) ||
         !Binding->TryGetStringField(TEXT("witness_id"), WitnessId) || !IsAllowedWitnessId(WitnessId) ||
         !Binding->TryGetStringField(TEXT("harness_launch_id"), HarnessLaunchId) ||
-        HarnessLaunchId != WitnessId + TEXT("/") + DomainRole + TEXT("/launch_0001") ||
-        !Binding->TryGetStringField(TEXT("process_root_realpath"), ProcessRoot) || ProcessRoot.IsEmpty() ||
-        !Binding->TryGetNumberField(TEXT("pid"), PidNumber) || static_cast<int32>(PidNumber) != FPlatformProcess::GetCurrentProcessId())
+        HarnessLaunchId != WitnessId + TEXT("/") + DomainRole + TEXT("/launch_0001"))
     {
-        OutReason = TEXT("binding_observable_identity_mismatch");
+        OutReason = TEXT("binding_fixed_identity_or_cross_field_mismatch");
         return false;
     }
-    for (const TCHAR* Field : {
-        TEXT("executable_raw_sha256"), TEXT("project_raw_sha256"), TEXT("project_config_and_module_inventory_raw_sha256"),
-        TEXT("launch_argv_raw_sha256"), TEXT("launch_environment_audit_raw_sha256"), TEXT("inherited_descriptor_map_raw_sha256")
-    })
-    {
-        FString Digest;
-        if (!Binding->TryGetStringField(Field, Digest) || !IsLowerSha256(Digest))
-        {
-            OutReason = TEXT("binding_digest_invalid");
-            return false;
-        }
-    }
-    // Unreal changes the process cwd to its engine base before GameMode
-    // BeginPlay.  The launch-time cwd is therefore verified against the exact
-    // repository parent derived from the already bound project path; the
-    // harness separately proves the posix_spawn chdir action.  The later
-    // engine cwd is platform context and never selects Phase-3 semantics.
-    FString ExpectedCwd = FPaths::ConvertRelativePathToFull(
-        FPaths::Combine(FPaths::GetPath(FPaths::GetProjectFilePath()), TEXT("..")));
-    FString BindingCwd;
-    if (!Binding->TryGetStringField(TEXT("launch_cwd_realpath"), BindingCwd))
-    {
-        OutReason = TEXT("binding_cwd_missing");
-        return false;
-    }
-    BindingCwd = FPaths::ConvertRelativePathToFull(BindingCwd);
-    FPaths::NormalizeDirectoryName(ExpectedCwd);
-    FPaths::NormalizeDirectoryName(BindingCwd);
-    if (BindingCwd != ExpectedCwd)
-    {
-        OutReason = TEXT("binding_cwd_mismatch");
-        return false;
-    }
-    if (!DescriptorIsPipe(STDIN_FILENO) || !DescriptorIsPipe(STDOUT_FILENO) || !DescriptorIsPipe(STDERR_FILENO))
-    {
-        OutReason = TEXT("binding_original_descriptor_pipe_mismatch");
-        return false;
-    }
-    return true;
+    return BuildObservedBindingAndRuntimeProvenance(
+        GetWorld(), Binding, OutRuntimeProvenance, OutReason);
 }
 
 bool ASimultaneousPhysicalDomainCommandRouter::AcceptBinding(const TSharedPtr<FJsonObject>& Command, FString& OutReason)
@@ -510,10 +1094,12 @@ bool ASimultaneousPhysicalDomainCommandRouter::AcceptBinding(const TSharedPtr<FJ
         return false;
     }
     const TSharedPtr<FJsonObject>* Binding = nullptr;
+    TSharedPtr<FJsonObject> RuntimeProvenance;
     FString InstanceId;
     if (!Command->TryGetObjectField(TEXT("process_binding"), Binding) || !Binding ||
         !Command->TryGetStringField(TEXT("operational_process_instance_id"), InstanceId) || !IsLowerSha256(InstanceId) ||
-        Sha256Utf8(CanonicalizeObject(*Binding)) != InstanceId || !VerifyObservableBinding(*Binding, OutReason))
+        Sha256Utf8(CanonicalizeObject(*Binding)) != InstanceId ||
+        !VerifyObservableBinding(*Binding, RuntimeProvenance, OutReason))
     {
         if (OutReason.IsEmpty()) OutReason = TEXT("process_binding_digest_mismatch");
         return false;
@@ -528,6 +1114,16 @@ bool ASimultaneousPhysicalDomainCommandRouter::AcceptBinding(const TSharedPtr<FJ
     double PidNumber = 0;
     (*Binding)->TryGetNumberField(TEXT("pid"), PidNumber);
     ImmutableBinding.Pid = static_cast<int32>(PidNumber);
+
+    RuntimeProvenance->SetStringField(TEXT("domain_role"), ImmutableBinding.DomainRole);
+    RuntimeProvenance->SetStringField(TEXT("operational_process_instance_id"), ImmutableBinding.OperationalProcessInstanceId);
+    RuntimeProvenance->SetStringField(TEXT("process_binding_raw_sha256"), ImmutableBinding.ProcessBindingRawSha256);
+    SimultaneousPhysicalDomainRuntimeAudit::Initialize(
+        ImmutableBinding.DomainRole,
+        ImmutableBinding.OperationalProcessInstanceId,
+        ImmutableBinding.ProcessBindingRawSha256);
+    EmitStructuredObject(RuntimeProvenance);
+    SimultaneousPhysicalDomainRuntimeAudit::RecordStdinCommand(Command);
 
     Adapter = GetWorld()->SpawnActor<ASimultaneousPhysicalDomainProofAdapter>();
     Probe = GetWorld()->SpawnActor<ASimultaneousPhysicalRebindProbe>();
@@ -685,6 +1281,8 @@ void ASimultaneousPhysicalDomainCommandRouter::HandleLine(const FString& Canonic
         }
         return;
     }
+
+    SimultaneousPhysicalDomainRuntimeAudit::RecordStdinCommand(Command);
 
     FString Schema;
     Command->TryGetStringField(TEXT("command_schema"), Schema);

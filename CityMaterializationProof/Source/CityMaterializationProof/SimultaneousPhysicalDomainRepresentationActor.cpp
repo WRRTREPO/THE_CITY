@@ -1,11 +1,14 @@
 #include "SimultaneousPhysicalDomainRepresentationActor.h"
 
+#include "SimultaneousPhysicalDomainCommandRouter.h"
+
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/TextRenderComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "Materials/MaterialInterface.h"
+#include "Misc/PackageName.h"
 
 namespace
 {
@@ -53,8 +56,35 @@ ASimultaneousPhysicalDomainRepresentationActor::ASimultaneousPhysicalDomainRepre
     RouteMesh->SetCanEverAffectNavigation(false);
     RouteMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
+    constexpr TCHAR CubePackage[] = TEXT("/Engine/BasicShapes/Cube");
+    constexpr TCHAR MaterialPackage[] = TEXT("/Engine/BasicShapes/BasicShapeMaterial");
     UStaticMesh* Cube = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube.Cube"));
     UMaterialInterface* BasicMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
+    FString CubeRealpath;
+    FString CubeDigest;
+    FString MaterialRealpath;
+    FString MaterialDigest;
+    const bool bCubeIdentityRecorded = SimultaneousPhysicalDomainRuntimeAudit::ResolveAndHashRegularFile(
+        FPackageName::LongPackageNameToFilename(CubePackage, FPackageName::GetAssetPackageExtension()),
+        CubeRealpath,
+        CubeDigest);
+    const bool bMaterialIdentityRecorded = SimultaneousPhysicalDomainRuntimeAudit::ResolveAndHashRegularFile(
+        FPackageName::LongPackageNameToFilename(MaterialPackage, FPackageName::GetAssetPackageExtension()),
+        MaterialRealpath,
+        MaterialDigest);
+    if (bCubeIdentityRecorded)
+    {
+        SimultaneousPhysicalDomainRuntimeAudit::RecordEngineAssetRead(CubePackage, CubeRealpath, CubeDigest);
+    }
+    if (bMaterialIdentityRecorded)
+    {
+        SimultaneousPhysicalDomainRuntimeAudit::RecordEngineAssetRead(MaterialPackage, MaterialRealpath, MaterialDigest);
+    }
+    if (!bCubeIdentityRecorded || !bMaterialIdentityRecorded)
+    {
+        Cube = nullptr;
+        BasicMaterial = nullptr;
+    }
     SiteMesh->SetStaticMesh(Cube);
     RouteMesh->SetStaticMesh(Cube);
     if (BasicMaterial != nullptr)

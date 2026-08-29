@@ -2440,7 +2440,7 @@ def proof_semantic_input_audit_template() -> dict[str, Any]:
         "expected_physical_result_visible_to_probe": False,
         "alternate_refresh_channels": [],
         "project_Content_ProofRecords_reads": [],
-        "proof_semantic_closure_complete": True,
+        "proof_semantic_closure_complete": False,
     }
 
 

@@ -78,8 +78,8 @@ private:
         FSPDInjectedFaultPlan* FaultPlan,
         FString& OutReason) const;
     bool BuildAuthoritativeCandidate(
-        const FSPDImmutableProcessBinding& Binding,
-        const FSPDValidatedVisibleTuple& Tuple,
+        const TSharedPtr<FJsonObject>& Payload,
+        const TSharedPtr<FJsonObject>& Projection,
         FSPDAuthoritativeRepresentation& OutRepresentation,
         FSPDInjectedFaultPlan* FaultPlan,
         FString& OutReason) const;
