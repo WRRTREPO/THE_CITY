@@ -219,7 +219,7 @@ and recomputes its summary; it is rejected. None is accepted.
 ## Determinism, replay, build, and release
 
 ```yaml
-phase_3_focused_tests: 40/40
+phase_3_focused_tests: 41/41
 predecessor_regressions: 215/215
 specification_validator: 12/12
 specification_validator_adversaries: 35/35
