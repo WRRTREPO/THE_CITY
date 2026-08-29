@@ -133,6 +133,7 @@ phase_4_cross_domain_canonical_occupancy_materialization:
   implementation: prohibited
   evidence: not_created
   review_validator: 20/20_checks_and_32/32_mutations_rejected
+  final_freeze_review: corrected_resubmission_pending_exact_commit_review
   prospective_artifact_members: 82
   prospective_manifest_members_excluding_manifest: 172
   capacity_advancement: none
@@ -208,8 +209,13 @@ The corrective candidate also closes the exact controls, asymmetric failures,
 36 observation faults, 23 binding adversaries, six liveness adversaries, 30
 source checks, 18 source mutations, and the prospective 82-artifact/172-member
 release. The review-only validator passes 20/20 checks and rejects 32/32
-in-memory mutations. This is not a freeze. No Python, Unreal, adapter, Actor,
-test, evidence, artifact, release, manifest, capacity, or Phase-5 work is open.
+in-memory mutations. Final freeze review of candidate
+`299aa865c5757fb63aeef27a9c4eb48554dcea6f` returned
+`STOP_WITH_FINDINGS`. The current draft.1 revision closes its residual byte-
+serialization, binding-order, liveness/asymmetric-failure, and harness-trace
+gaps; independent re-review of the new exact commit remains pending. This is
+not a freeze. No Python, Unreal, adapter, Actor, test, evidence, artifact,
+release, manifest, capacity, or Phase-5 work is open.
 
 ## Exact sealed Phase-2 canonical envelope
 
@@ -294,6 +300,7 @@ evidence_status: not_created
 prospective_artifact_members: 82
 prospective_manifest_members_excluding_manifest: 172
 review_validator: 20/20_checks_and_32/32_mutations_rejected
+final_freeze_review: corrected_resubmission_pending_exact_commit_review
 governing_record_change_from_this_note: none
 capacity_change_from_this_note: none
 phase_4: final_freeze_review_only

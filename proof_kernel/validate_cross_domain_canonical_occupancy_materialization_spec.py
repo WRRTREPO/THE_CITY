@@ -26,7 +26,7 @@ MANIFEST = (
 )
 
 EXPECTED_COMPLETE_SPEC_SHA256 = (
-    "ec06d6ed4b0fa9b4bd5eb9f2c2fd09048218ef20bc54dac9d7567d116359a3f3"
+    "0914e980ac963da0046153fb8ab0385c0fb20eef631686ed2f31f539e6285be2"
 )
 EXPECTED_ARTIFACT_LIST_SHA256 = (
     "93d3e024361f94c613aae4a8467b12a6463fbc69d46397908158f6c7dc50c7ef"
@@ -54,8 +54,13 @@ EXPECTED_CONTROL_COMMAND_TABLE_SHA256 = "f5970326a5c54063839dc8a44d77f1fa4fc2167
 EXPECTED_CONTROL_FAULT_TABLE_SHA256 = "9ca195145d3fd11e63804fe5a07ee41fb8d3563a779c7ebe2a8968a8b3883175"
 EXPECTED_PRIMARY_WITNESS_TABLE_SHA256 = "da6fdb30f4dda490ee57187ba7915969689fd0504053af7fd705056b4a20d0e3"
 EXPECTED_LIVENESS_TABLE_SHA256 = "885cab4cfcb30b8bfc892ab98f2ec217a7c891d48c47a746265c72dc330120db"
+EXPECTED_LIVENESS_ADVERSARY_TABLE_SHA256 = "124d97714ea100ab00c52132a1fb564c7d0c30ea421829332c3ca7a363e2af90"
+EXPECTED_ASYMMETRIC_FAILURE_SCHEDULE_TABLE_SHA256 = "87120f847fac69b5e3f91409187400827012f4446823b502b2a2e71b3b440493"
+EXPECTED_ASYMMETRIC_FAILURE_TABLE_SHA256 = "bf4248145b87f457bd5393b4e6c7ce6a163e370d9eca10dfd8533453c54f6b74"
+EXPECTED_LIVENESS_HARNESS_TRACE_TABLE_SHA256 = "0c300a0e4a684d664e001eb5af07c40373b34c96723871010062b2b48c0a673b"
 EXPECTED_GUARD_TRANSITION_TABLE_SHA256 = "e05722c8a19fc29d95b201ca862af4f91df6ef7e5e7af39b62c9d4e9434cd02d"
 EXPECTED_CONTAINING_BLOCK_SHA256 = {
+    "detached_json_byte_identity: CrossDomainOccupancyDetachedJsonBytes.v1": "a5e72710adee6bbdc0ac9713bb23343e3361bcd6dbe7a653f298b19a6ff8b42a",
     "binding_schema: CrossDomainOccupancyProcessBinding.v1": "6a6821e9127cc91f93ac5466466645dcf6812fe369f1d47db99cad0925a98830",
     "bind_invocation_schema: CrossDomainOccupancyBindInvocation.v1": "df80b1e19cebd2a4cbab4e9854fee5a743b330c277e852b497c8081327ca2b7a",
     "launch_plan_schema: CrossDomainOccupancyLaunchPlan.v1": "761fdf1a5466e3b9f3f41c86ed887fe52de826d5f1feecd0efed144863482a0b",
@@ -66,20 +71,27 @@ EXPECTED_CONTAINING_BLOCK_SHA256 = {
     "observation_schema: CrossDomainOccupancyCanonicalHeadObservation.v1": "5a642c161fd795a1d0d3f410f4ea18e50c5dc375e8af28037fa3a8a4b4a474ce",
     "disposition_schema: CrossDomainOccupancyHeadDisposition.v1": "960d6ae3ebe5906b650c980d1b85cf425d7eeae486ae0a304d25f0de1c50b53d",
     "invocation_schema: CrossDomainOccupancyOperationInvocation.v1": "4be6a0fea80f9d4fa9caeb7dab3badaba18f57702985e250e9869ab913ec0ce7",
-    "materialize_invocation_schema: CrossDomainOccupancyMaterializeInvocation.v1": "02df652c23e0db3bb1299cead2b4dac4a52d7fc4f33698b30a276d1f69c1f1b1",
-    "inspection_invocation_schema: CrossDomainOccupancyInspectionInvocation.v1": "cb79d16a517a405b4f30dd806f70400d2a33f2929dcd80feeeeebc6b3529b7c5",
+    "materialize_invocation_schema: CrossDomainOccupancyMaterializeInvocation.v1": "e75a5af061293a82b917c6c9c3279818a3f8f973498b23a8d7db6ed0c0d5e45d",
+    "inspection_invocation_schema: CrossDomainOccupancyInspectionInvocation.v1": "7e86ff6798c26efd0e740812324d5ffef6f50f92b329eea89583b7d1231bcce9",
     "fault_arm_invocation_schema: CrossDomainOccupancyProcessFaultArmInvocation.v1": "d6722f1c0e2b4ed699603ba221c0370745eaca1970e0f553d114a2cdfe66c8f4",
     "process_fault_arm_receipt_schema: CrossDomainOccupancyProcessFaultArmReceipt.v1": "0f73ee040fccc0bb96bcf5ad640d2345d578d19e1ce729b24a27a90d0ad01f13",
     "harness_fault_plan_schema: CrossDomainOccupancyHarnessFaultPlan.v1": "710355e5d1b61920773912b55d1e526c428b906c70b441cdf745118e41e85ae4",
     "harness_fault_arm_receipt_schema: CrossDomainOccupancyHarnessFaultArmReceipt.v1": "51b035c36cb8fa3fc239ca8e7756549c911eca3aeb88b6458ba06f9818c0a6fa",
+    "liveness_observation_schema: CrossDomainOccupancyLivenessObservation.v1": "ba932f9321d722f379c580384151fa6d0b6bdcf8cc3bd20eaf58c9d08037dd51",
+    "liveness_adversarial_report_schema: CrossDomainOccupancyLivenessAdversarialReport.v1": "d0bd957f46f7fef477da9007baa162b0a25c8235fda4e540025ff335891525e5",
+    "liveness_plan_schema: CrossDomainOccupancyLivenessAdversaryPlan.v1": "7dfbf949fcf17699242a99d88d2814ecc2c4c28b135e1d4975a6292f76871a12",
+    "liveness_invocation_schema: CrossDomainOccupancyLivenessAdversaryInvocation.v1": "9fe7c6cfd46d49136964d9eac18f24b57a30e886bbbb11a4df6d760e08c07449",
+    "liveness_arm_receipt_schema: CrossDomainOccupancyLivenessAdversaryArmReceipt.v1": "c11cf243de94a12abc522ec844fc1571c75fc4739498a03644daaffe2648f3f4",
     "launch_surface_schema: CrossDomainOccupancyLaunchSurface.v1": "8efd0b8627143cc62fec5a824efea4b0b38088d99b81084acb55e9adea2e94fc",
     "receipt_schema: CrossDomainOccupancyMaterializationReceipt.v1": "0b8eca7d1017c2a3969e469a37d33f2255ec34fbc3b971023b827c84e563b230",
-    "trace_schema: CrossDomainOccupancyRuntimeTraceEvent.v1": "fcce47c95976f70b5c9aca7b988b25fb665bf4949d6be949087747239180230d",
-    "harness_trace_schema: CrossDomainOccupancyHarnessTraceEvent.v1": "891f3ff8fb88ee55edae24390fcd8a57c0f4890b12d397f9074a8f75a5a7857f",
+    "trace_schema: CrossDomainOccupancyRuntimeTraceEvent.v1": "a9d14877a5b53f33761c299c6a8857db9073e0dceeb3bbd0dea233fd4fa3d334",
+    "harness_trace_schema: CrossDomainOccupancyHarnessTraceEvent.v1": "566f7a71a44d1cb123060425004513e71e685dee7e89f7897b143488971fe13a",
     "frozen_implementation_authority:": "ca09447f94bece75ee64659cef08a4ae6c2fddf2cc972a34f1fd652b1f2c7175",
 }
 EXPECTED_AFTER_BLOCK_SHA256 = {
     "Field verification modes are exact:": "f11369b43dbeff5f6f8d05ed98d74b580cb8df943ce5cb6ce3aa47e425b49600",
+    "exact stored top-level order is:": "ec8b79bd6ab422eb0b78eb8039486240a92411508c928f43bc464ebec11a5159",
+    "The nested birth tuple is stored in this exact order:": "94acd982f1bbd8456a2350f8631edc0143aade5ccf5fed3eb367fe676d0ec1d0",
     "The exact states are:": "50f70dbf66c78dc32fc9ab11ec52b743c3b4c33243909119602aec74776ebed9",
 }
 
@@ -148,6 +160,60 @@ EXPECTED_BINDING_FIELDS = (
     "structured_output_pipe_id",
     "diagnostic_pipe_id",
 )
+EXPECTED_BINDING_CANONICAL_TOP_LEVEL_FIELDS = (
+    "binding_schema",
+    "control_pipe_id",
+    "diagnostic_pipe_id",
+    "domain_role",
+    "entry_map_package_identity",
+    "executable_raw_sha256",
+    "executable_realpath",
+    "harness_launch_id",
+    "inherited_descriptor_map_raw_sha256",
+    "launch_argv_raw_sha256",
+    "launch_cwd_realpath",
+    "launch_environment_audit_raw_sha256",
+    "macos_process_start",
+    "pid",
+    "process_root_realpath",
+    "project_config_and_module_inventory_raw_sha256",
+    "project_raw_sha256",
+    "project_realpath",
+    "proof_scenario",
+    "structured_output_pipe_id",
+    "unreal_engine_build_identity",
+    "witness_id",
+)
+EXPECTED_BINDING_CANONICAL_NESTED_FIELDS = (
+    "microseconds",
+    "seconds",
+)
+EXPECTED_ASYMMETRIC_MALFORMED_PROJECTIONS = (
+    (
+        "AF01",
+        "cross_domain_B_Rtransit_0001",
+        "cross_domain_Z_Rtransit_0001",
+        "beb2d2e1c574220ac31901162e58993f46108769f89394ef2df4812c9c84fc3d",
+    ),
+    (
+        "AF02",
+        "cross_domain_A_Rtransit_0001",
+        "cross_domain_Z_Rtransit_0001",
+        "13d76645353c813c480c323e380697e5f5ea24be10ab0eb80e4a3d789c060c6f",
+    ),
+    (
+        "AF03",
+        "cross_domain_B_Rfinal_0001",
+        "cross_domain_Z_Rfinal_0001",
+        "88c518da37a6311fe43a5a2cc83d56c1dd412939da716019503ee1cbb4a45b87",
+    ),
+    (
+        "AF04",
+        "cross_domain_A_Rfinal_0001",
+        "cross_domain_Z_Rfinal_0001",
+        "0c16b9a80158e78ebdd688a87335248d91b9d0843ef08a35e6ef2897825de26b",
+    ),
+)
 EXPECTED_WITNESS_IDS = (
     "w1_A_B__A_B",
     "w2_B_A__B_A",
@@ -182,6 +248,39 @@ EXPECTED_GUARD_STATES = (
 )
 
 EXPECTED_SCHEMA_FIELDS = {
+    "liveness_observation_schema: CrossDomainOccupancyLivenessObservation.v1": (
+        "liveness_observation_schema", "proof_scenario", "occurrence_id",
+        "checkpoint_id", "domain_role", "operational_process_instance_id",
+        "process_binding_raw_sha256", "sample_sequence", "observed_pid",
+        "observed_macos_process_start", "original_child_handle_exit_observed",
+        "wait_status_available", "wait_status_value",
+        "control_pipe_unexpected_eof", "structured_output_pipe_unexpected_eof",
+        "process_start_pair_changed", "replacement_spawn_count",
+        "observation_source",
+    ),
+    "liveness_adversarial_report_schema: CrossDomainOccupancyLivenessAdversarialReport.v1": (
+        "liveness_adversarial_report_schema", "proof_scenario", "occurrence_id",
+        "case_id", "checkpoint_id", "domain_role", "command_sequence",
+        "action_id", "operational_process_instance_id",
+        "process_binding_raw_sha256", "report_sequence", "reported_pid",
+        "reported_macos_process_start", "report_source",
+    ),
+    "liveness_plan_schema: CrossDomainOccupancyLivenessAdversaryPlan.v1": (
+        "liveness_plan_schema", "proof_scenario", "occurrence_id", "case_id",
+        "base_schedule", "domain_role", "checkpoint_id", "edge", "channel",
+        "action_id", "expected_first_failure", "terminal_liveness_failure_code",
+        "harness_run_id",
+    ),
+    "liveness_invocation_schema: CrossDomainOccupancyLivenessAdversaryInvocation.v1": (
+        "liveness_invocation_schema", "proof_scenario", "command_sequence",
+        "operation", "case_id", "action_id",
+        "operational_process_instance_id", "liveness_plan_raw_sha256",
+    ),
+    "liveness_arm_receipt_schema: CrossDomainOccupancyLivenessAdversaryArmReceipt.v1": (
+        "liveness_arm_receipt_schema", "proof_scenario", "case_id",
+        "action_id", "operational_process_instance_id",
+        "liveness_invocation_raw_sha256", "arm_state",
+    ),
     "expected_schema: CrossDomainOccupancyExpectedRepresentation.v1": (
         "expected_schema", "proof_scenario", "domain_role",
         "canonical_payload_raw_sha256", "canonical_hash",
@@ -262,6 +361,16 @@ EXPECTED_SCHEMA_FIELDS = {
         "canonical_completion_enabled", "canonical_truth_publication_enabled",
         "reason_code",
     ),
+    "harness_trace_schema: CrossDomainOccupancyHarnessTraceEvent.v1": (
+        "harness_trace_schema", "trace_sequence", "harness_occurrence_id",
+        "harness_run_id", "execution_mode", "case_id",
+        "harness_operation_id", "stage_id", "stage_edge",
+        "harness_fault_plan_raw_sha256",
+        "harness_fault_arm_receipt_raw_sha256",
+        "liveness_plan_raw_sha256", "liveness_observation_raw_sha256",
+        "liveness_adversarial_report_raw_sha256",
+        "canonical_before_after_snapshot_raw_sha256",
+    ),
 }
 
 EXPECTED_MATERIALIZATION_STAGES = (
@@ -325,7 +434,7 @@ EXPECTED_SOURCE_CHECKS = (
     "S19_no_route_transform_timer_collision_animation_navigation_authority",
     "S20_no_physical_completion_or_successor_path",
     "S21_no_peer_state_or_liveness_input",
-    "S22_process_and_harness_fault_channels_reachable_only_in_named_fresh_cases",
+    "S22_process_harness_fault_and_liveness_adversary_channels_reachable_only_in_named_fresh_cases",
     "S23_complete_runtime_command_handler_graph",
     "S24_complete_cpp_call_surface_census",
     "S25_complete_input_api_occurrence_census",
@@ -482,6 +591,25 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
             sha256_text(fenced_block_after(text, marker)) == expected_digest,
             f"exact following block {marker}",
         )
+    detached_byte_block = fenced_block_containing(
+        text, "detached_json_byte_identity: CrossDomainOccupancyDetachedJsonBytes.v1"
+    )
+    require(
+        tuple(top_level_keys(detached_byte_block))
+        == (
+            "detached_json_byte_identity", "encoding", "object_member_order",
+            "array_member_order", "member_set", "numbers", "booleans_and_null",
+            "string_escaping", "separators", "stored_terminator", "raw_sha256",
+            "trace_stream",
+        ),
+        "detached JSON byte-law fields",
+    )
+    for required in (
+        "hash their complete closed objects plus",
+        "canonical binding JSON bytes before the stored LF",
+        "exact ordered concatenation",
+    ):
+        require(required in text, f"detached JSON byte identity {required}")
     checks.append("complete_document_identity")
 
     for identity in (
@@ -520,6 +648,26 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
 
     binding_block = fenced_block_after(text, "exact ordered 22-member")
     require(tuple(top_level_keys(binding_block)) == EXPECTED_BINDING_FIELDS, "binding field order")
+    binding_canonical_block = fenced_block_after(
+        text, "exact stored top-level order is:"
+    )
+    require(
+        tuple(list_members(binding_canonical_block))
+        == EXPECTED_BINDING_CANONICAL_TOP_LEVEL_FIELDS,
+        "binding canonical top-level order",
+    )
+    binding_nested_block = fenced_block_after(
+        text, "The nested birth tuple is stored in this exact order:"
+    )
+    require(
+        tuple(list_members(binding_nested_block))
+        == EXPECTED_BINDING_CANONICAL_NESTED_FIELDS,
+        "binding canonical nested order",
+    )
+    require(
+        "validation enumeration as stored member order" in text,
+        "logical-versus-byte binding order separation",
+    )
     witness_block = fenced_block_after(text, "The exact witness-ID enum is:")
     witness_ids = list_members(witness_block)
     require(tuple(witness_ids) == EXPECTED_WITNESS_IDS, "witness ID enum")
@@ -537,6 +685,40 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
         sha256_text("\n".join(liveness_table)) == EXPECTED_LIVENESS_TABLE_SHA256,
         "liveness table digest",
     )
+    liveness_adversary_section = section_between(
+        text,
+        "A checkpoint or terminal liveness sample is one closed detached object:",
+        "The required liveness checkpoints are:",
+    )
+    liveness_adversary_table = table_lines(
+        liveness_adversary_section, "| Case | Role | Checkpoint / edge |"
+    )
+    require(len(liveness_adversary_table) == 8, "six liveness adversary rows")
+    require(
+        tuple(
+            re.findall(
+                r"^\| (LV\d{2}) \|",
+                "\n".join(liveness_adversary_table),
+                re.MULTILINE,
+            )
+        )
+        == tuple(f"LV{i:02d}" for i in range(1, 7)),
+        "liveness adversary case order",
+    )
+    require(
+        sha256_text("\n".join(liveness_adversary_table))
+        == EXPECTED_LIVENESS_ADVERSARY_TABLE_SHA256,
+        "liveness adversary table digest",
+    )
+    for required in (
+        "Only `independent_harness_os_monitor` may satisfy a checkpoint",
+        "only LV03–LV05 also send one process-side failure-only invocation",
+        "This report is adversarial input, not a liveness observation",
+        "LV01, LV02, and LV06 retain exact harness action/OS-call evidence",
+        "both original domains receive terminal\n`protocol_invalid / physical_protocol_violation` dispositions",
+        "all cross-products reject",
+    ):
+        require(required in liveness_adversary_section, f"liveness closure {required}")
     checks.append("process_binding_and_adversaries")
 
     for marker, expected_fields in EXPECTED_SCHEMA_FIELDS.items():
@@ -610,6 +792,7 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
         "fault_arm_invocation_schema: CrossDomainOccupancyProcessFaultArmInvocation.v1",
         "harness_fault_plan_schema: CrossDomainOccupancyHarnessFaultPlan.v1",
         "launch_surface_schema: CrossDomainOccupancyLaunchSurface.v1",
+        "asymmetric-failure-bound",
         "operation_invocation_raw_sha256",
         "cross-products reject", "no alternate reader", "other-domain path",
     ):
@@ -671,8 +854,56 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
     asym_section = section_between(
         text, "## Asymmetric failure obligations", "## Current-head and occupancy authority adversaries"
     )
-    for case in ("AF01", "AF02", "AF03", "AF04"):
-        require(case in asym_section, f"asymmetric case {case}")
+    asym_schedule_table = table_lines(
+        asym_section, "| Case | Exact domain-A stdin after bind |"
+    )
+    require(len(asym_schedule_table) == 6, "four asymmetric failure schedules")
+    require(
+        tuple(
+            re.findall(
+                r"^\| (AF\d{2}) \|",
+                "\n".join(asym_schedule_table),
+                re.MULTILINE,
+            )
+        )
+        == tuple(f"AF{i:02d}" for i in range(1, 5)),
+        "asymmetric failure schedule order",
+    )
+    require(
+        sha256_text("\n".join(asym_schedule_table))
+        == EXPECTED_ASYMMETRIC_FAILURE_SCHEDULE_TABLE_SHA256,
+        "asymmetric failure schedule table digest",
+    )
+    asym_table = table_lines(asym_section, "| Case | Exact setup and successful refresh |")
+    require(len(asym_table) == 6, "four asymmetric failure rows")
+    require(
+        sha256_text("\n".join(asym_table)) == EXPECTED_ASYMMETRIC_FAILURE_TABLE_SHA256,
+        "asymmetric failure table digest",
+    )
+    projection_lines_by_id = {
+        json.loads(line)["projection_id"]: line for line in json_lines
+    }
+    for case, source_id, malformed_id, malformed_digest in (
+        EXPECTED_ASYMMETRIC_MALFORMED_PROJECTIONS
+    ):
+        require(case in asym_table[int(case[2:]) + 1], f"asymmetric case order {case}")
+        source_line = projection_lines_by_id[source_id]
+        require(source_line.count(source_id) == 1, f"sole source projection ID {case}")
+        malformed_line = source_line.replace(source_id, malformed_id)
+        require(len(malformed_line) == len(source_line), f"same-length malformed bytes {case}")
+        require(
+            sha256_text(malformed_line + "\n") == malformed_digest,
+            f"malformed projection digest {case}",
+        )
+        require(malformed_id in asym_table[int(case[2:]) + 1], f"malformed ID row {case}")
+        require(malformed_digest in asym_table[int(case[2:]) + 1], f"malformed digest row {case}")
+    for required in (
+        "completes M01–M08",
+        "M09 does not complete; M10–M23 do not run",
+        "no accepted input file is mutated in place",
+        "Every different token, sequence, role, order, bundle-root, projection member",
+    ):
+        require(required in asym_section, f"asymmetric failure closure {required}")
     checks.append("witness_control_failure_matrix")
 
     authority_section = section_between(
@@ -714,6 +945,34 @@ def validate_text(text: str, *, enforce_complete_hash: bool) -> list[str]:
     require("Exactly 18 source mutations" in provenance_section, "source mutation count")
     require("CrossDomainOccupancyProcessOccurrenceRegistry.v1" in provenance_section,
             "process registry")
+    liveness_harness_trace_table = table_lines(
+        provenance_section, "| Case | Exact harness operation |"
+    )
+    require(len(liveness_harness_trace_table) == 8, "six liveness harness trace rows")
+    require(
+        tuple(
+            re.findall(
+                r"^\| (LV\d{2}) \|",
+                "\n".join(liveness_harness_trace_table),
+                re.MULTILINE,
+            )
+        )
+        == tuple(f"LV{i:02d}" for i in range(1, 7)),
+        "liveness harness trace case order",
+    )
+    require(
+        sha256_text("\n".join(liveness_harness_trace_table))
+        == EXPECTED_LIVENESS_HARNESS_TRACE_TABLE_SHA256,
+        "liveness harness trace table digest",
+    )
+    for required in (
+        "execution_mode: successful | fault_injected | liveness_adversary",
+        "fault and\nliveness digest fields are exactly null",
+        "mode/case/operation/stage/edge/nullability cross-product is closed",
+        "successful-mode harness traces across all nine completed publication",
+        "all liveness monitor/control actions are\nharness-run-bound",
+    ):
+        require(required in provenance_section, f"harness trace closure {required}")
     checks.append("provenance_and_source_audit")
 
     artifact_block = fenced_block_after(text, "these 82 regular non-link files")

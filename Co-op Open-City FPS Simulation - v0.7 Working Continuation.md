@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
 **Version:** 0.7.0-draft.80
-**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) remains the latest sealed proof and Development Capacity v0.1.11 remains governing. [Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md) is the sole active successor and is the corrective Phase-4 final freeze-review candidate under proof-harness identity `CrossDomainCanonicalOccupancyMaterializationProof.v1` / `0.7.0-draft.80`. It closes the independent `STOP_WITH_FINDINGS` review with exact six-projection byte identities, independent expectation/receipt/live-census comparison, a 22-field process binding, closed head/guard/disposition/input/publication contracts, executable controls, complete adversary/fault/source matrices, and an exact prospective 82-artifact/172-member release. Its review-only validator passes 20/20 structural checks and rejects 32/32 in-memory mutations. The candidate is not frozen. No implementation, Unreal source change, evidence acquisition, capacity advancement, Phase 5, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) remains the latest sealed proof and Development Capacity v0.1.11 remains governing. [Cross-Domain Canonical Occupancy Materialization Proof v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md) is the sole active successor and is the corrective Phase-4 final freeze-review candidate under proof-harness identity `CrossDomainCanonicalOccupancyMaterializationProof.v1` / `0.7.0-draft.80`. It closes the original specification-review ledger and the residual final freeze-review `STOP_WITH_FINDINGS` against candidate `299aa865c5757fb63aeef27a9c4eb48554dcea6f` with exact detached-JSON bytes, distinct logical/stored binding orders, field-exact LV01–LV06 and AF01–AF04 matrices, complete successful/fault harness traces, exact six-projection identities, independent expectation/receipt/live-census comparison, closed head/guard/disposition/input/publication contracts, and an exact prospective 82-artifact/172-member release. Its review-only validator passes 20/20 structural checks and rejects 32/32 in-memory mutations. The corrected bytes await independent final re-review and are not frozen. No implementation, Unreal source change, evidence acquisition, capacity advancement, Phase 5, or adjacent scope is authorized. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -132,6 +132,12 @@ source/dataflow, and prospective release membership. The validator passes
 freeze; no implementation, evidence, release, Unreal source change, or capacity
 advancement is authorized.
 
+Final freeze review of corrective candidate
+`299aa865c5757fb63aeef27a9c4eb48554dcea6f` returned
+`STOP_WITH_FINDINGS`. The current draft.1 revision closes the residual
+serialization, liveness/adversary, and harness-trace gaps and now awaits
+independent re-review of one new exact committed candidate.
+
 ## Product framing
 
 This proof track serves a 1–4 player co-op open-city FPS. The crew receives incomplete intelligence, chooses where to deploy from a persistent hub, and pays active-world time for travel and intervention. The core player pressure is: **what do we answer, what do we delay, and what do we allow to happen without us?**
@@ -213,6 +219,12 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 
 ### 0.7.0-draft.80 — 2026-08-29
 
+- Recorded final freeze review of candidate
+  `299aa865c5757fb63aeef27a9c4eb48554dcea6f` as `STOP_WITH_FINDINGS` and
+  corrected the residual contract without advancing the continuation:
+  LF-inclusive detached JSON identity, separate logical and stored binding
+  orders, exact LV01–LV06 and AF01–AF04 rows, and success/fault-complete harness
+  traces. Independent final re-review remains pending.
 - Advanced [Cross-Domain Canonical Occupancy Materialization Proof —
   v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
   to independent final freeze review after the first exact-candidate review

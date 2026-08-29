@@ -47,9 +47,15 @@ expectation and receipt records, an independent exhaustive live-world census,
 private canonical-head observation, and a harness-only acceptance disposition.
 Its complete binding, guard, permissions, input, witness, fault, provenance,
 source, and prospective 82-artifact/172-member release structures pass 20/20
-review-validator checks and reject 32/32 in-memory mutations. It is not frozen
-and authorizes no implementation, evidence, release, Unreal source change, or
-capacity advancement. Development Capacity remains v0.1.11.
+review-validator checks and reject 32/32 in-memory mutations. Independent final
+freeze review of corrective candidate `299aa865c5757fb63aeef27a9c4eb48554dcea6f`
+returned `STOP_WITH_FINDINGS`; the current draft.1 revision closes its three
+residual gaps with one LF-exact detached-JSON law, distinct logical/stored
+binding orders, field-exact LV01–LV06 and AF01–AF04 matrices, and complete
+successful/fault harness traces. The corrected bytes still await independent
+re-review. The proof is not frozen and authorizes no implementation, evidence,
+release, Unreal source change, or capacity advancement. Development Capacity
+remains v0.1.11.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,

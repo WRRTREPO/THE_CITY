@@ -109,8 +109,13 @@ detached receipt, exhaustive live-world census, private head observation, and
 harness disposition; freezes the exact process/input/guard/publication/fault/
 source boundaries; and fixes an 82-artifact, 172-member prospective release.
 The review-only validator passes 20/20 checks and rejects 32/32 in-memory
-mutations. The draft is not frozen and grants no implementation, Unreal source,
-evidence, release, freeze, or capacity authority.
+mutations. Final freeze review of candidate
+`299aa865c5757fb63aeef27a9c4eb48554dcea6f` returned
+`STOP_WITH_FINDINGS`; the current draft.1 revision closes its exact detached-
+JSON, binding-order, liveness/asymmetric-failure, and harness-trace gaps and
+awaits independent re-review of new committed bytes. The draft is not frozen
+and grants no implementation, Unreal source, evidence, release, freeze, or
+capacity authority.
 
 ## Current proof progression
 
@@ -567,6 +572,7 @@ active_proof:
   prospective_artifact_members: 82
   prospective_manifest_members_excluding_manifest: 172
   review_validator: 20/20_checks_and_32/32_mutations_rejected
+  final_freeze_review: corrected_resubmission_pending_exact_commit_review
   phase_4: final_freeze_review_only
 ```
 
@@ -692,12 +698,14 @@ remains prohibited.
 [Cross-Domain Canonical Occupancy Materialization Proof —
 v0.1.0-draft.1](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
 is the sole current working unit and corrective final freeze-review candidate.
-The first independent exact-candidate review returned `STOP_WITH_FINDINGS`; the
-corrective draft closes those findings but is not accepted or frozen until a
-new independent review judges its exact committed bytes. This stage authorizes
-review and amendment only. It does not authorize implementation, tests, Unreal
-source changes, live evidence acquisition, artifact generation, release
-construction, freezing, or capacity advancement.
+The first independent exact-candidate review and the later final freeze review
+of candidate `299aa865c5757fb63aeef27a9c4eb48554dcea6f` each returned
+`STOP_WITH_FINDINGS`. The current draft.1 revision closes both ledgers but is
+not accepted or frozen until a new independent review judges its exact
+committed bytes. This stage authorizes review and amendment only. It does not
+authorize implementation, tests, Unreal source changes, live evidence
+acquisition, artifact generation, release construction, freezing, or capacity
+advancement.
 
 The candidate composes, without modifying, two exact predecessor laws:
 
@@ -726,7 +734,9 @@ intermediate censuses, two private canonical-head observations, seven-state
 guard with an exact C1 terminal completion close, eleven-context permissions,
 realizable local publication and harness
 acceptance, asymmetric failures at both cycles, the ordered 22-field process
-identity, complete authority/fault/source adversaries, and the exact
+identity with distinct logical and stored serialization orders, the exact six
+liveness and four malformed-projection adversaries, successful/fault-complete
+harness traces, complete authority/fault/source adversaries, and the exact
 82-artifact/172-member prospective release. Until an independent final freeze
 review accepts every gate and a later record explicitly grants bounded
 implementation authority, the candidate identity remains provisional and no

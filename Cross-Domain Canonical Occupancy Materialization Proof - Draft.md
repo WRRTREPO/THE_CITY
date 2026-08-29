@@ -94,6 +94,15 @@ review and authorizes governing specification work only. It does not authorize P
 adapter, router, Actor, harness, test, evidence, artifact, manifest, capacity,
 production-architecture, or adjacent successor implementation.
 
+Independent final freeze review of the first corrective candidate at commit
+`299aa865c5757fb63aeef27a9c4eb48554dcea6f`, tree
+`666bf7c70f04a4b1294c08aa5e003b97ff5fd836`, returned
+`STOP_WITH_FINDINGS`. This revision remains `0.1.0-draft.1` and closes that
+residual ledger with one exact detached-JSON byte law, distinct logical and
+stored process-binding orders, six exact liveness-adversary rows, four exact
+malformed-projection rows, and success/fault-mode-complete harness traces. It
+still grants no implementation authority.
+
 ## Governing predecessor boundary
 
 The imported predecessor identities are normative:
@@ -273,6 +282,47 @@ The canonical transaction does not wait for either domain. It does not observe
 whether either process is alive, synchronized, stale, invalid, destroyed, or
 refreshed. Physical failure may close the proof protocol; it may not roll back,
 rewrite, delay, or create Rtransit or Rfinal.
+
+## Exact detached JSON byte identity
+
+Unless a more specific rule below narrows a value enum, every detached Phase-4
+JSON object uses this one stored-byte law. The law covers projections, process
+bindings, bind/launch/materialize/inspect/fault/liveness invocations and
+receipts, launch plans and surfaces, independent expected representations,
+canonical-head observations, live observations, materialization receipts,
+head dispositions, runtime events, harness events, occurrence-registry rows,
+and their aggregate JSON artifacts. Unreal Actor field schemas are live fields,
+not competing standalone serializations; when copied into a detached row they
+obey this law.
+
+```yaml
+detached_json_byte_identity: CrossDomainOccupancyDetachedJsonBytes.v1
+encoding: UTF-8 without BOM
+object_member_order: recursively ascending raw UTF-8 key bytes
+array_member_order: exact schema- or table-declared semantic order
+member_set: exact closed schema; no omitted additional or duplicate member
+numbers: base-10 JSON integers only; no float NaN or infinity
+booleans_and_null: lowercase JSON true false null
+string_escaping: shortest valid JSON escape form with non-ASCII emitted as UTF-8
+separators: comma and colon only; no insignificant whitespace
+stored_terminator: exactly one LF byte
+raw_sha256: lowercase SHA-256 over the complete stored bytes including LF
+trace_stream: canonical event objects concatenated by trace_sequence, one LF-terminated object per event
+```
+
+Every `*_raw_sha256` field whose referent is a Phase-4 detached JSON object uses
+that exact stored-byte identity. Digests whose referent is an imported sealed
+canonical payload, executable, project, translation unit, input member, or
+other non-detached source instead hash the complete exact source bytes under
+their separately declared source law. In particular,
+`expected_representation_raw_sha256`, `live_observation_raw_sha256`, and
+`materialization_receipt_raw_sha256` hash their complete closed objects plus
+the one terminal LF; none may hash an in-memory structure, a subset, a pretty
+rendering, or bytes without the terminator. The sole additional binding
+identity is `operational_process_instance_id`, defined below over the same
+canonical binding JSON bytes before the stored LF. Every trace event has its
+own raw identity under this law, and the trace artifact identity covers the
+exact ordered concatenation.
 
 ## Exact domain projection and occupancy derivation
 
@@ -609,7 +659,8 @@ are inventoried as nonsemantic context and must expose no Phase-4 handler edge.
 
 ## Exact process identity and lifetime
 
-Phase 4 versions the Phase-3 birth law as the exact ordered 22-member
+Phase 4 versions the Phase-3 birth law as the exact ordered 22-member logical
+validation schema
 `CrossDomainOccupancyProcessBinding.v1` object:
 
 ```yaml
@@ -639,13 +690,50 @@ structured_output_pipe_id: exact original stdout-pipe harness identity
 diagnostic_pipe_id: exact original stderr-pipe harness identity
 ```
 
-The exact top-level member order is the displayed order, including
-`binding_schema` as member 1 and `diagnostic_pipe_id` as member 22. Canonical
-JSON serialization is UTF-8, recursively lexicographic member order, no
-insignificant whitespace, and no terminal LF for hashing.
-`operational_process_instance_id` is the lowercase SHA-256 of those canonical
-JSON bytes; `process_binding_raw_sha256` hashes the stored canonical JSON plus
-one LF. Neither ID is caller-selected.
+The displayed order is the exact logical validation enumeration, including
+`binding_schema` as logical field 1 and `diagnostic_pipe_id` as logical field
+22. It is not the stored JSON member order. Under the detached-byte law, the
+exact stored top-level order is:
+
+```yaml
+binding_canonical_top_level_member_order:
+  - binding_schema
+  - control_pipe_id
+  - diagnostic_pipe_id
+  - domain_role
+  - entry_map_package_identity
+  - executable_raw_sha256
+  - executable_realpath
+  - harness_launch_id
+  - inherited_descriptor_map_raw_sha256
+  - launch_argv_raw_sha256
+  - launch_cwd_realpath
+  - launch_environment_audit_raw_sha256
+  - macos_process_start
+  - pid
+  - process_root_realpath
+  - project_config_and_module_inventory_raw_sha256
+  - project_raw_sha256
+  - project_realpath
+  - proof_scenario
+  - structured_output_pipe_id
+  - unreal_engine_build_identity
+  - witness_id
+```
+
+The nested birth tuple is stored in this exact order:
+
+```yaml
+macos_process_start_canonical_member_order:
+  - microseconds
+  - seconds
+```
+
+`operational_process_instance_id` is the lowercase SHA-256 of the complete
+canonical binding JSON bytes before the stored LF;
+`process_binding_raw_sha256` hashes those same bytes plus exactly one LF.
+Neither ID is caller-selected. No implementation may serialize the logical
+validation enumeration as stored member order.
 
 The bind command is one closed object; it carries no second identity surface:
 
@@ -816,11 +904,137 @@ continuous_monitor:
   replacement_spawn_count: 0
 ```
 
+A checkpoint or terminal liveness sample is one closed detached object:
+
+```yaml
+liveness_observation_schema: CrossDomainOccupancyLivenessObservation.v1
+proof_scenario: cross-domain-canonical-occupancy-materialization-v1
+occurrence_id: exact registered occurrence
+checkpoint_id: L0 | L1 | L2 | L3 | L4 | L5 | L6 | L7 | L8 | terminal_failure
+domain_role: domain_A | domain_B
+operational_process_instance_id: exact original binding identity
+process_binding_raw_sha256: exact original binding digest
+sample_sequence: contiguous nonnegative integer per domain occurrence
+observed_pid: exact independently observed integer
+observed_macos_process_start:
+  seconds: exact independently observed nonnegative integer
+  microseconds: exact independently observed integer 0 through 999999
+original_child_handle_exit_observed: true | false
+wait_status_available: true | false
+wait_status_value: exact integer | null iff unavailable
+control_pipe_unexpected_eof: true | false
+structured_output_pipe_unexpected_eof: true | false
+process_start_pair_changed: true | false
+replacement_spawn_count: exact nonnegative integer
+observation_source: independent_harness_os_monitor
+```
+
+Only `independent_harness_os_monitor` may satisfy a checkpoint. The harness
+constructs it from the retained direct-child handle, fresh `proc_pidinfo`,
+nonblocking `waitpid`, registered kqueue/poll state, pipe kernel endpoints, and
+its private spawn registry. `process_start_pair_changed` therefore means only
+that the fresh OS-observed PID/start pair differs from the immutable accepted
+binding; it never summarizes a child claim. A receipt, copied binding, or peer
+value cannot satisfy liveness.
+
+LV03 alone emits one separately typed child-authored report:
+
+```yaml
+liveness_adversarial_report_schema: CrossDomainOccupancyLivenessAdversarialReport.v1
+proof_scenario: cross-domain-canonical-occupancy-materialization-v1
+occurrence_id: exact fresh LV03 occurrence
+case_id: LV03
+checkpoint_id: L2
+domain_role: domain_A
+command_sequence: 5
+action_id: emit_changed_start_report
+operational_process_instance_id: exact original binding identity
+process_binding_raw_sha256: exact original binding digest
+report_sequence: 0
+reported_pid: exact immutable binding PID
+reported_macos_process_start:
+  seconds: exact immutable binding seconds plus 1
+  microseconds: exact immutable binding microseconds
+report_source: adversarial_child_report
+```
+
+This report is adversarial input, not a liveness observation. It cannot satisfy
+a checkpoint or populate an `independent_harness_os_monitor` field. The harness
+retains its exact bytes and separately samples the real PID/start pair before
+classifying the explicit report-to-binding-and-OS mismatch.
+
 A registered macOS `kqueue` `EVFILT_PROC` / `NOTE_EXIT` watch, nonblocking
 `waitpid`, pipe EOF watches, and fresh `proc_pidinfo` samples provide the
-independent observations. Six exact liveness adversaries independently exercise
-exit watch, wait status, process-start mismatch, control EOF, structured-output
-EOF, and replacement spawn. None can be hidden by copied output.
+independent observations. Liveness adversaries use one harness-private plan;
+only LV03–LV05 also send one process-side failure-only invocation on the
+original stdin pipe. Neither channel can produce a passing checkpoint.
+
+```yaml
+liveness_plan_schema: CrossDomainOccupancyLivenessAdversaryPlan.v1
+proof_scenario: cross-domain-canonical-occupancy-materialization-v1
+occurrence_id: exact fresh registered liveness occurrence
+case_id: LV01 | LV02 | LV03 | LV04 | LV05 | LV06
+base_schedule: exact W1 canonical and command prefix through named checkpoint
+domain_role: exact table role
+checkpoint_id: exact table checkpoint
+edge: after_checkpoint_acceptance
+channel: harness_process_control | original_stdin
+action_id: kill_original_child_note_exit | kill_original_child_waitpid | emit_changed_start_report | close_control_read_endpoint | close_structured_output_write_endpoint | spawn_copied_label_replacement
+expected_first_failure: exact table monitor predicate
+terminal_liveness_failure_code: original_process_exit | original_process_wait_status | reported_process_start_pair_mismatch | original_control_pipe_closed | original_output_pipe_closed | copied_label_replacement_detected
+harness_run_id: exact current harness run
+```
+
+```yaml
+liveness_invocation_schema: CrossDomainOccupancyLivenessAdversaryInvocation.v1
+proof_scenario: cross-domain-canonical-occupancy-materialization-v1
+command_sequence: exact table sequence
+operation: execute_liveness_adversary_once
+case_id: LV03 | LV04 | LV05
+action_id: emit_changed_start_report | close_control_read_endpoint | close_structured_output_write_endpoint
+operational_process_instance_id: exact original bound process
+liveness_plan_raw_sha256: exact authenticated private-plan digest
+```
+
+```yaml
+liveness_arm_receipt_schema: CrossDomainOccupancyLivenessAdversaryArmReceipt.v1
+proof_scenario: cross-domain-canonical-occupancy-materialization-v1
+case_id: exact LV03 | LV04 | LV05
+action_id: exact matching action
+operational_process_instance_id: exact original bound process
+liveness_invocation_raw_sha256: exact measured stdin-line digest
+arm_state: armed_once_before_action
+```
+
+The six-case matrix is exact. Every case uses a fresh pair and the exact W1
+prefix; “after” means after both domains' checkpoint rows are accepted and
+before any next normal action. `SIGKILL` is sent only to the exact retained
+direct-child PID. For LV01 the kqueue event is consumed before `waitpid`; for
+LV02 the terminal `waitpid` status is consumed before the queued kqueue event.
+At the first required failure, the sole global guard transitions to absorbing
+`failed_closed` and both original domains receive terminal
+`protocol_invalid / physical_protocol_violation` dispositions. Any row's
+preserved synchronized, head-unconfirmed, or stale wording describes only its
+last Actor generation and live census before that terminal disposition; it is
+not a surviving current-head claim.
+
+| Case | Role | Checkpoint / edge | Channel and exact action | Required first failing observation | Exact terminal trace and disposition |
+|---|---|---|---|---|---|
+| LV01 | A | L0 / after | `kill_original_child_note_exit`: harness `kill(original_A_pid, SIGKILL)` | `original_child_handle_exit_observed=true` from `NOTE_EXIT` | accepted traces end at L0; both originals terminal protocol-invalid; `liveness_failure_code=original_process_exit`; B's last physical generation/census remains R0; canonical R0 unchanged; terminate pair |
+| LV02 | B | L1 / after | `kill_original_child_waitpid`: harness `kill(original_B_pid, SIGKILL)` | `wait_status_available=true` with exact non-null status | accepted traces end at L1; both originals terminal protocol-invalid; `liveness_failure_code=original_process_wait_status`; A's last physical generation/census remains head-unconfirmed R0; exact Rtransit unchanged; terminate pair |
+| LV03 | A | L2 / after | `emit_changed_start_report`: stdin sequence 5; arm receipt, then emit the exact closed LV03 adversarial-report row whose reported start seconds equal immutable binding seconds plus 1 | reported start pair differs from both immutable binding and fresh `proc_pidinfo`; the independent terminal sample retains `process_start_pair_changed=false` | process trace appends entered then completed `liveness_LV03_emit_changed_start_report` events and binds the report identity; both originals terminal protocol-invalid; `liveness_failure_code=reported_process_start_pair_mismatch`; B's last physical generation/census remains stale R0; exact Rtransit unchanged; terminate pair |
+| LV04 | B | L3 / after | `close_control_read_endpoint`: stdin sequence 6; arm receipt, emit the entered action event, then close original fd 0 read endpoint and emit the completed action event on fd 1 | harness poll of retained control write endpoint reports `POLLERR` or `POLLHUP`; `control_pipe_unexpected_eof=true` | process trace ends with entered then completed `liveness_LV04_close_control_read_endpoint` events; both originals terminal protocol-invalid; `liveness_failure_code=original_control_pipe_closed`; A's last physical generation/census remains Rtransit; exact Rtransit unchanged; terminate pair |
+| LV05 | A | L5 / after | `close_structured_output_write_endpoint`: stdin sequence 9; arm receipt, flush prior output, emit the entered action event, flush it, then close original fd 1 write endpoint | harness read/kqueue on retained structured-output endpoint reports EOF; `structured_output_pipe_unexpected_eof=true` | process trace ends with the entered `liveness_LV05_close_structured_output_write_endpoint` event and no completed event; both originals terminal protocol-invalid; `liveness_failure_code=original_output_pipe_closed`; B's last physical generation/census remains head-unconfirmed Rtransit; exact Rfinal unchanged; terminate pair |
+| LV06 | B | L7 / after | `spawn_copied_label_replacement`: harness launches one fresh third child from a new disjoint root with copied B labels while original B remains alive | private spawn registry records `replacement_spawn_count=1`; new PID/start/binding cannot equal original | replacement is `unbound / binding_not_accepted` with zero process trace; both originals terminal protocol-invalid; `liveness_failure_code=copied_label_replacement_detected`; last physical generations remain B/Rtransit and A/Rfinal; exact Rfinal unchanged; terminate all three |
+
+The liveness plan and any process invocation/receipt obey the detached-byte
+law. LV03–LV05 commands are accepted only for witness ID
+`liveness_adversary`, their exact case/role/checkpoint/sequence rows, and one
+unused arm; all cross-products reject. Their process trace has the successful
+checkpoint prefix, the exact named liveness action edge, and no later normal
+command. LV01, LV02, and LV06 retain exact harness action/OS-call evidence and
+have no invented process command. No case changes canonical bytes or the
+peer's last valid detached physical state.
 
 The required liveness checkpoints are:
 
@@ -1285,7 +1499,7 @@ rule:
 ```yaml
 materialize_invocation_schema: CrossDomainOccupancyMaterializeInvocation.v1
 proof_scenario: cross-domain-canonical-occupancy-materialization-v1
-command_sequence: exact profile/control/fault-bound integer 1 through 12
+command_sequence: exact profile/control/fault/asymmetric-failure-bound integer 1 through 12
 operation_id: launch_0001 | refresh_0001 | refresh_0002
 operation: materialize_initial | refresh_once
 relative_bundle_root: exact table row, without dot, slash prefix, or traversal
@@ -1294,7 +1508,7 @@ relative_bundle_root: exact table row, without dot, slash prefix, or traversal
 ```yaml
 inspection_invocation_schema: CrossDomainOccupancyInspectionInvocation.v1
 proof_scenario: cross-domain-canonical-occupancy-materialization-v1
-command_sequence: exact profile/control/fault-bound positive integer
+command_sequence: exact profile/control/fault/asymmetric-failure-bound positive integer
 operation: inspect_published_occupancy_once
 inspection_id: inspection_0001 | inspection_0002 | inspection_0003 | inspection_0004 | inspection_0005 | inspection_0006 | inspection_0007 | inspection_0008 | inspection_0009 | inspection_c1_terminal_0001 | inspection_c2_rejection_0001 | inspection_c3_rejection_0001
 ```
@@ -1304,7 +1518,8 @@ is sequence 5 or 6 according to first/second refresh role, RF is sequence 10 or
 11, I0/I1/I2/I4/I5/I6/I8 are sequences 2/3/4/7/8/9/12, and I3/I7 are sequence
 5 or 6 / 10 or 11 according to whether that process is still stale or already
 refreshed. The W table chooses the only legal profile per process. The exact
-control and fault sequences below are separate closed rows. All other
+control, fault, asymmetric-failure, and liveness-adversary sequences below are
+separate closed rows. All other
 cross-products reject. The process records the measured raw SHA-256 of every
 accepted stdin line in its trace before dispatch.
 
@@ -1375,9 +1590,12 @@ armed_harness_operation_id: exact matching operation
 arm_state: armed_once
 ```
 
-Both channels are one-shot and case-table-bound. A second arm, unused arm,
-cross-channel stage, unexpected operation, altered plan, or environment, argv,
-file, console, signal, timer, debugger, or witness-ID selector rejects.
+Both fault channels are one-shot and case-table-bound. The distinct liveness
+channel admits only the exact LV03–LV05 invocation/receipt rows declared in the
+lifetime section; LV01, LV02, and LV06 have no stdin command. A second or
+unused arm, cross-channel stage, unexpected operation, altered plan, or
+environment, argv, file, console, signal, timer, debugger, or witness-ID
+selector rejects.
 
 Every bundle directory is beneath its role-private process root, contains
 exactly the three regular files and no link, has a distinct device/inode for
@@ -1390,8 +1608,9 @@ other-domain descriptors, and shared writable ancestors reject.
 The proof-semantic input audit freezes the complete process-visible surface:
 ordered argv, redacted complete environment, cwd, inherited descriptors,
 executable, project, config/module inventory, loaded images/runtime
-dependencies, map, binding command, ordered normal/fault commands, and exact
-bundle opens. Foundational UE/platform inputs are inventoried and hash-bound;
+dependencies, map, binding command, ordered normal/fault/liveness-adversary
+commands, and exact bundle opens. Foundational UE/platform inputs are
+inventoried and hash-bound;
 only the one activation selector, binding, exact commands, canonical bytes,
 projection bytes, and enumerated live Actor slots may reach their declared
 Phase-4 roles. All other fields may identify evidence only. The audit
@@ -1639,28 +1858,55 @@ A boolean unchanged summary is never sufficient.
 
 ## Asymmetric failure obligations
 
-The exact asymmetric failure cases are:
+AF01–AF04 use four separate closed stdin schedules. `TOKEN@n` means the exact
+normal token schema already declared above with process-local
+`command_sequence: n`; `valid` selects the exact frozen three-file row, while
+`AFxx-malformed` uses that same legal relative bundle root and exact legal
+operation-invocation bytes but places the case's fresh malformed projection
+bytes in the not-yet-consumed projection member before process launch. I4 is
+`inspection_0005`; I8 is `inspection_0009`. A pre-publication M09 rejection
+consumes that one refresh attempt but leaves the predecessor stale, the
+original pipe usable for the one displayed census, and no retry enabled.
 
-```yaml
-AF01_Rtransit_A_success_B_failure:
-  A: synchronized_Rtransit
-  B: rejects_before_begin_publication_and_remains_stale_R0
-AF02_Rtransit_B_success_A_failure:
-  B: synchronized_Rtransit
-  A: rejects_before_begin_publication_and_remains_stale_R0
+| Case | Exact domain-A stdin after bind | Exact domain-B stdin after bind | Exact harness/canonical ordering |
+|---|---|---|---|
+| AF01 | M0@1, I0@2, RT-valid@3, I4@4 | M0@1, I0@2, RT-AF01-malformed@3, I4@4 | accept both I0 at R0; exact start/head/stale/open; accept A RT then A I4 at Rtransit; reject B RT at M09; accept B I4 at stale R0; terminate pair |
+| AF02 | M0@1, I0@2, RT-AF02-malformed@3, I4@4 | M0@1, I0@2, RT-valid@3, I4@4 | accept both I0 at R0; exact start/head/stale/open; accept B RT then B I4 at Rtransit; reject A RT at M09; accept A I4 at stale R0; terminate pair |
+| AF03 | M0@1, I0@2, RT-valid@3, I4@4, RF-valid@5, I8@6 | M0@1, I0@2, RT-valid@3, I4@4, RF-AF03-malformed@5, I8@6 | accept both I0 at R0; exact start/head/stale/open; accept A RT/I4 then B RT/I4; exact completion/head/stale/open; accept A RF then A I8 at Rfinal; reject B RF at M09; accept B I8 at stale Rtransit; terminate pair |
+| AF04 | M0@1, I0@2, RT-valid@3, I4@4, RF-AF04-malformed@5, I8@6 | M0@1, I0@2, RT-valid@3, I4@4, RF-valid@5, I8@6 | accept both I0 at R0; exact start/head/stale/open; accept A RT/I4 then B RT/I4; exact completion/head/stale/open; accept B RF then B I8 at Rfinal; reject A RF at M09; accept A I8 at stale Rtransit; terminate pair |
 
-AF03_Rfinal_A_success_B_failure:
-  A: synchronized_Rfinal
-  B: rejects_before_begin_publication_and_remains_stale_Rtransit
-AF04_Rfinal_B_success_A_failure:
-  B: synchronized_Rfinal
-  A: rejects_before_begin_publication_and_remains_stale_Rtransit
-```
+No AF schedule is a W1–W4 profile, control schedule, or configurable fault row.
+Every different token, sequence, role, order, bundle-root, projection member,
+inspection ID, retry, or cross-product rejects.
 
-Each failure uses a fresh process-bound live adapter path. The failure input,
-rejection stage, disposition, prior anchor/Actor identity, target-head receipt
-absence, peer liveness, peer representation, and canonical before/after state
-must be recorded. A symmetric label swap is not sufficient evidence.
+Each failed refresh consumes an exact same-length malformed projection. Its
+bytes equal the frozen target projection bytes except for the sole
+`projection_id` substitution shown below; every other byte and the one terminal
+LF remain exact. The operation invocation remains the exact legal role/head row
+and therefore still names the original frozen projection digest. The adapter
+completes M01–M08, enters
+`M09_authenticate_and_validate_projection`, measures the displayed unrecognized
+raw digest, and rejects there with
+`projection_raw_sha256_not_frozen`. M09 does not complete; M10–M23 do not run;
+no target receipt or target-generation object exists.
+
+The exact asymmetric failure matrix is:
+
+| Case | Exact setup and successful refresh | Failed role / operation | Sole projection-ID substitution | Malformed projection raw SHA-256 | Exact failed trace / physical outcome |
+|---|---|---|---|---|---|
+| AF01 | fresh R0 pair; exact Rtransit commit/head; A exact `refresh_0001` succeeds | B / `refresh_0001` | `cross_domain_B_Rtransit_0001` → `cross_domain_Z_Rtransit_0001` | `beb2d2e1c574220ac31901162e58993f46108769f89394ef2df4812c9c84fc3d` | B refresh trace has M01–M08 completed, M09 entered/rejected and no M09 completion; B I4 then confirms stale R0; A synchronized Rtransit; exact Rtransit unchanged |
+| AF02 | fresh R0 pair; exact Rtransit commit/head; B exact `refresh_0001` succeeds | A / `refresh_0001` | `cross_domain_A_Rtransit_0001` → `cross_domain_Z_Rtransit_0001` | `13d76645353c813c480c323e380697e5f5ea24be10ab0eb80e4a3d789c060c6f` | A refresh trace has M01–M08 completed, M09 entered/rejected and no M09 completion; A I4 then confirms stale R0; B synchronized Rtransit; exact Rtransit unchanged |
+| AF03 | fresh pair synchronized Rtransit by exact A-then-B setup; exact Rfinal commit/head; A exact `refresh_0002` succeeds | B / `refresh_0002` | `cross_domain_B_Rfinal_0001` → `cross_domain_Z_Rfinal_0001` | `88c518da37a6311fe43a5a2cc83d56c1dd412939da716019503ee1cbb4a45b87` | B refresh trace has M01–M08 completed, M09 entered/rejected and no M09 completion; B I8 then confirms stale Rtransit; A synchronized Rfinal; exact Rfinal unchanged |
+| AF04 | fresh pair synchronized Rtransit by exact A-then-B setup; exact Rfinal commit/head; B exact `refresh_0002` succeeds | A / `refresh_0002` | `cross_domain_A_Rfinal_0001` → `cross_domain_Z_Rfinal_0001` | `0c16b9a80158e78ebdd688a87335248d91b9d0843ef08a35e6ef2897825de26b` | A refresh trace has M01–M08 completed, M09 entered/rejected and no M09 completion; A I8 then confirms stale Rtransit; B synchronized Rfinal; exact Rfinal unchanged |
+
+Each case uses a fresh process pair and a fresh malformed three-file bundle
+created before the failed command; no accepted input file is mutated in place.
+The artifact records the complete malformed bytes and measured digest, original
+process bindings, exact command sequence, prior anchor/Actor rows, target-head
+receipt absence, both live peer censuses, dispositions, and complete canonical
+record/ledger/ancestry/reservation/unresolved-work snapshots before and after.
+A symmetric label swap or a configurable failure stage is not sufficient
+evidence.
 
 An asymmetric failure may not cause the successful peer to roll back, cause the
 failed domain to publish a partial target state, or change canonical history.
@@ -1731,6 +1977,13 @@ use the harness-private plan/receipt and bind case, harness run, stage, edge,
 and harness operation without exposing a value to Unreal. An unarmed branch,
 wrong process or harness run, wrong channel, wrong stage, repeated arm, unused
 arm, or extra injection API rejects.
+
+Liveness adversaries are not a configurable fault-injection branch. They are
+the separate exact LV01–LV06 table: LV03–LV05 alone use their process-side
+liveness invocation and arm receipt, while LV01, LV02, and LV06 execute their
+named harness process-control action with no Unreal command. A liveness plan,
+invocation, receipt, role, checkpoint, edge, sequence, action, first failing
+observation, or terminal disposition outside its one exact row rejects.
 
 The 23 ordered materialization stages are:
 
@@ -1881,7 +2134,8 @@ disposable Actor identity fields.
 
 Every launch, command, materialization, observation, disposition, liveness
 sample, fault, and adversary survives as a registered occurrence. Unreal-side
-work is process-bound; HF and O11/O12 harness work is harness-run-bound.
+work is process-bound; HF, O11/O12, and all liveness monitor/control actions are
+harness-run-bound.
 Compact summaries that cannot reconstruct every occurrence are rejected.
 
 The exact runtime event schema is:
@@ -1894,10 +2148,10 @@ operational_process_instance_id: exact original binding
 process_binding_raw_sha256: exact binding digest
 domain_role: domain_A | domain_B
 command_sequence: exact nonnegative integer
-command_schema: exact bind/materialize/inspect/fault schema
+command_schema: exact bind/materialize/inspect/fault/liveness-adversary schema
 command_raw_sha256: exact measured canonical stdin-line digest
-operation_id: bind_0001 | launch_0001 | refresh_0001 | refresh_0002 | inspection_0001 | inspection_0002 | inspection_0003 | inspection_0004 | inspection_0005 | inspection_0006 | inspection_0007 | inspection_0008 | inspection_0009 | inspection_c1_terminal_0001 | inspection_c2_rejection_0001 | inspection_c3_rejection_0001 | fault_case
-stage_id: exact binding | M01-M23 | O01-O10 process stage
+operation_id: bind_0001 | launch_0001 | refresh_0001 | refresh_0002 | inspection_0001 | inspection_0002 | inspection_0003 | inspection_0004 | inspection_0005 | inspection_0006 | inspection_0007 | inspection_0008 | inspection_0009 | inspection_c1_terminal_0001 | inspection_c2_rejection_0001 | inspection_c3_rejection_0001 | fault_case | liveness_LV03 | liveness_LV04 | liveness_LV05
+stage_id: exact binding | M01-M23 | O01-O10 process stage | exact liveness_LV03-LV05 action
 stage_edge: entered | completed | fault_injected
 publication_generation: publication_0001 | publication_0002 | publication_0003 | null
 represented_canonical_hash: exact accepted historical/local hash | null
@@ -1910,25 +2164,51 @@ Harness-private stages use a separate trace with no process-command fiction:
 
 ```yaml
 harness_trace_schema: CrossDomainOccupancyHarnessTraceEvent.v1
-trace_sequence: contiguous integer beginning at 0 per harness fault occurrence
-harness_fault_occurrence_id: exact HF | OF harness occurrence
+trace_sequence: contiguous integer beginning at 0 per harness operation occurrence
+harness_occurrence_id: exact witness control fault adversary or replay occurrence
 harness_run_id: exact current harness run
-case_id: exact case-table value
-harness_operation_id: head_observation_0001 | head_observation_0002 | exact inspection occurrence
-stage_id: exact head-publication stage | O11 | O12
-stage_edge: entered | completed | fault_injected
-harness_fault_plan_raw_sha256: exact authenticated plan digest
-harness_fault_arm_receipt_raw_sha256: exact authenticated arm-receipt digest
+execution_mode: successful | fault_injected | liveness_adversary
+case_id: null for successful mode | exact HF01-HF18 or OF011-OF012 or OF023-OF024 or OF035-OF036 for fault mode | exact LV01-LV06 for liveness mode
+harness_operation_id: head_observation_0001 | head_observation_0002 | inspection_0001 | inspection_0002 | inspection_0003 | inspection_0004 | inspection_0005 | inspection_0006 | inspection_0007 | inspection_0008 | inspection_0009 | inspection_c1_terminal_0001 | inspection_c2_rejection_0001 | inspection_c3_rejection_0001 | liveness_LV01 | liveness_LV02 | liveness_LV03 | liveness_LV04 | liveness_LV05 | liveness_LV06
+stage_id: open_source | pre_stat_source | read_source_once | post_stat_source | authenticate_record | construct_private_observation | write_and_fsync_candidate | atomic_publish | reopen_and_reverify | O11 | O12 | kill_original_child_note_exit | kill_original_child_waitpid | compare_report_binding_and_proc | observe_control_pipe_error_or_hup | observe_structured_output_eof | spawn_copied_label_replacement
+stage_edge: entered | completed | fault_injected | failure_observed
+harness_fault_plan_raw_sha256: exact authenticated plan digest for fault mode | null otherwise
+harness_fault_arm_receipt_raw_sha256: exact authenticated arm-receipt digest for fault mode | null otherwise
+liveness_plan_raw_sha256: exact authenticated plan digest for liveness mode | null otherwise
+liveness_observation_raw_sha256: exact terminal independent observation digest at liveness failure_observed edge | null otherwise
+liveness_adversarial_report_raw_sha256: exact LV03 report digest at LV03 failure_observed edge | null otherwise
 canonical_before_after_snapshot_raw_sha256: exact complete measurement digest
 ```
 
 Successful materialization commands contain the 23 completed process events in
 order. Successful inspections contain O01–O10 in the process trace followed by
-O11–O12 in the paired harness trace. Fault traces equal the exact successful
-prefix through the armed edge and contain no later success event. Every stdin
-write/complete read, output write/complete read, and descriptor identity is
-cross-bound to the process trace; every private plan/arm/acceptance step is
-cross-bound to the harness trace.
+O11–O12 in the paired `execution_mode: successful` harness trace; fault and
+liveness digest fields are exactly null. Successful head observations likewise
+use successful-mode harness traces across all nine completed publication
+stages. Fault-mode traces require non-null matching fault-plan and arm-receipt
+digests, null liveness digests, equal the exact successful prefix through the
+armed edge, and contain no later success event.
+
+Liveness-mode harness traces use this closed mapping:
+
+| Case | Exact harness operation | Exact stage | Exact ordered edges |
+|---|---|---|---|
+| LV01 | `liveness_LV01` | `kill_original_child_note_exit` | entered, completed, failure_observed |
+| LV02 | `liveness_LV02` | `kill_original_child_waitpid` | entered, completed, failure_observed |
+| LV03 | `liveness_LV03` | `compare_report_binding_and_proc` | entered, failure_observed |
+| LV04 | `liveness_LV04` | `observe_control_pipe_error_or_hup` | entered, failure_observed |
+| LV05 | `liveness_LV05` | `observe_structured_output_eof` | entered, failure_observed |
+| LV06 | `liveness_LV06` | `spawn_copied_label_replacement` | entered, completed, failure_observed |
+
+Every liveness event binds the exact non-null liveness-plan digest and null
+fault digests. Its sole terminal `failure_observed` event binds the exact
+independent terminal liveness observation; LV03 alone also binds the non-null
+adversarial-report digest, and every other event has that field null. The
+mode/case/operation/stage/edge/nullability cross-product is closed: any missing,
+additional, reordered, cross-mode, or mismatched value rejects.
+Every stdin write/complete read, output write/complete read, and descriptor
+identity is cross-bound to the process trace; every private
+operation/plan/arm/acceptance step is cross-bound to the harness trace.
 
 The process-occurrence registry is one closed
 `CrossDomainOccupancyProcessOccurrenceRegistry.v1` object with a row for every
@@ -1968,7 +2248,7 @@ source_checks:
   - S19_no_route_transform_timer_collision_animation_navigation_authority
   - S20_no_physical_completion_or_successor_path
   - S21_no_peer_state_or_liveness_input
-  - S22_process_and_harness_fault_channels_reachable_only_in_named_fresh_cases
+  - S22_process_harness_fault_and_liveness_adversary_channels_reachable_only_in_named_fresh_cases
   - S23_complete_runtime_command_handler_graph
   - S24_complete_cpp_call_surface_census
   - S25_complete_input_api_occurrence_census
@@ -2450,6 +2730,11 @@ capacity increase.
 
 - Closed the independent `STOP_WITH_FINDINGS` review of exact candidate commit
   `b31c2895aec82c9688f6525219598b9ac1a274cc` without granting implementation.
+- Closed the later final freeze-review `STOP_WITH_FINDINGS` against commit
+  `299aa865c5757fb63aeef27a9c4eb48554dcea6f`: froze detached JSON bytes and
+  LF-inclusive raw digests, separated logical binding validation order from
+  recursive stored-key order, made LV01–LV06 and AF01–AF04 field-exact, and
+  made successful and injected harness traces schema-complete.
 - Replaced premature Unreal `synchronized` claims with
   `locally_published_unverified`; only the later harness disposition may
   synchronize after independent expectation and exhaustive live census.
