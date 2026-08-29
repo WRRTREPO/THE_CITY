@@ -1,7 +1,7 @@
 # Simultaneous Physical Domains Proof Evidence
 
 **Version:** 0.1.1
-**Date:** 2026-08-28
+**Date:** 2026-08-29
 **Status:** Implementation evidence passed; evidence unsealed pending independent review
 **Specification:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md)
 **Proof harness identity:** `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`
@@ -19,9 +19,10 @@
 The bounded implementation passes this claim. This document records a release
 candidate for separate evidence review. It does not seal the result.
 
-This is a new forward corrective candidate after review of
-`06f058311ca00cab0b98ca376d327ca0a26a9a5e`. It preserves pushed history and
-does not accept or seal any earlier implementation candidate.
+This is a new forward corrective candidate after the independent
+`STOP_WITH_REQUIRED_CORRECTIONS` review of
+`6e4a69322365f06341bd4155fff0beada55266ab`. It preserves history and does not
+accept or seal that implementation candidate.
 
 ## Exact canonical reuse
 
@@ -89,11 +90,15 @@ head-role, prevalidated tuple, environment, or alternate-reader input. The
 receipt asserts disposable representation correspondence only. It grants no
 current-head or canonical authority.
 
-Before first materialization, each accepted child emits an independently
-checked runtime-provenance report. It binds all 22 process-binding members to
-observed process state, exact argv and redacted environment, cwd, fd 0/1/2
-kernel identities, project/config/module inventory, entry-map identity, loaded
-Mach-O paths and UUIDs, and the initial world Actor-class inventory. The final
+Before first materialization, each accepted child emits a checked
+runtime-provenance report. It exactly verifies all 22 process-binding members:
+two against compiled identity constants, six against child-visible launch-state
+observations or derivations, and fourteen against independent process
+observations. Witness and domain identity come from the real child process-root
+path, not from the declared stdin binding. The report also records exact argv
+and redacted environment, cwd, fd 0/1/2 kernel identities,
+project/config/module inventory, entry-map identity, loaded Mach-O paths and
+UUIDs, and the initial world Actor-class inventory. The final
 record contains 154 unique accepted Unreal process identities across 170
 intentional evidence occurrences. One catalog-backed loaded-image inventory
 contains 1,719 image rows: 771 filesystem images independently hashed and
@@ -131,6 +136,8 @@ refresh_fault_injections: 36/36 fresh_process_bound_compiled_adapter_or_router_b
 physical_observation_fault_injections: 24/24 fresh_process_bound_live_probe_router_or_harness_boundaries
 current_head_authority_cases: 37/37 exact_case_ID_to_action_rows_executed
 process_binding_field_adversaries: 22/22 fresh_processes_rejected_before_provenance_or_materialization
+coordinated_witness_and_launch_relabel: 1/1 fresh_process_rejected_before_provenance_or_materialization
+total_binding_adversary_processes: 23
 canonical_before_after_measurements: record_ledger_ancestry_schedule_recomputed_per_case
 canonical_R1_rollback_or_rewrite: none
 partial_current_head_authority: none
@@ -150,7 +157,14 @@ one exact three-file H1 bundle. A process-bound runtime trace covers every
 stdin command, exact bundle-directory inventory, opened bundle-file read,
 engine asset dependency, and independent live-world probe read. The released
 registry contains 2,178 contiguous trace events, including 464 exact stdin
-command-byte observations. The evidence records:
+command-byte observations. Every successful inspection is bound to the exact
+three-stage live-world trace, while every injected observation fault is bound
+to its exact stage prefix. Each child derives `witness_id` and `domain_role`
+from its own real process-root path; the stdin declaration is not their source.
+The 22 binding fields are recorded with honest verification modes: two compiled
+constant identities, six child-visible launch-state observations or
+derivations, and fourteen independent process observations. The evidence
+records:
 
 ```yaml
 proof_semantic_closure_complete: true
@@ -162,9 +176,13 @@ other_domain_state_visible_to_unreal: false
 expected_physical_result_visible_to_probe: false
 ```
 
-The independently rerun function-scoped source/dataflow audit passes 36/36
-checks and rejects 10/10 source mutations. It enumerates 13 exact runtime input
-read sites and 11 source-verified dispatch/dataflow edges. It confirms that the
+The independently rerun function-scoped source/dataflow audit passes 38/38
+checks and rejects 12/12 source mutations. It enumerates 13 exact runtime input
+read sites, 11 source-verified dispatch/dataflow edges, and an exact
+69-occurrence input-API census over every Phase-3 translation unit plus the
+bounded GameMode surface. It rejects a reachable router-level undeclared file
+read and replacement of child-observed witness identity with the declared
+binding value. It confirms that the
 sealed Phase-1 resolver remains the sole canonical mutation owner, that the
 authoritative constructor consumes only payload and projection, that no
 head-observation or guard input reaches Unreal, that the live probe is separated
@@ -178,23 +196,25 @@ target or peer identities, binding digests, birth tuples, domain evidence, or
 bound results across the 36-row and 24-row matrices. Its independent 37-row
 authority contract fixes each action's execution path, rejection stage, reason,
 and concrete live or deterministic input, including cross-references to the
-specific stored witnesses. Forty isolated in-memory adversaries exercise these
+specific stored witnesses. Forty-one isolated in-memory adversaries exercise these
 bindings, compact provenance reconstruction, runtime traces, catalogs, process
-registry, source binding, and field matrix; none is accepted.
+registry, source binding, and field matrix. The added adversary deletes all
+three successful `refresh_physical_0001` live-world events, renumbers the trace,
+and recomputes its summary; it is rejected. None is accepted.
 
 ## Determinism, replay, build, and release
 
 ```yaml
-phase_3_focused_tests: 38/38
+phase_3_focused_tests: 40/40
 predecessor_regressions: 215/215
 specification_validator: 12/12
 specification_validator_adversaries: 35/35
-ue_version: 5.8.0-55116800-++UE5+Release-5.8
+ue_version: 5.8.0-55116800+++UE5+Release-5.8
 ue_editor_build: succeeded_with_DisableUnity
 live_witnesses: 11/11
 artifact_roles: 44/44
 release_manifest_members_excluding_manifest: 111/111
-release_verifier_adversaries: 40/40_rejected
+release_verifier_adversaries: 41/41_rejected
 manifest_self_excluding: true
 canonical_replay: byte_identical
 W1_W2_semantic_replay: equal
@@ -216,7 +236,7 @@ others. The self-excluding manifest contains the frozen 67 non-artifact members
 plus those 44 artifacts, sorted by raw UTF-8 relative-path bytes. The release
 verifier rehashes every member, reconstructs deterministic artifacts, validates
 operational witness relations, reconstructs all compact child provenance,
-reconciles the 154-member unique process registry, reruns all 38 focused tests,
+reconciles the 154-member unique process registry, reruns all 40 focused tests,
 reperforms the source/dataflow audit, and rejects CPU-only W3, Python-only live
 fault matrices, swapped authority labels/actions, hard-coded unchanged-history
 claims, provenance/trace/catalog mutations, missing process rows, incomplete

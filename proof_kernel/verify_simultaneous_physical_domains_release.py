@@ -55,7 +55,12 @@ from simultaneous_physical_domains import (
     validate_physical_observation,
     write_json,
 )
-from simultaneous_physical_domains_harness import _source_audit
+from simultaneous_physical_domains_harness import (
+    BINDING_VERIFICATION_MODES,
+    LIVE_WORLD_READ_STAGES,
+    PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS,
+    _source_audit,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -574,13 +579,12 @@ def _verify_compact_runtime_provenance(
     expected_rows = [
         {
             "field": field_name,
-            "verification_mode": (
-                "fixed_schema_or_cross_field_derivation"
-                if index <= 4 else "independent_process_observation"
+            "verification_mode": BINDING_VERIFICATION_MODES.get(
+                field_name, "independent_process_observation"
             ),
             "matched": True,
         }
-        for index, field_name in enumerate(PROCESS_BINDING_FIELDS)
+        for field_name in PROCESS_BINDING_FIELDS
     ]
     if (
         set(report) != report_required
@@ -753,7 +757,10 @@ def _verify_compact_runtime_provenance(
     expected_validation = {
         "validation_schema": "SimultaneousPhysicalDomainRuntimeProvenanceValidation.v1",
         "binding_field_count": len(PROCESS_BINDING_FIELDS),
-        "all_binding_fields_independently_matched": True,
+        "all_binding_fields_exactly_matched": True,
+        "compiled_constant_binding_field_count": 2,
+        "child_visible_launch_identity_field_count": 6,
+        "independent_process_observation_field_count": 14,
         "descriptor_kernel_identities_match_spawn_endpoints": True,
         "entry_map_file_independently_rehashed": True,
         "initial_actor_inventory_raw_sha256": sha256_value(actor_rows),
@@ -884,19 +891,51 @@ def _verify_runtime_input_trace(
             ):
                 raise ValueError("runtime live-world trace drift")
             live_world_count += 1
-    inspections = [
-        command for command in commands
-        if command.get("operation") == "inspect_published_route_once"
+    expected_live_world: list[tuple[str, str]] = []
+    valid_inspection_count = 0
+    full_inspection_count = 0
+    fault_prefix_inspection_count = 0
+    armed_physical_stage: str | None = None
+    for command in commands:
+        if (
+            command.get("operation") == "arm_exact_fault_once"
+            and command.get("fault_surface") == "physical_observation"
+            and command.get("fault_stage")
+            in PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS
+        ):
+            armed_physical_stage = command["fault_stage"]
+            continue
+        if command.get("operation") != "inspect_published_route_once":
+            continue
+        inspection_id = command.get("inspection_id")
+        try:
+            exact_inspection = inspection_invocation(
+                binding["domain_role"], inspection_id
+            )
+        except Exception:
+            continue
+        if command != exact_inspection:
+            continue
+        valid_inspection_count += 1
+        stage_count = len(LIVE_WORLD_READ_STAGES)
+        if armed_physical_stage is not None:
+            stage_count = PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS[
+                armed_physical_stage
+            ]
+            fault_prefix_inspection_count += 1
+            armed_physical_stage = None
+        else:
+            full_inspection_count += 1
+        expected_live_world.extend(
+            (inspection_id, stage) for stage in LIVE_WORLD_READ_STAGES[:stage_count]
+        )
+    observed_live_world = [
+        (row["metadata"]["inspection_id"], row["metadata"]["read_stage"])
+        for row in rows if row["input_class"] == "live_world_state"
     ]
-    inspection_ids = {command.get("inspection_id") for command in inspections}
-    traced_ids = {
-        row["metadata"].get("inspection_id") for row in rows
-        if row["input_class"] == "live_world_state"
-    }
     if (
         directory_count < 1 or file_count < 3 or engine_asset_count < 2
-        or live_world_count > len(inspections) * 3
-        or not traced_ids.issubset(inspection_ids)
+        or observed_live_world != expected_live_world
     ):
         raise ValueError("runtime trace omits a required launch input class")
     expected_validation = {
@@ -908,6 +947,10 @@ def _verify_runtime_input_trace(
         "bundle_file_event_count": file_count,
         "engine_asset_event_count": engine_asset_count,
         "live_world_event_count": live_world_count,
+        "valid_inspection_command_count": valid_inspection_count,
+        "full_three_stage_inspection_count": full_inspection_count,
+        "fault_prefix_inspection_count": fault_prefix_inspection_count,
+        "exact_live_world_stage_sequences_matched": True,
         "all_events_contiguous_and_process_bound": True,
         "all_stdin_commands_byte_bound": True,
         "alternate_runtime_input_path_observed": False,
@@ -1763,9 +1806,11 @@ def _binding_field_expected_reason(field_name: str) -> str:
 
 def _verify_binding_field_adversaries(value: Any) -> None:
     if not isinstance(value, dict) or set(value) != {
+        "all_coordinated_relabels_rejected",
         "all_fields_mutated_exactly_once", "all_rejected_before_materialization",
         "cases", "field_count", "field_order", "fresh_live_unreal_process_count",
-        "matrix_schema", "proof_scenario",
+        "matrix_schema", "proof_scenario", "coordinated_relabel_case_count",
+        "coordinated_relabel_cases",
     }:
         raise ValueError("binding-field adversary matrix exact member set drift")
     cases = value.get("cases")
@@ -1775,11 +1820,14 @@ def _verify_binding_field_adversaries(value: Any) -> None:
         or value.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
         or value.get("field_order") != list(PROCESS_BINDING_FIELDS)
         or value.get("field_count") != len(PROCESS_BINDING_FIELDS)
-        or value.get("fresh_live_unreal_process_count") != len(PROCESS_BINDING_FIELDS)
+        or value.get("fresh_live_unreal_process_count")
+        != len(PROCESS_BINDING_FIELDS) + 1
         or value.get("all_fields_mutated_exactly_once") is not True
         or value.get("all_rejected_before_materialization") is not True
         or not isinstance(cases, list)
         or len(cases) != len(PROCESS_BINDING_FIELDS)
+        or value.get("coordinated_relabel_case_count") != 1
+        or value.get("all_coordinated_relabels_rejected") is not True
     ):
         raise ValueError("binding-field adversary matrix summary drift")
     expected_case_members = {
@@ -1868,6 +1916,81 @@ def _verify_binding_field_adversaries(value: Any) -> None:
         ):
             raise ValueError(f"binding-field termination evidence drift: {field_name}")
 
+    coordinated = value.get("coordinated_relabel_cases")
+    coordinated_members = {
+        "adversarial_bind_command", "adversarial_process_binding", "case_id",
+        "case_schema", "expected_reason_code", "mutated_fields",
+        "nominal_process_binding", "observed_failure",
+        "operational_process_instance_id_recomputed",
+        "rejected_before_materialization", "rejected_before_runtime_provenance",
+        "runtime_trace_event_count", "termination",
+    }
+    if not isinstance(coordinated, list) or len(coordinated) != 1:
+        raise ValueError("coordinated binding adversary is absent")
+    case = coordinated[0]
+    if not isinstance(case, dict) or set(case) != coordinated_members:
+        raise ValueError("coordinated binding adversary exact member set drift")
+    nominal = case.get("nominal_process_binding")
+    adversarial = case.get("adversarial_process_binding")
+    if not isinstance(nominal, dict) or not isinstance(adversarial, dict):
+        raise ValueError("coordinated binding adversary lacks exact bindings")
+    _validated_process_binding(
+        nominal, expected_role="domain_A", expected_witness_id="w1_a_then_b"
+    )
+    changed = [
+        name for name in PROCESS_BINDING_FIELDS
+        if nominal.get(name) != adversarial.get(name)
+    ]
+    failure = case.get("observed_failure")
+    termination = case.get("termination")
+    birth = (
+        nominal["pid"], nominal["macos_process_start"]["seconds"],
+        nominal["macos_process_start"]["microseconds"],
+    )
+    if (
+        case.get("case_schema")
+        != "SimultaneousPhysicalDomainCoordinatedBindingAdversary.v1"
+        or case.get("case_id")
+        != "coordinated_witness_and_harness_launch_relabel"
+        or case.get("mutated_fields") != ["witness_id", "harness_launch_id"]
+        or changed != ["witness_id", "harness_launch_id"]
+        or adversarial.get("witness_id") != "w2_b_then_a"
+        or adversarial.get("harness_launch_id")
+        != "w2_b_then_a/domain_A/launch_0001"
+        or case.get("adversarial_bind_command") != bind_invocation(adversarial)
+        or case.get("operational_process_instance_id_recomputed") is not True
+        or case.get("expected_reason_code") != "binding_field_mismatch/witness_id"
+        or case.get("rejected_before_runtime_provenance") is not True
+        or case.get("rejected_before_materialization") is not True
+        or case.get("runtime_trace_event_count") != 0
+        or birth in births
+    ):
+        raise ValueError("coordinated witness/launch relabel adversary drift")
+    if (
+        not isinstance(failure, dict) or set(failure) != failure_members
+        or failure.get("diagnostic_schema")
+        != "SimultaneousPhysicalDomainFailure.v1"
+        or failure.get("proof_scenario") != "simultaneous-physical-domains-v1.1"
+        or failure.get("domain_role") != "unbound"
+        or failure.get("local_publication_stage")
+        != "process_binding_identity_verification"
+        or failure.get("reason_code") != "binding_field_mismatch/witness_id"
+        or failure.get("operational_process_instance_id") != ""
+        or failure.get("process_binding_raw_sha256") != ""
+        or failure.get("represented_hash_if_known") != ""
+    ):
+        raise ValueError("coordinated binding rejection evidence drift")
+    if (
+        not isinstance(termination, dict) or set(termination) != termination_members
+        or termination.get("domain_role") != "domain_A"
+        or termination.get("pid") != nominal["pid"]
+        or termination.get("terminated") is not True
+        or type(termination.get("wait_status")) is not int
+        or not _is_sha256_text(termination.get("diagnostic_stream_raw_sha256"))
+        or termination.get("canonical_input_from_terminated_output") is not False
+    ):
+        raise ValueError("coordinated binding termination evidence drift")
+
 
 def _verify_runtime_input_audit_contract(value: Any) -> None:
     required = {
@@ -1911,8 +2034,8 @@ def _verify_runtime_input_audit_contract(value: Any) -> None:
         or value.get("all_refreshes_original_stdin_pipe_only") is not True
         or value.get("runtime_valid_process_expected_count") != 154
         or value.get("runtime_valid_process_observed_count") != 154
-        or value.get("source_audit_check_count") != 36
-        or value.get("source_audit_adversary_count") != 10
+        or value.get("source_audit_check_count") != 38
+        or value.get("source_audit_adversary_count") != 12
         or not _is_sha256_text(value.get("source_audit_raw_sha256"))
         or value.get("fault_process_audits") != {
             "refresh_case_count": 36,
@@ -1925,8 +2048,12 @@ def _verify_runtime_input_audit_contract(value: Any) -> None:
     if (
         value.get("source_audit_raw_sha256") != sha256_value(source_audit)
         or source_audit.get("all_checks_passed") is not True
-        or source_audit.get("check_count") != 36
-        or source_audit.get("source_audit_adversaries", {}).get("case_count") != 10
+        or source_audit.get("check_count") != 38
+        or source_audit.get("source_audit_adversaries", {}).get("case_count") != 12
+        or source_audit.get("input_api_occurrence_count") != 69
+        or source_audit.get("complete_phase3_input_api_census", {}).get(
+            "exact_allowlist_match"
+        ) is not True
         or source_audit.get("source_audit_adversaries", {}).get("all_rejected")
         is not True
     ):
@@ -2496,6 +2623,39 @@ def _run_verifier_negative_tests() -> int:
     payload = copy.deepcopy(domain_source)
     payload["runtime_input_trace"][0]["observed_raw_sha256"] = "0" * 64
     reject("runtime_input_trace_tamper", payload, domain_verifier)
+    successful_trace = copy.deepcopy(
+        _load("physical_W1_a_then_b_witness.json")["domains"]["domain_A"]
+    )
+    successful_trace["runtime_input_trace"] = [
+        row for row in successful_trace["runtime_input_trace"]
+        if not (
+            row["input_class"] == "live_world_state"
+            and row["metadata"].get("inspection_id")
+            == "refresh_physical_0001"
+        )
+    ]
+    for sequence, row in enumerate(
+        successful_trace["runtime_input_trace"], start=1
+    ):
+        row["sequence"] = sequence
+    trace_validation = successful_trace["runtime_input_trace_validation"]
+    trace_validation["event_count"] = len(successful_trace["runtime_input_trace"])
+    trace_validation["last_sequence"] = len(successful_trace["runtime_input_trace"])
+    trace_validation["live_world_event_count"] -= 3
+    trace_validation["full_three_stage_inspection_count"] -= 1
+    trace_validation["runtime_input_trace_raw_sha256"] = sha256_value(
+        successful_trace["runtime_input_trace"]
+    )
+    reject(
+        "successful_refresh_live_world_trace_deleted_and_summary_recomputed",
+        successful_trace,
+        lambda evidence: _verify_domain_evidence(
+            evidence,
+            expected_role="domain_A",
+            expected_witness_id="w1_a_then_b",
+            input_audit=_runtime_input_audit(),
+        ),
+    )
     payload = copy.deepcopy(_runtime_input_audit())
     catalog_digest = domain_source["runtime_provenance"][
         "loaded_image_inventory_reference"
@@ -2526,7 +2686,7 @@ def _run_verifier_negative_tests() -> int:
     payload["source_audit_raw_sha256"] = "0" * 64
     reject("source_audit_digest_tamper", payload, _verify_runtime_input_audit_contract)
 
-    if rejected != 40:
+    if rejected != 41:
         raise ValueError(f"negative verifier rejection count drift: {rejected}")
     return rejected
 
@@ -2539,7 +2699,7 @@ def _run_focused_tests() -> None:
         [sys.executable, "-m", "unittest", "test_simultaneous_physical_domains.py"],
         cwd=ROOT / "proof_kernel", env=environment, capture_output=True, text=True,
     )
-    if result.returncode != 0 or "Ran 38 tests" not in result.stderr or "OK" not in result.stderr:
+    if result.returncode != 0 or "Ran 40 tests" not in result.stderr or "OK" not in result.stderr:
         raise ValueError(f"focused Phase-3 tests failed:\n{result.stdout}\n{result.stderr}")
 
 
@@ -2616,7 +2776,7 @@ def main() -> int:
     arguments = parser.parse_args()
     if arguments.command == "artifacts":
         verify_artifacts()
-        print("verified exact 44/44 Phase-3 artifacts; verifier adversaries 40/40 rejected; evidence remains unsealed")
+        print("verified exact 44/44 Phase-3 artifacts; verifier adversaries 41/41 rejected; evidence remains unsealed")
         return 0
     if arguments.command == "write-release":
         count = write_release()
@@ -2624,7 +2784,7 @@ def main() -> int:
         if not EVIDENCE.is_file() or not MANIFEST.is_file():
             raise SystemExit("release verification unavailable: evidence document or manifest missing")
         count = verify_release()
-    print(f"verified {count}/{count} release members; verifier adversaries 40/40 rejected; manifest excludes itself; evidence remains unsealed")
+    print(f"verified {count}/{count} release members; verifier adversaries 41/41 rejected; manifest excludes itself; evidence remains unsealed")
     return 0
 
 

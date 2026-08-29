@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
 **Version:** 0.7.0-draft.77
-**Status:** Canonical Occupancy Transition Proof v0.1.0 remains the latest sealed proof under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md) remains frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. Its latest forward-corrected bounded implementation and 44/111 release candidate are complete: 12/12 validator checks, 35/35 validator adversaries, 38/38 focused tests, 215/215 predecessor regressions, UE 5.8 build, 11/11 live-process witnesses, 154 accepted runtime-provenance closures, 22/22 binding-field adversaries, executable guard and fault surfaces, a 36-check source/dataflow audit with 10/10 adversaries rejected, canonical equivalence, and replay pass. Evidence remains unsealed pending independent review. Capacity and every frozen contract boundary remain unchanged; Phase 4 remains closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Status:** Canonical Occupancy Transition Proof v0.1.0 remains the latest sealed proof under `CanonicalOccupancyTransitionPayload.v1` / `0.7.0-draft.65`; Development Capacity v0.1.11 remains governing. [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md) remains frozen under proof-harness identity `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. Its latest forward-corrected bounded implementation and 44/111 release candidate are complete: 12/12 validator checks, 35/35 validator adversaries, 40/40 focused tests, 215/215 predecessor regressions, UE 5.8 build, 11/11 live-process witnesses, 154 accepted runtime-provenance closures, 22/22 single-field binding adversaries plus one coordinated relabel adversary, executable guard and fault surfaces, a 38-check source/dataflow audit with 12/12 adversaries rejected and an exact 69-occurrence input-API census, canonical equivalence, and replay pass. The release verifier rejects 41/41 adversaries, including a recomputed successful-trace deletion. Evidence remains unsealed pending independent review. Capacity and every frozen contract boundary remain unchanged; Phase 4 remains closed. THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -107,8 +107,10 @@ are process-bound, all 37 authority rows use the exact frozen action table, and
 canonical history is mechanically measured around every applicable adversary.
 Its live runtime evidence has been reacquired with 154 accepted child
 provenance closures, field-by-field rejection of all 22 declared binding
-members, exact loaded-image and initial-Actor inventories, and process-bound
-runtime input traces. Its 44/111 release candidate passes verification.
+members plus one coordinated witness/launch relabel, exact loaded-image and
+initial-Actor inventories, and process-bound runtime input traces with exact
+successful three-stage and injected-fault-prefix obligations. Its 44/111
+release candidate passes verification.
 Evidence remains unsealed pending independent review; capacity remains
 unchanged.
 
@@ -191,7 +193,7 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 
 ## Changelog
 
-### 0.7.0-draft.77 — 2026-08-28
+### 0.7.0-draft.77 — 2026-08-29
 
 - Preserved pushed history through `c8aeaca3b020c1ca17172464cbdb68437eb099cf`
   and froze the operator-authorized v0.1.1 corrective proof-local command
@@ -208,19 +210,20 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 - Hardened the release verifier against CPU-only W3 evidence, Python-only live
   fault matrices, swapped authority labels/actions, hard-coded unchanged
   history, provenance/trace/catalog drift, incomplete process registries,
-  binding-field omissions, and source-audit mismatch; all 40/40 in-memory
+  binding-field omissions, successful-trace deletion, and source-audit mismatch; all 41/41 in-memory
   adversaries are rejected.
 - Bound every accepted child to all 22 process-binding fields through a
   pre-materialization runtime report, exact loaded-image/UUID and initial-Actor
   inventories, descriptor kernel identities, and a contiguous runtime input
-  trace. Rejected one-field mutations in 22/22 fresh Unreal processes before
-  provenance or materialization.
-- Replaced token-only authority auditing with 36 function-scoped source/dataflow
+  trace. Rejected one-field mutations in 22/22 fresh Unreal processes and one
+  coordinated witness/launch relabel before provenance or materialization.
+- Replaced token-only authority auditing with 38 function-scoped source/dataflow
   checks, 13 enumerated runtime input read sites, 11 verified call-graph edges,
-  and 10/10 rejected source mutations. The authoritative constructor now
+  an exact 69-occurrence input-API census, and 12/12 rejected source mutations.
+  The authoritative constructor now
   consumes only exact payload and exact projection.
 - Passed the 12/12 specification validator, 35/35 specification mutations,
-  38/38 focused tests, UE 5.8 build, exact 44 artifact verification, and
+  40/40 focused tests, UE 5.8 build, exact 44 artifact verification, and
   regenerated the self-excluding 111-member unsealed release candidate.
 - Evidence remains unsealed, Development Capacity remains v0.1.11, and Phase 4
   remains closed.

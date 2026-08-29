@@ -67,6 +67,9 @@ from simultaneous_physical_domains import (
 )
 from canonical_spatial_topology_identity import stored_json_bytes as phase1_bytes
 from simultaneous_physical_domains_harness import (
+    BINDING_VERIFICATION_MODES,
+    LIVE_WORLD_READ_STAGES,
+    PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS,
     PROCESS_BINDING_FIELDS,
     _binding_field_expected_reason,
     _mutate_one_binding_field,
@@ -460,9 +463,9 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
 
     def test_34_source_audit_is_function_scoped_and_adversarial(self) -> None:
         audit = _source_audit()
-        self.assertEqual(audit["check_count"], 36)
+        self.assertEqual(audit["check_count"], 38)
         self.assertTrue(audit["all_checks_passed"])
-        self.assertEqual(audit["source_audit_adversaries"]["case_count"], 10)
+        self.assertEqual(audit["source_audit_adversaries"]["case_count"], 12)
         self.assertTrue(audit["source_audit_adversaries"]["all_rejected"])
 
     def test_35_authoritative_constructor_accepts_only_payload_projection(self) -> None:
@@ -501,7 +504,45 @@ class SimultaneousPhysicalDomainsTests(unittest.TestCase):
             "binding_field_loop_omits_diagnostic_pipe",
             "loaded_image_inventory_removed",
             "live_world_trace_removed",
+            "router_reachable_undeclared_file_read",
         }.issubset(identifiers))
+
+    def test_39_binding_verification_modes_are_exact_and_honest(self) -> None:
+        modes = [
+            BINDING_VERIFICATION_MODES.get(
+                field_name, "independent_process_observation"
+            )
+            for field_name in PROCESS_BINDING_FIELDS
+        ]
+        self.assertEqual(modes.count("compiled_constant_identity"), 2)
+        self.assertEqual(
+            sum(mode.startswith("child_visible_launch_state_") for mode in modes),
+            6,
+        )
+        self.assertEqual(modes.count("independent_process_observation"), 14)
+        self.assertEqual(
+            BINDING_VERIFICATION_MODES["witness_id"],
+            "child_visible_launch_state_observation",
+        )
+
+    def test_40_live_world_trace_fault_prefixes_are_exact(self) -> None:
+        self.assertEqual(tuple(LIVE_WORLD_READ_STAGES), (
+            "player_and_input_inventory",
+            "representation_actor_enumeration",
+            "mesh_label_component_state",
+        ))
+        self.assertEqual(
+            set(PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS),
+            set(PHYSICAL_OBSERVATION_FAULT_STAGES),
+        )
+        self.assertEqual(
+            PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS["live_world_actor_enumeration"],
+            1,
+        )
+        self.assertEqual(
+            PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS["physical_observation_emission"],
+            3,
+        )
 
 
 if __name__ == "__main__":

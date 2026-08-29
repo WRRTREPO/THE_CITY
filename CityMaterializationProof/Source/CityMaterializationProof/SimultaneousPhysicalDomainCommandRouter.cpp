@@ -767,10 +767,15 @@ bool BuildObservedBindingAndRuntimeProvenance(
         return false;
     }
     const FString ObservedRole = FPaths::GetCleanFilename(ProcessRootRealpath);
+    const FString ObservedWitnessId = FPaths::GetCleanFilename(FPaths::GetPath(ProcessRootRealpath));
+    const FString ProcessIdentityContainer = FPaths::GetCleanFilename(
+        FPaths::GetPath(FPaths::GetPath(ProcessRootRealpath)));
     if ((ObservedRole != TEXT("domain_A") && ObservedRole != TEXT("domain_B")) ||
+        !IsAllowedWitnessId(ObservedWitnessId) ||
+        ProcessIdentityContainer != TEXT("processes") ||
         (ObservedRole == TEXT("domain_A") ? WinX != TEXT("30") : WinX != TEXT("990")))
     {
-        OutReason = TEXT("binding_domain_role_observation_failed");
+        OutReason = TEXT("binding_launch_identity_observation_failed");
         return false;
     }
 
@@ -839,12 +844,10 @@ bool BuildObservedBindingAndRuntimeProvenance(
 
     TSharedPtr<FJsonObject> Observed = MakeShared<FJsonObject>();
     Observed->SetStringField(TEXT("binding_schema"), BindingSchema);
-    FString WitnessId;
-    Binding->TryGetStringField(TEXT("witness_id"), WitnessId);
     Observed->SetStringField(TEXT("proof_scenario"), Scenario);
-    Observed->SetStringField(TEXT("witness_id"), WitnessId);
+    Observed->SetStringField(TEXT("witness_id"), ObservedWitnessId);
     Observed->SetStringField(TEXT("domain_role"), ObservedRole);
-    Observed->SetStringField(TEXT("harness_launch_id"), FString::Printf(TEXT("%s/%s/launch_0001"), *WitnessId, *ObservedRole));
+    Observed->SetStringField(TEXT("harness_launch_id"), FString::Printf(TEXT("%s/%s/launch_0001"), *ObservedWitnessId, *ObservedRole));
     Observed->SetNumberField(TEXT("pid"), Pid);
     TSharedPtr<FJsonObject> ProcessStart = MakeShared<FJsonObject>();
     ProcessStart->SetNumberField(TEXT("seconds"), static_cast<double>(ProcessInfo.pbi_start_tvsec));
@@ -875,6 +878,31 @@ bool BuildObservedBindingAndRuntimeProvenance(
         TEXT("inherited_descriptor_map_raw_sha256"), TEXT("control_pipe_id"), TEXT("structured_output_pipe_id"),
         TEXT("diagnostic_pipe_id"),
     };
+    const TCHAR* VerificationModes[] = {
+        TEXT("compiled_constant_identity"),
+        TEXT("compiled_constant_identity"),
+        TEXT("child_visible_launch_state_observation"),
+        TEXT("child_visible_launch_state_observation"),
+        TEXT("child_visible_launch_state_derivation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("child_visible_launch_state_derivation"),
+        TEXT("child_visible_launch_state_derivation"),
+        TEXT("child_visible_launch_state_derivation"),
+    };
+    static_assert(UE_ARRAY_COUNT(Fields) == UE_ARRAY_COUNT(VerificationModes));
     TArray<TSharedPtr<FJsonValue>> VerificationRows;
     for (int32 Index = 0; Index < UE_ARRAY_COUNT(Fields); ++Index)
     {
@@ -903,9 +931,7 @@ bool BuildObservedBindingAndRuntimeProvenance(
         }
         TSharedPtr<FJsonObject> Row = MakeShared<FJsonObject>();
         Row->SetStringField(TEXT("field"), Fields[Index]);
-        Row->SetStringField(
-            TEXT("verification_mode"),
-            Index <= 4 ? TEXT("fixed_schema_or_cross_field_derivation") : TEXT("independent_process_observation"));
+        Row->SetStringField(TEXT("verification_mode"), VerificationModes[Index]);
         Row->SetBoolField(TEXT("matched"), true);
         VerificationRows.Add(MakeShared<FJsonValueObject>(Row));
     }

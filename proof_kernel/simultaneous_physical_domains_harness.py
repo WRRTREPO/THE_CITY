@@ -17,6 +17,7 @@ import fcntl
 import hashlib
 import json
 import os
+import re
 import select
 import shutil
 import signal
@@ -112,6 +113,120 @@ PROCESS_BINDING_FIELDS = (
     "launch_cwd_realpath", "inherited_descriptor_map_raw_sha256",
     "control_pipe_id", "structured_output_pipe_id", "diagnostic_pipe_id",
 )
+
+BINDING_VERIFICATION_MODES = {
+    "binding_schema": "compiled_constant_identity",
+    "proof_scenario": "compiled_constant_identity",
+    "witness_id": "child_visible_launch_state_observation",
+    "domain_role": "child_visible_launch_state_observation",
+    "harness_launch_id": "child_visible_launch_state_derivation",
+    "control_pipe_id": "child_visible_launch_state_derivation",
+    "structured_output_pipe_id": "child_visible_launch_state_derivation",
+    "diagnostic_pipe_id": "child_visible_launch_state_derivation",
+}
+
+LIVE_WORLD_READ_STAGES = (
+    "player_and_input_inventory",
+    "representation_actor_enumeration",
+    "mesh_label_component_state",
+)
+
+PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS = {
+    "inspection_invocation_read": 0,
+    "immutable_process_binding_verification": 0,
+    "role_probe_tag_derivation": 0,
+    "live_world_actor_enumeration": 1,
+    "exact_actor_count_check": 2,
+    "live_mesh_component_lookup": 2,
+    "live_mesh_visibility_and_material_parameter_read": 2,
+    "live_label_component_lookup": 2,
+    "live_label_visibility_text_and_color_read": 2,
+    "independent_surface_consistency_classification": 2,
+    "physical_observation_emission": 3,
+    "harness_receipt_observation_head_cross_check": 3,
+}
+
+# This census is deliberately broader than the reachable call graph: every
+# application-level input API in all Phase-3 translation units must be one of
+# these exact, counted occurrences.  A new read anywhere in the router,
+# adapter, representation actor, or probe therefore fails closed even before
+# reachability is argued.
+PHASE3_INPUT_API_PATTERNS = {
+    "command_line_get": r"\bFCommandLine::Get\s*\(",
+    "ns_get_argc": r"\b_NSGetArgc\s*\(",
+    "ns_get_argv": r"\b_NSGetArgv\s*\(",
+    "ns_get_environ": r"\b_NSGetEnviron\s*\(",
+    "ns_get_executable_path": r"\b_NSGetExecutablePath\s*\(",
+    "project_file_path": r"\bFPaths::GetProjectFilePath\s*\(",
+    "engine_content_dir": r"\bFPaths::EngineContentDir\s*\(",
+    "process_birth": r"\bproc_pidinfo\s*\(",
+    "descriptor_stat": r"(?<![A-Za-z0-9_])fstat\s*\(",
+    "descriptor_flags": r"(?<![A-Za-z0-9_])fcntl\s*\(",
+    "filesystem_stat": r"(?<![A-Za-z0-9_])stat\s*\(",
+    "dyld_image_count": r"\b_dyld_image_count\s*\(",
+    "dyld_image_name": r"\b_dyld_get_image_name\s*\(",
+    "dyld_image_header": r"\b_dyld_get_image_header\s*\(",
+    "filesystem_realpath": r"(?<![A-Za-z0-9_])realpath\s*\(",
+    "posix_open": r"(?<![A-Za-z0-9_])open\s*\(",
+    "posix_read": r"::read\s*\(",
+    "directory_find_files": r"\bIFileManager::Get\(\)\.FindFiles\s*\(",
+    "engine_asset_load": r"\bLoadObject\s*<",
+    "world_actor_iteration": r"\bTActorIterator\s*<",
+    "world_package_read": r"\bGetOutermost\s*\(",
+    "resolve_realpath_gateway": r"\bResolveRealpath\s*\(",
+    "hash_regular_file_gateway": r"\bHashRegularFileRawSha256\s*\(",
+    "resolve_hash_file_gateway": r"\bResolveAndHashRegularFile\s*\(",
+    "strict_directory_gateway": r"\bStrictDirectory\s*\(",
+    "stored_bytes_gateway": r"\bLoadStoredBytesNoFollow\s*\(",
+    "visible_tuple_gateway": r"\bLoadVisibleTuple\s*\(",
+    "forbidden_file_helper_load": r"\bFFileHelper::LoadFileTo[A-Za-z0-9_]*\s*\(",
+    "forbidden_archive_reader": r"\bCreateFileReader\s*\(",
+    "forbidden_platform_open_read": r"\bOpenRead\s*\(",
+    "forbidden_file_exists": r"\b(?:FileExists|DirectoryExists|IterateDirectory)\s*\(",
+    "forbidden_c_stream": r"(?<![A-Za-z0-9_])(?:fopen|freopen)\s*\(",
+    "forbidden_posix_read_variant": r"(?<![A-Za-z0-9_])(?:openat|pread|readv|mmap)\s*\(",
+    "forbidden_cpp_stream": r"\b(?:std::)?(?:ifstream|fstream)\b",
+    "forbidden_cpp_filesystem": r"\bstd::filesystem\b",
+    "forbidden_environment_read": r"\b(?:getenv|GetEnvironmentVariable)\s*\(",
+    "forbidden_cwd_read": r"\b(?:getcwd|GetCurrentWorkingDirectory)\s*\(",
+    "forbidden_dynamic_library_read": r"(?<![A-Za-z0-9_])(?:dlopen|dlsym)\s*\(",
+    "forbidden_socket_read": r"(?<![A-Za-z0-9_])(?:socket|recv|recvfrom)\s*\(",
+}
+
+PHASE3_INPUT_API_EXPECTED_COUNTS = {
+    ("CityProofGameMode.cpp", "command_line_get"): 7,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "ns_get_argc"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "ns_get_argv"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "ns_get_environ"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "ns_get_executable_path"): 2,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "project_file_path"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "engine_content_dir"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "process_birth"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "descriptor_stat"): 2,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "descriptor_flags"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "filesystem_stat"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "dyld_image_count"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "dyld_image_name"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "dyld_image_header"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "filesystem_realpath"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "posix_open"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "posix_read"): 2,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "world_actor_iteration"): 1,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "world_package_read"): 2,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "resolve_realpath_gateway"): 12,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "hash_regular_file_gateway"): 5,
+    ("SimultaneousPhysicalDomainCommandRouter.cpp", "resolve_hash_file_gateway"): 2,
+    ("SimultaneousPhysicalDomainProofAdapter.cpp", "descriptor_stat"): 1,
+    ("SimultaneousPhysicalDomainProofAdapter.cpp", "posix_open"): 1,
+    ("SimultaneousPhysicalDomainProofAdapter.cpp", "posix_read"): 1,
+    ("SimultaneousPhysicalDomainProofAdapter.cpp", "directory_find_files"): 1,
+    ("SimultaneousPhysicalDomainProofAdapter.cpp", "strict_directory_gateway"): 2,
+    ("SimultaneousPhysicalDomainProofAdapter.cpp", "stored_bytes_gateway"): 4,
+    ("SimultaneousPhysicalDomainProofAdapter.cpp", "visible_tuple_gateway"): 3,
+    ("SimultaneousPhysicalDomainRepresentationActor.cpp", "engine_asset_load"): 2,
+    ("SimultaneousPhysicalDomainRepresentationActor.cpp", "resolve_hash_file_gateway"): 2,
+    ("SimultaneousPhysicalRebindProbe.cpp", "world_actor_iteration"): 4,
+}
 
 _FILE_IDENTITY_CACHE: dict[tuple[str, int, int, int], dict[str, Any]] = {}
 _RUNTIME_LOADED_IMAGE_CATALOG: dict[str, dict[str, Any]] = {}
@@ -756,7 +871,9 @@ def _launch_domain(
     *,
     binding_mutator: Callable[[dict[str, Any]], None] | None = None,
 ) -> LiveDomain:
-    domain_root = runtime_root / role
+    # The child derives witness and role identity from this real, child-visible
+    # launch path.  The later stdin binding is never the source of either value.
+    domain_root = runtime_root / "processes" / witness_id / role
     for name in ("user", "temp", "diagnostic"):
         (domain_root / name).mkdir(parents=True, exist_ok=False)
     launch_bundle = _prepare_bundle(domain_root, role, "H0", "launch", None)
@@ -931,12 +1048,72 @@ def _acquire_binding_field_adversaries(runtime_parent: Path) -> dict[str, Any]:
                     domain.terminate()
                 except BaseException:
                     pass
+
+    coordinated_domain: LiveDomain | None = None
+    coordinated_termination: dict[str, Any] | None = None
+    try:
+        def relabel_witness_and_launch(binding: dict[str, Any]) -> None:
+            binding["witness_id"] = "w2_b_then_a"
+            binding["harness_launch_id"] = "w2_b_then_a/domain_A/launch_0001"
+
+        coordinated_domain = _launch_domain(
+            runtime_parent / "23_coordinated_witness_launch_relabel",
+            "w1_a_then_b",
+            "domain_A",
+            binding_mutator=relabel_witness_and_launch,
+        )
+        changed = [
+            name for name in PROCESS_BINDING_FIELDS
+            if coordinated_domain.nominal_binding[name]
+            != coordinated_domain.binding[name]
+        ]
+        if changed != ["witness_id", "harness_launch_id"]:
+            raise RuntimeError("coordinated binding relabel changed the wrong fields")
+        failure = coordinated_domain.next_object(_is_failure)
+        coordinated_domain.drain()
+        if (
+            failure.get("reason_code") != "binding_field_mismatch/witness_id"
+            or failure.get("local_publication_stage")
+            != "process_binding_identity_verification"
+            or failure.get("domain_role") != "unbound"
+            or failure.get("operational_process_instance_id") != ""
+            or failure.get("process_binding_raw_sha256") != ""
+            or failure.get("represented_hash_if_known") != ""
+            or coordinated_domain.runtime_provenance is not None
+            or coordinated_domain.runtime_input_trace
+            or any(_is_receipt(value) for value in coordinated_domain.parsed_objects)
+        ):
+            raise RuntimeError(
+                "coordinated witness/launch relabel did not fail before materialization"
+            )
+        coordinated_termination = coordinated_domain.terminate()
+        coordinated_case = {
+            "case_schema": "SimultaneousPhysicalDomainCoordinatedBindingAdversary.v1",
+            "case_id": "coordinated_witness_and_harness_launch_relabel",
+            "mutated_fields": ["witness_id", "harness_launch_id"],
+            "nominal_process_binding": coordinated_domain.nominal_binding,
+            "adversarial_process_binding": coordinated_domain.binding,
+            "adversarial_bind_command": bind_invocation(coordinated_domain.binding),
+            "operational_process_instance_id_recomputed": True,
+            "expected_reason_code": "binding_field_mismatch/witness_id",
+            "observed_failure": failure,
+            "rejected_before_runtime_provenance": True,
+            "rejected_before_materialization": True,
+            "runtime_trace_event_count": 0,
+            "termination": coordinated_termination,
+        }
+    finally:
+        if coordinated_domain is not None and coordinated_termination is None:
+            try:
+                coordinated_domain.terminate()
+            except BaseException:
+                pass
     return {
         "matrix_schema": "SimultaneousPhysicalDomainBindingFieldAdversaryMatrix.v1",
         "proof_scenario": PROOF_SCENARIO,
         "field_order": list(PROCESS_BINDING_FIELDS),
         "field_count": len(PROCESS_BINDING_FIELDS),
-        "fresh_live_unreal_process_count": len(rows),
+        "fresh_live_unreal_process_count": len(rows) + 1,
         "cases": rows,
         "all_fields_mutated_exactly_once": [
             row["mutated_field"] for row in rows
@@ -944,6 +1121,9 @@ def _acquire_binding_field_adversaries(runtime_parent: Path) -> dict[str, Any]:
         "all_rejected_before_materialization": all(
             row["rejected_before_materialization"] for row in rows
         ),
+        "coordinated_relabel_case_count": 1,
+        "coordinated_relabel_cases": [coordinated_case],
+        "all_coordinated_relabels_rejected": True,
     }
 
 
@@ -1042,13 +1222,12 @@ def _validate_runtime_provenance(
     expected_rows = [
         {
             "field": name,
-            "verification_mode": (
-                "fixed_schema_or_cross_field_derivation"
-                if index <= 4 else "independent_process_observation"
+            "verification_mode": BINDING_VERIFICATION_MODES.get(
+                name, "independent_process_observation"
             ),
             "matched": True,
         }
-        for index, name in enumerate(PROCESS_BINDING_FIELDS)
+        for name in PROCESS_BINDING_FIELDS
     ]
     if (
         value.get("audit_schema") != "SimultaneousPhysicalDomainRuntimeProvenance.v1"
@@ -1164,8 +1343,20 @@ def _validate_runtime_provenance(
     validation = {
         "validation_schema": "SimultaneousPhysicalDomainRuntimeProvenanceValidation.v1",
         "binding_field_count": len(expected_rows),
-        "all_binding_fields_independently_matched": all(
+        "all_binding_fields_exactly_matched": all(
             row["matched"] for row in expected_rows
+        ),
+        "compiled_constant_binding_field_count": sum(
+            row["verification_mode"] == "compiled_constant_identity"
+            for row in expected_rows
+        ),
+        "child_visible_launch_identity_field_count": sum(
+            row["verification_mode"].startswith("child_visible_launch_state_")
+            for row in expected_rows
+        ),
+        "independent_process_observation_field_count": sum(
+            row["verification_mode"] == "independent_process_observation"
+            for row in expected_rows
         ),
         "descriptor_kernel_identities_match_spawn_endpoints": True,
         "entry_map_file_independently_rehashed": True,
@@ -1287,19 +1478,49 @@ def _validate_runtime_trace(domain: LiveDomain) -> dict[str, Any]:
             ):
                 raise RuntimeError("live-world trace stage drift")
             live_world_count += 1
-    inspection_commands = [
-        command for command in domain.commands
-        if command.get("operation") == "inspect_published_route_once"
+    expected_live_world: list[tuple[str, str]] = []
+    valid_inspection_count = 0
+    full_inspection_count = 0
+    fault_prefix_inspection_count = 0
+    armed_physical_stage: str | None = None
+    for command in domain.commands:
+        if (
+            command.get("operation") == "arm_exact_fault_once"
+            and command.get("fault_surface") == "physical_observation"
+            and command.get("fault_stage")
+            in PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS
+        ):
+            armed_physical_stage = command["fault_stage"]
+            continue
+        if command.get("operation") != "inspect_published_route_once":
+            continue
+        inspection_id = command.get("inspection_id")
+        try:
+            exact_inspection = inspection_invocation(domain.role, inspection_id)
+        except Exception:
+            continue
+        if command != exact_inspection:
+            continue
+        valid_inspection_count += 1
+        stage_count = len(LIVE_WORLD_READ_STAGES)
+        if armed_physical_stage is not None:
+            stage_count = PHYSICAL_FAULT_LIVE_WORLD_PREFIX_COUNTS[
+                armed_physical_stage
+            ]
+            fault_prefix_inspection_count += 1
+            armed_physical_stage = None
+        else:
+            full_inspection_count += 1
+        expected_live_world.extend(
+            (inspection_id, stage) for stage in LIVE_WORLD_READ_STAGES[:stage_count]
+        )
+    observed_live_world = [
+        (row["metadata"]["inspection_id"], row["metadata"]["read_stage"])
+        for row in rows if row["input_class"] == "live_world_state"
     ]
-    inspection_ids = {command.get("inspection_id") for command in inspection_commands}
-    traced_inspection_ids = {
-        row["metadata"].get("inspection_id") for row in rows
-        if row["input_class"] == "live_world_state"
-    }
     if (
         directory_count < 1 or file_count < 3 or engine_asset_count < 2
-        or live_world_count > len(inspection_commands) * 3
-        or not traced_inspection_ids.issubset(inspection_ids)
+        or observed_live_world != expected_live_world
     ):
         raise RuntimeError("runtime trace omits a required launch input class")
     return {
@@ -1311,6 +1532,10 @@ def _validate_runtime_trace(domain: LiveDomain) -> dict[str, Any]:
         "bundle_file_event_count": file_count,
         "engine_asset_event_count": engine_asset_count,
         "live_world_event_count": live_world_count,
+        "valid_inspection_command_count": valid_inspection_count,
+        "full_three_stage_inspection_count": full_inspection_count,
+        "fault_prefix_inspection_count": fault_prefix_inspection_count,
+        "exact_live_world_stage_sequences_matched": True,
         "all_events_contiguous_and_process_bound": True,
         "all_stdin_commands_byte_bound": True,
         "alternate_runtime_input_path_observed": False,
@@ -2672,6 +2897,63 @@ def _token_line(text: str, token: str, *, start: int = 0, end: int | None = None
     return text.count("\n", 0, at) + 1
 
 
+def _phase3_input_api_census(
+    unreal_text: Mapping[str, str],
+    game_mode: str,
+) -> dict[str, Any]:
+    sources = {
+        name: text for name, text in unreal_text.items() if name.endswith(".cpp")
+    }
+    sources["CityProofGameMode.cpp"] = game_mode
+    actual_counts: dict[tuple[str, str], int] = {}
+    rows: list[dict[str, Any]] = []
+    for file_name, text in sorted(sources.items()):
+        for api_name, pattern in PHASE3_INPUT_API_PATTERNS.items():
+            matches = list(re.finditer(pattern, text))
+            if not matches:
+                continue
+            actual_counts[(file_name, api_name)] = len(matches)
+            for match in matches:
+                rows.append({
+                    "source_path": (
+                        "CityMaterializationProof/Source/CityMaterializationProof/"
+                        f"{file_name}"
+                    ),
+                    "source_line": text.count("\n", 0, match.start()) + 1,
+                    "input_api": api_name,
+                    "source_token": match.group(0),
+                })
+    rows.sort(key=lambda row: (
+        row["source_path"], row["source_line"], row["input_api"]
+    ))
+    expected = dict(PHASE3_INPUT_API_EXPECTED_COUNTS)
+    return {
+        "census_schema": "SimultaneousPhysicalDomainsCompleteInputApiCensus.v1",
+        "scope": "all_phase3_translation_units_plus_bounded_game_mode_overapproximation",
+        "occurrence_count": len(rows),
+        "rows": rows,
+        "actual_counts": {
+            f"{file_name}:{api_name}": count
+            for (file_name, api_name), count in sorted(actual_counts.items())
+        },
+        "expected_counts": {
+            f"{file_name}:{api_name}": count
+            for (file_name, api_name), count in sorted(expected.items())
+        },
+        "exact_allowlist_match": actual_counts == expected,
+        "unallowlisted_occurrences": [
+            f"{file_name}:{api_name}"
+            for file_name, api_name in sorted(set(actual_counts) - set(expected))
+        ],
+        "missing_or_count_drift": [
+            f"{file_name}:{api_name}"
+            for file_name, api_name in sorted(set(actual_counts) | set(expected))
+            if actual_counts.get((file_name, api_name))
+            != expected.get((file_name, api_name))
+        ],
+    }
+
+
 def _phase3_source_checks(
     unreal_text: Mapping[str, str],
     game_mode: str,
@@ -2707,6 +2989,7 @@ def _phase3_source_checks(
     observed_binding = _extract_cpp_definition(
         router, "BuildObservedBindingAndRuntimeProvenance("
     )
+    input_api_census = _phase3_input_api_census(unreal_text, game_mode)
     declaration_at = adapter_header.find("bool BuildAuthoritativeCandidate(")
     declaration_end = adapter_header.find(") const;", declaration_at)
     declaration = (
@@ -2772,6 +3055,19 @@ def _phase3_source_checks(
             and "UE_ARRAY_COUNT(Fields)" in observed_binding["body"]
             and "CanonicalizeValue(*DeclaredValue) != CanonicalizeValue(*ObservedValue)"
             in observed_binding["body"]
+        ),
+        "witness_identity_is_derived_from_child_visible_process_root": all(
+            token in observed_binding["body"] for token in (
+                "const FString ObservedWitnessId = FPaths::GetCleanFilename(FPaths::GetPath(ProcessRootRealpath))",
+                'ProcessIdentityContainer != TEXT("processes")',
+                'Observed->SetStringField(TEXT("witness_id"), ObservedWitnessId)',
+                'FString::Printf(TEXT("%s/%s/launch_0001"), *ObservedWitnessId, *ObservedRole)',
+            )
+        ) and 'Binding->TryGetStringField(TEXT("witness_id")' not in observed_binding["body"],
+        "complete_phase3_input_api_census_matches_exact_allowlist": (
+            input_api_census["exact_allowlist_match"]
+            and not input_api_census["unallowlisted_occurrences"]
+            and not input_api_census["missing_or_count_drift"]
         ),
         "runtime_provenance_emitted_before_phase3_actor_spawn": (
             accept_binding["body"].index("EmitStructuredObject(RuntimeProvenance)")
@@ -3119,6 +3415,32 @@ def _source_audit() -> dict[str, Any]:
              '    };', 1,
          )),
     ))
+    handle_line = _extract_cpp_definition(
+        router, "ASimultaneousPhysicalDomainCommandRouter::HandleLine("
+    )
+    router_hidden_read = (
+        router[:handle_line["body_start"]]
+        + '\n    FString UndeclaredSemanticInput;\n'
+          '    FFileHelper::LoadFileToString(UndeclaredSemanticInput, TEXT("hidden.json"));\n'
+          '    if (UndeclaredSemanticInput == TEXT("select")) bProtocolFailed = true;\n'
+        + router[handle_line["body_start"]:]
+    )
+    adversary_sources.append((
+        "router_reachable_undeclared_file_read",
+        "SimultaneousPhysicalDomainCommandRouter.cpp",
+        router,
+        router_hidden_read,
+    ))
+    adversary_sources.append((
+        "binding_witness_observation_replaced_by_declared_value",
+        "SimultaneousPhysicalDomainCommandRouter.cpp",
+        router,
+        router.replace(
+            'Observed->SetStringField(TEXT("witness_id"), ObservedWitnessId);',
+            'Observed->SetStringField(TEXT("witness_id"), Binding->GetStringField(TEXT("witness_id")));',
+            1,
+        ),
+    ))
     adversary_rows = []
     for adversary_id, file_name, original, mutated in adversary_sources:
         if mutated == original:
@@ -3147,6 +3469,7 @@ def _source_audit() -> dict[str, Any]:
         unreal_text["SimultaneousPhysicalDomainProofAdapter.cpp"],
         "ASimultaneousPhysicalDomainProofAdapter::BuildAuthoritativeCandidate(",
     )
+    input_api_census = _phase3_input_api_census(unreal_text, game_mode)
     return {
         "audit_schema": "SimultaneousPhysicalDomainsSourceAudit.v1",
         "proof_scenario": PROOF_SCENARIO,
@@ -3170,6 +3493,8 @@ def _source_audit() -> dict[str, Any]:
         },
         "proof_semantic_runtime_input_read_sites": read_sites,
         "runtime_input_read_site_count": len(read_sites),
+        "complete_phase3_input_api_census": input_api_census,
+        "input_api_occurrence_count": input_api_census["occurrence_count"],
         "reachable_phase3_dispatch_and_input_graph": {
             "graph_schema": "SimultaneousPhysicalDomainsSourceCallGraph.v1",
             "edges": graph_edges,
@@ -3495,16 +3820,22 @@ def acquire_all(output_directory: Path, runtime_parent: Path) -> dict[str, Any]:
     all_binding_adversaries = (
         binding_field_adversaries["field_count"] == len(PROCESS_BINDING_FIELDS)
         and binding_field_adversaries["fresh_live_unreal_process_count"]
-        == len(PROCESS_BINDING_FIELDS)
+        == len(PROCESS_BINDING_FIELDS) + 1
         and binding_field_adversaries["all_fields_mutated_exactly_once"]
         and binding_field_adversaries["all_rejected_before_materialization"]
+        and binding_field_adversaries["coordinated_relabel_case_count"] == 1
+        and binding_field_adversaries["all_coordinated_relabels_rejected"]
     )
     source_adversaries = source_audit["source_audit_adversaries"]
     source_closure = (
         source_audit["all_checks_passed"]
-        and source_audit["check_count"] == 36
-        and source_adversaries["case_count"] == 10
+        and source_audit["check_count"] == 38
+        and source_adversaries["case_count"] == 12
         and source_adversaries["all_rejected"]
+        and source_audit["input_api_occurrence_count"] == 69
+        and source_audit["complete_phase3_input_api_census"][
+            "exact_allowlist_match"
+        ]
     )
     input_audit["binding_field_adversaries"] = binding_field_adversaries
     input_audit["runtime_valid_process_expected_count"] = expected_valid_process_count
