@@ -181,6 +181,31 @@ PROCESS_BINDING_FIELDS = (
     "control_pipe_id", "structured_output_pipe_id", "diagnostic_pipe_id",
 )
 
+PROCESS_BINDING_VERIFICATION_MODES = {
+    "binding_schema": "compiled_constant_identity",
+    "proof_scenario": "compiled_constant_identity",
+    "witness_id": "harness_frozen_launch_plan_identity",
+    "domain_role": "harness_frozen_launch_plan_identity",
+    "harness_launch_id": "harness_frozen_launch_plan_identity",
+    "pid": "independent_process_observation",
+    "macos_process_start": "independent_process_observation",
+    "executable_realpath": "independent_process_observation",
+    "executable_raw_sha256": "independent_process_observation",
+    "unreal_engine_build_identity": "independent_process_observation",
+    "entry_map_package_identity": "independent_process_observation",
+    "project_realpath": "independent_process_observation",
+    "project_raw_sha256": "independent_process_observation",
+    "project_config_and_module_inventory_raw_sha256": "independent_process_observation",
+    "process_root_realpath": "harness_created_and_independently_reobserved_identity",
+    "launch_argv_raw_sha256": "independent_process_observation",
+    "launch_environment_audit_raw_sha256": "independent_process_observation",
+    "launch_cwd_realpath": "independent_process_observation",
+    "inherited_descriptor_map_raw_sha256": "independent_process_observation",
+    "control_pipe_id": "harness_created_and_independently_reobserved_identity",
+    "structured_output_pipe_id": "harness_created_and_independently_reobserved_identity",
+    "diagnostic_pipe_id": "harness_created_and_independently_reobserved_identity",
+}
+
 WITNESS_IDS = (
     "w1_A_B__A_B", "w2_B_A__B_A", "w3_A_B__B_A", "w4_B_A__A_B",
     "c1_canonical_completion_independence", "c2_positive_Rtransit_absence",
@@ -331,6 +356,139 @@ def sha256_value(value: Any) -> str:
 
 def is_sha256(value: Any) -> bool:
     return isinstance(value, str) and len(value) == 64 and all(c in "0123456789abcdef" for c in value)
+
+
+def validate_runtime_dependency_inventory(
+    loaded_images: Any,
+    binding: Mapping[str, Any],
+    project_inventory: Any,
+) -> dict[str, Any]:
+    """Validate the exact live dyld census and its bound executable/module relation."""
+
+    stage = "runtime_provenance"
+    if tuple(PROCESS_BINDING_VERIFICATION_MODES) != PROCESS_BINDING_FIELDS:
+        raise _reject(stage, "binding_verification_mode_map_drift")
+    if (
+        not isinstance(project_inventory, Mapping)
+        or set(project_inventory) != {"inventory_schema", "members"}
+        or project_inventory.get("inventory_schema")
+        != "CrossDomainOccupancyProjectConfigAndModuleInventory.v1"
+        or not isinstance(project_inventory.get("members"), list)
+    ):
+        raise _reject(stage, "project_module_inventory_structure_mismatch")
+    project_realpath = binding.get("project_realpath")
+    executable_realpath = binding.get("executable_realpath")
+    if (
+        not isinstance(project_realpath, str)
+        or not project_realpath.startswith("/")
+        or not isinstance(executable_realpath, str)
+        or not executable_realpath.startswith("/")
+    ):
+        raise _reject(stage, "bound_executable_or_project_realpath_mismatch")
+    project_root = Path(project_realpath).parent
+    expected_member_paths = [
+        project_realpath,
+        str(project_root / "Config" / "DefaultEngine.ini"),
+        str(project_root / "Config" / "DefaultGame.ini"),
+        str(project_root / "Config" / "DefaultInput.ini"),
+        str(project_root / "Binaries" / "Mac" / "libUnrealEditor-CityMaterializationProof.dylib"),
+    ]
+    members = project_inventory["members"]
+    if (
+        len(members) != len(expected_member_paths)
+        or any(
+            not isinstance(member, Mapping)
+            or set(member) != {"raw_sha256", "realpath"}
+            or member.get("realpath") != expected_path
+            or not is_sha256(member.get("raw_sha256"))
+            for member, expected_path in zip(members, expected_member_paths)
+        )
+        or sha256_value(project_inventory)
+        != binding.get("project_config_and_module_inventory_raw_sha256")
+    ):
+        raise _reject(stage, "project_module_inventory_binding_mismatch")
+
+    if not isinstance(loaded_images, list) or not loaded_images:
+        raise _reject(stage, "loaded_image_inventory_absent")
+    expected_keys = {
+        "filesystem_regular_file", "mach_o_uuid", "path_resolution",
+        "realpath", "reported_path",
+    }
+    identity_keys: list[tuple[str, str, str]] = []
+    filesystem_count = 0
+    shared_cache_count = 0
+    for row in loaded_images:
+        if not isinstance(row, Mapping) or set(row) != expected_keys:
+            raise _reject(stage, "loaded_image_inventory_row_structure_mismatch")
+        realpath = row.get("realpath")
+        reported_path = row.get("reported_path")
+        mach_o_uuid = row.get("mach_o_uuid")
+        filesystem_regular = row.get("filesystem_regular_file")
+        if (
+            not isinstance(realpath, str)
+            or not realpath.startswith("/")
+            or not isinstance(reported_path, str)
+            or not reported_path.startswith("/")
+            or not isinstance(mach_o_uuid, str)
+            or len(mach_o_uuid) != 36
+            or mach_o_uuid != mach_o_uuid.lower()
+            or tuple(index for index, char in enumerate(mach_o_uuid) if char == "-")
+            != (8, 13, 18, 23)
+            or any(char not in "0123456789abcdef-" for char in mach_o_uuid)
+            or type(filesystem_regular) is not bool
+        ):
+            raise _reject(stage, "loaded_image_inventory_identity_mismatch")
+        if filesystem_regular:
+            if row.get("path_resolution") != "filesystem_realpath":
+                raise _reject(stage, "loaded_image_filesystem_resolution_mismatch")
+            filesystem_count += 1
+        else:
+            if row.get("path_resolution") != "dyld_shared_cache_logical_path":
+                raise _reject(stage, "loaded_image_shared_cache_resolution_mismatch")
+            shared_cache_count += 1
+        identity_keys.append((realpath, mach_o_uuid, reported_path))
+    sorted_identity_keys = sorted(identity_keys)
+    if identity_keys != sorted_identity_keys or len(identity_keys) != len(set(identity_keys)):
+        first_mismatch = next(
+            (
+                {"actual": actual, "expected": expected, "index": index}
+                for index, (actual, expected) in enumerate(zip(identity_keys, sorted_identity_keys))
+                if actual != expected
+            ),
+            None,
+        )
+        raise _reject(
+            stage,
+            "loaded_image_inventory_order_or_uniqueness_mismatch",
+            canonical_json({
+                "first_order_mismatch": first_mismatch,
+                "row_count": len(identity_keys),
+                "unique_row_count": len(set(identity_keys)),
+            }),
+        )
+
+    module_realpath = expected_member_paths[-1]
+    executable_rows = [row for row in loaded_images if row["realpath"] == executable_realpath]
+    module_rows = [row for row in loaded_images if row["realpath"] == module_realpath]
+    if (
+        len(executable_rows) != 1
+        or executable_rows[0]["filesystem_regular_file"] is not True
+        or len(module_rows) != 1
+        or module_rows[0]["filesystem_regular_file"] is not True
+        or filesystem_count < 2
+        or shared_cache_count < 1
+    ):
+        raise _reject(stage, "loaded_image_inventory_missing_bound_backing_class")
+    return {
+        "executable_mach_o_uuid": executable_rows[0]["mach_o_uuid"],
+        "filesystem_loaded_image_count": filesystem_count,
+        "loaded_image_count": len(loaded_images),
+        "loaded_image_inventory_raw_sha256": sha256_value(loaded_images),
+        "module_mach_o_uuid": module_rows[0]["mach_o_uuid"],
+        "module_raw_sha256": members[-1]["raw_sha256"],
+        "module_realpath": module_realpath,
+        "shared_cache_loaded_image_count": shared_cache_count,
+    }
 
 
 def strict_load_stored_json(raw: bytes) -> Any:

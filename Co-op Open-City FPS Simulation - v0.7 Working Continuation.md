@@ -1,7 +1,7 @@
 # Co-op Open-City FPS Simulation — v0.7 Working Continuation
 
 **Version:** 0.7.0-draft.82
-**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) remains the latest sealed proof and Development Capacity v0.1.11 remains governing. The exact frozen [Cross-Domain Canonical Occupancy Materialization Proof v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md) bounded implementation is now a passed, unsealed [Phase-4 release candidate](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md). Its UE 5.8 build, 45/45 focused tests, 215/215 predecessor regressions, complete live/fault/adversary matrices, 30/30 source checks with 18/18 source mutations rejected, exact 82 artifacts, 30/30 verifier mutations, and self-excluding 172/172-member release pass. Independent implementation review of the exact candidate commit remains required. Capacity remains v0.1.11, Phase 5 and adjacent scope remain closed, and THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
+**Status:** [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) remains the latest sealed proof and Development Capacity v0.1.11 remains governing. The exact frozen [Cross-Domain Canonical Occupancy Materialization Proof v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md) bounded implementation is now a passed, unsealed [Phase-4 release candidate](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md). Its UE 5.8 build, 45/45 focused tests, 215/215 predecessor regressions, complete live/fault/adversary matrices, 30/30 source checks with 18/18 source mutations rejected, exact 82 artifacts, 33/33 verifier mutations, and self-excluding 172/172-member release pass. Independent implementation review of the exact candidate commit remains required. Capacity remains v0.1.11, Phase 5 and adjacent scope remain closed, and THE_CITY Modern Canonical Machine Contract v0.1.0-draft.1 remains doctrine review only.
 **Opened:** 2026-08-26  
 **Frozen base:** [Co-op Open-City FPS Simulation Contract — v0.6.0](Persistent%20City%20Simulation%20-%20Initial%20Systems%20Note.md)
 
@@ -136,7 +136,7 @@ review accepted exact candidate commit
 exact bounded implementation, evidence, artifact, Unreal-source, and release
 surface declared by the specification. That surface is now implemented and
 its [candidate evidence](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md)
-passes the complete 82-artifact semantic gate, isolated regeneration, 30/30
+passes the complete 82-artifact semantic gate, isolated regeneration, 33/33
 verifier mutations, 45/45 focused contracts, 215/215 predecessor regressions,
 the UE 5.8 non-unity build, and every frozen live matrix. Evidence remains
 unsealed pending exact-commit independent implementation review; capacity does
@@ -236,6 +236,9 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
 - Reacquired all affected live UE 5.8 evidence, including four primary
   witnesses from eight original processes and four fresh replay witnesses,
   while retaining exact process-birth, root, input, census, and trace identity.
+- Prestarted the local UE Trace Server in unsponsored mode solely to prevent a
+  child-launched trace helper from inheriting proof pipes; it supplied no
+  semantic input, changed no frozen UE argv, and was stopped after acquisition.
 - Passed 45/45 focused contracts, 215/215 predecessor regressions, the isolated
   Phase-2 33/33 and Phase-3 111/111 seals with 41/41 Phase-3 verifier
   adversaries rejected, and the final UE 5.8 non-unity editor build.
@@ -245,9 +248,16 @@ The ledger must allow a later inspection to reconstruct the complete causal chai
   30/30 with 18/18 mutations rejected.
 - Generated the exact 82-member artifact directory. Its independent verifier
   reconstructs all 364 occurrence rows / 457 unique process identities,
-  regenerates all artifacts in isolation, and rejects 30/30 in-memory
+  regenerates all artifacts in isolation, and rejects 33/33 in-memory
   mutations. The final self-excluding manifest verifies all 172/172 release
   members.
+- Independent implementation review rejected initial candidate
+  `82b2d385a7f1e320a38f2eaacde9e5ca8e5412bc`: one binding mode was unfrozen,
+  loaded-image provenance admitted a coordinated one-row substitution, and
+  the evidence prose reversed M18–M20. The corrective candidate uses the exact
+  frozen mode map, binds an exhaustive sorted/deduplicated dyld census to the
+  loaded executable and project-module identity, and states the implemented
+  predecessor-removal-first order.
 - Kept the candidate unsealed pending independent implementation review,
   Development Capacity at v0.1.11, Phase 5 and adjacent scope closed, and push
   authority unchanged.

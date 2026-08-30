@@ -46,6 +46,7 @@ from cross_domain_canonical_occupancy_materialization import (
     PROOF_VERSION,
     PRIMARY_REFRESH_ORDERS,
     PROJECTION_ROWS,
+    PROCESS_BINDING_VERIFICATION_MODES,
     RAW_HASHES,
     RECORD_FILENAMES,
     RECORD_ROLES,
@@ -78,6 +79,7 @@ from cross_domain_canonical_occupancy_materialization import (
     strict_load_stored_json,
     validate_exact_directory,
     validate_materialization_receipt,
+    validate_runtime_dependency_inventory,
     validate_head_disposition,
     validate_projection,
     validate_visible_tuple,
@@ -91,6 +93,7 @@ from simultaneous_physical_domains_harness import (
     MODULE,
     PROJECT,
     _engine_build_identity,
+    _independent_file_identity,
     _proc_info,
     _real,
     _sha_file,
@@ -272,6 +275,7 @@ class LiveDomain:
     provenance: dict[str, Any] | None = None
     bind_receipt: dict[str, Any] | None = None
     bundles: dict[str, dict[str, Any]] = field(default_factory=dict)
+    output_eof_observed: bool = False
     exited: bool = False
     reaped_wait_status: int | None = None
     termination_receipt: dict[str, Any] | None = None
@@ -303,6 +307,8 @@ class LiveDomain:
                 except BlockingIOError:
                     break
                 if not chunk:
+                    if key == "output_read":
+                        self.output_eof_observed = True
                     break
                 if key == "diagnostic_read":
                     self.diagnostic_digest.update(chunk)
@@ -503,6 +509,14 @@ class LiveDomain:
 
 
 def _validate_runtime_provenance(domain: LiveDomain, value: Mapping[str, Any]) -> None:
+    expected_verification_rows = [
+        {
+            "field": field,
+            "matched": True,
+            "verification_mode": PROCESS_BINDING_VERIFICATION_MODES[field],
+        }
+        for field in PROCESS_BINDING_FIELDS
+    ]
     if (
         value.get("audit_schema") != PROVENANCE_SCHEMA
         or value.get("proof_scenario") != PROOF_SCENARIO
@@ -515,11 +529,25 @@ def _validate_runtime_provenance(domain: LiveDomain, value: Mapping[str, Any]) -
         or value.get("redacted_environment_audit") != domain.environment_audit
         or value.get("project_config_and_module_inventory") != _project_inventory()
         or value.get("observed_inherited_descriptor_map") != domain.descriptor_map
-        or len(value.get("binding_verification_rows", [])) != len(PROCESS_BINDING_FIELDS)
-        or not isinstance(value.get("loaded_image_inventory"), list)
-        or not value.get("loaded_image_inventory")
+        or value.get("binding_verification_rows") != expected_verification_rows
     ):
         raise RuntimeError("runtime provenance did not bind the exact launch")
+    inventory_validation = validate_runtime_dependency_inventory(
+        value.get("loaded_image_inventory"),
+        domain.binding,
+        value.get("project_config_and_module_inventory"),
+    )
+    executable_identity = _independent_file_identity(EDITOR)
+    module_identity = _independent_file_identity(MODULE)
+    if (
+        domain.binding["executable_raw_sha256"] != executable_identity["raw_sha256"]
+        or inventory_validation["executable_mach_o_uuid"]
+        not in executable_identity["mach_o_uuids"]
+        or inventory_validation["module_raw_sha256"] != module_identity["raw_sha256"]
+        or inventory_validation["module_mach_o_uuid"]
+        not in module_identity["mach_o_uuids"]
+    ):
+        raise RuntimeError("loaded executable/module identity differs from bound build files")
     actors = value.get("initial_world_actor_class_inventory")
     if not isinstance(actors, list) or any(row.get("class_path", "").endswith("Pawn") for row in actors):
         raise RuntimeError("initial zero-Pawn inventory failed")
@@ -2421,13 +2449,32 @@ def _terminal_liveness_from_last(
     }
 
 
-def _poll_descriptor_failure(fd: int, flags: int, timeout: float = 5.0) -> bool:
+def _poll_descriptor_failure(fd: int, flags: int, timeout: float = 15.0) -> bool:
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         poller = select.poll()
         poller.register(fd, flags)
         if any(observed & flags for _, observed in poller.poll(50)):
             return True
+    return False
+
+
+def _poll_structured_output_closure(domain: LiveDomain, timeout: float = 15.0) -> bool:
+    """Drain all prior structured bytes while waiting for the writer's HUP."""
+
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        domain.drain()
+        if domain.output_eof_observed:
+            return True
+        poller = select.poll()
+        poller.register(domain.fds["output_read"], select.POLLIN | select.POLLHUP)
+        events = poller.poll(50)
+        if any(observed & select.POLLHUP for _, observed in events):
+            domain.drain()
+            return domain.output_eof_observed
+        if any(observed & select.POLLIN for _, observed in events):
+            domain.drain()
     return False
 
 
@@ -2568,14 +2615,9 @@ def _execute_liveness_case(runtime_parent: Path, case_id: str) -> tuple[str, dic
                     raise RuntimeError("LV04 control pipe closure was not observed")
                 terminal["control_pipe_unexpected_eof"] = True
             else:
-                if not _poll_descriptor_failure(
-                    target.fds["output_read"], select.POLLHUP
-                ):
+                if not _poll_structured_output_closure(target):
                     raise RuntimeError("LV05 structured output closure was not observed")
-                target.drain()
-                poller = select.poll()
-                poller.register(target.fds["output_read"], select.POLLHUP)
-                if not any(flags & select.POLLHUP for _, flags in poller.poll(0)):
+                if not target.output_eof_observed:
                     raise RuntimeError("LV05 output pipe did not reach EOF")
                 terminal["structured_output_pipe_unexpected_eof"] = True
         else:
@@ -2841,7 +2883,15 @@ def acquire_source_audit() -> dict[str, Any]:
         "S24_complete_cpp_call_surface_census": len(cpp) > 1000,
         "S25_complete_input_api_occurrence_census": all(type(value) is int for value in census.values()),
         "S26_exact_translation_unit_byte_identity_set": len(texts) == 15,
-        "S27_loaded_image_and_runtime_dependency_inventory": "loaded_image_inventory" in cpp,
+        "S27_loaded_image_and_runtime_dependency_inventory": all(
+            token in cpp for token in (
+                "_dyld_image_count()", "_dyld_get_image_name(Index)",
+                "_dyld_get_image_header(Index)", "LoadedMachOUuid",
+                "bExecutableObserved", "bModuleObserved",
+                "LoadedImageInventory(ExecutableRealpath, ModuleRealpath, LoadedImages)",
+                "loaded_image_inventory",
+            )
+        ),
         "S28_initial_and_final_actor_inventory": "initial_world_actor_class_inventory" in cpp and "level_actor_slot_count" in cpp,
         "S29_all_reachable_phase4_source_is_release_bound": set(texts) == set(SOURCE_AUDIT_PATHS),
         "S30_no_network_streaming_world_partition_or_production_path": census["network_streaming_terms"] == 0,

@@ -149,7 +149,7 @@ phase_4_cross_domain_canonical_occupancy_materialization:
   focused_tests: 45/45
   predecessor_regressions: 215/215
   source_audit: 30/30_checks_and_18/18_mutations_rejected
-  release_verifier: 82/82_artifacts_172/172_members_and_30/30_mutations_rejected
+  release_verifier: 82/82_artifacts_172/172_members_and_33/33_mutations_rejected
   registered_occurrences: 364
   registered_unique_processes: 457
   final_freeze_review: accepted_exact_candidate
@@ -240,7 +240,7 @@ Python, Unreal, adapter, Actor, test, evidence, artifact, release, manifest,
 and governing-document surface was opened. That bounded implementation now
 passes its UE 5.8 build, 45/45 focused tests, 215/215 predecessor regressions,
 all frozen live/fault/adversary matrices, 30/30 source checks with 18/18
-mutations rejected, the exact 82-artifact semantic verifier with 30/30
+mutations rejected, the exact 82-artifact semantic verifier with 33/33
 mutations rejected, and the self-excluding 172/172-member release. Evidence
 remains an unsealed candidate pending independent
 exact-commit implementation review; capacity and Phase 5 remain closed.

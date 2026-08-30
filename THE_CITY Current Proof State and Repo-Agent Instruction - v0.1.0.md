@@ -123,7 +123,7 @@ now complete and its [candidate evidence](Cross-Domain%20Canonical%20Occupancy%2
 passes: 45/45 focused tests, 215/215 predecessor regressions, the UE 5.8
 non-unity build, every frozen live/fault/adversary row, 30/30 source checks with
 18/18 source mutations rejected, exact 82-artifact semantic verification,
-30/30 verifier mutations rejected, and the self-excluding 172/172-member
+33/33 verifier mutations rejected, and the self-excluding 172/172-member
 release. Evidence remains unsealed pending
 independent exact-commit implementation review; capacity and Phase 5 remain
 closed.
@@ -595,7 +595,7 @@ active_proof:
   focused_tests: 45/45
   predecessor_regressions: 215/215
   source_audit: 30/30_checks_and_18/18_mutations_rejected
-  release_verifier: 82/82_artifacts_172/172_members_and_30/30_mutations_rejected
+  release_verifier: 82/82_artifacts_172/172_members_and_33/33_mutations_rejected
   registered_occurrences: 364
   registered_unique_processes: 457
   final_freeze_review: accepted_exact_candidate

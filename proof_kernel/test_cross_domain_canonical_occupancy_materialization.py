@@ -19,6 +19,7 @@ from cross_domain_canonical_occupancy_materialization import (
     PERMISSION_ROWS,
     PRIMARY_REFRESH_ORDERS,
     PROCESS_BINDING_FIELDS,
+    PROCESS_BINDING_VERIFICATION_MODES,
     PROJECTION_ROWS,
     PROOF_SCENARIO,
     RECORD_FILENAMES,
@@ -49,6 +50,7 @@ from cross_domain_canonical_occupancy_materialization import (
     strict_load_stored_json,
     validate_materialization_receipt,
     validate_projection,
+    validate_runtime_dependency_inventory,
 )
 
 
@@ -279,6 +281,50 @@ class CrossDomainCanonicalOccupancyMaterializationTests(unittest.TestCase):
         self.assertEqual(len(release_paths()), 172)
         self.assertEqual(tuple(sorted(release_paths(), key=lambda value: value.encode("utf-8"))), release_paths())
         self.assertEqual(len(PROCESS_BINDING_FIELDS), 22)
+        self.assertEqual(tuple(PROCESS_BINDING_VERIFICATION_MODES), PROCESS_BINDING_FIELDS)
+        self.assertEqual(
+            PROCESS_BINDING_VERIFICATION_MODES["process_root_realpath"],
+            "harness_created_and_independently_reobserved_identity",
+        )
+        binding = self.binding()
+        inventory = {
+            "inventory_schema": "CrossDomainOccupancyProjectConfigAndModuleInventory.v1",
+            "members": [
+                {"raw_sha256": str(index) * 64, "realpath": path}
+                for index, path in enumerate((
+                    "/exact/CityMaterializationProof.uproject",
+                    "/exact/Config/DefaultEngine.ini",
+                    "/exact/Config/DefaultGame.ini",
+                    "/exact/Config/DefaultInput.ini",
+                    "/exact/Binaries/Mac/libUnrealEditor-CityMaterializationProof.dylib",
+                ), 1)
+            ],
+        }
+        binding["project_config_and_module_inventory_raw_sha256"] = sha256_value(inventory)
+        loaded = [
+            {
+                "filesystem_regular_file": False,
+                "mach_o_uuid": "00000000-0000-0000-0000-000000000001",
+                "path_resolution": "dyld_shared_cache_logical_path",
+                "realpath": "/System/Library/dyld-cache-image",
+                "reported_path": "/System/Library/dyld-cache-image",
+            },
+            {
+                "filesystem_regular_file": True,
+                "mach_o_uuid": "00000000-0000-0000-0000-000000000002",
+                "path_resolution": "filesystem_realpath",
+                "realpath": "/exact/Binaries/Mac/libUnrealEditor-CityMaterializationProof.dylib",
+                "reported_path": "/exact/Binaries/Mac/libUnrealEditor-CityMaterializationProof.dylib",
+            },
+            {
+                "filesystem_regular_file": True,
+                "mach_o_uuid": "00000000-0000-0000-0000-000000000003",
+                "path_resolution": "filesystem_realpath",
+                "realpath": "/exact/UnrealEditor",
+                "reported_path": "/exact/UnrealEditor",
+            },
+        ]
+        self.assertEqual(validate_runtime_dependency_inventory(loaded, binding, inventory)["loaded_image_count"], 3)
         self.assertEqual(len(GUARD_STATES), 7)
         self.assertEqual(len(projection_matrix()["rows"]), 6)
         self.assertEqual(len(operation_tuple_matrix()["rows"]), 6)

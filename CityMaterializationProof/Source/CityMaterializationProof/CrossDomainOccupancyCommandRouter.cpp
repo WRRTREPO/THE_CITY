@@ -23,6 +23,7 @@
 #include <libproc.h>
 #include <limits.h>
 #include <mach-o/dyld.h>
+#include <mach-o/loader.h>
 #include <sys/proc_info.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -266,55 +267,108 @@ TArray<TSharedPtr<FJsonValue>> ActorInventory(UWorld* World)
     return Rows;
 }
 
-TArray<TSharedPtr<FJsonValue>> LoadedImageInventory()
+FString UuidString(const uint8* Bytes)
+{
+    FString Result;
+    for (int32 Index = 0; Index < 16; ++Index)
+    {
+        if (Index == 4 || Index == 6 || Index == 8 || Index == 10) Result += TEXT("-");
+        Result += FString::Printf(TEXT("%02x"), Bytes[Index]);
+    }
+    return Result;
+}
+
+bool LoadedMachOUuid(const mach_header* Header, FString& OutUuid)
+{
+    if (Header == nullptr ||
+        (Header->magic != MH_MAGIC && Header->magic != MH_MAGIC_64))
+    {
+        return false;
+    }
+    const uint8* Cursor = reinterpret_cast<const uint8*>(Header) +
+        (Header->magic == MH_MAGIC_64 ? sizeof(mach_header_64) : sizeof(mach_header));
+    for (uint32 Index = 0; Index < Header->ncmds; ++Index)
+    {
+        const load_command* Command = reinterpret_cast<const load_command*>(Cursor);
+        if (Command->cmdsize < sizeof(load_command)) return false;
+        if (Command->cmd == LC_UUID && Command->cmdsize >= sizeof(uuid_command))
+        {
+            const uuid_command* Uuid = reinterpret_cast<const uuid_command*>(Command);
+            OutUuid = UuidString(Uuid->uuid);
+            return true;
+        }
+        Cursor += Command->cmdsize;
+    }
+    return false;
+}
+
+bool LoadedImageInventory(
+    const FString& ExecutableRealpath,
+    const FString& ModuleRealpath,
+    TArray<TSharedPtr<FJsonValue>>& OutRows)
 {
     struct FLoadedImageRow
     {
         FString ReportedPath;
         FString ResolvedPath;
+        FString PathResolution;
+        FString MachOUuid;
         bool bFilesystemRegular = false;
     };
     TArray<FLoadedImageRow> Images;
+    bool bExecutableObserved = false;
+    bool bModuleObserved = false;
     const uint32 Count = _dyld_image_count();
     for (uint32 Index = 0; Index < Count; ++Index)
     {
         const char* Reported = _dyld_get_image_name(Index);
-        if (Reported == nullptr) continue;
+        FString MachOUuid;
+        if (Reported == nullptr || !LoadedMachOUuid(_dyld_get_image_header(Index), MachOUuid)) return false;
         FLoadedImageRow Row;
         Row.ReportedPath = UTF8_TO_TCHAR(Reported);
+        Row.MachOUuid = MachOUuid;
         FTCHARToUTF8 ReportedUtf8(*Row.ReportedPath);
         char Resolved[PATH_MAX] {};
         struct stat Info {};
         if (realpath(ReportedUtf8.Get(), Resolved) != nullptr && stat(Resolved, &Info) == 0 && S_ISREG(Info.st_mode))
         {
             Row.ResolvedPath = UTF8_TO_TCHAR(Resolved);
+            Row.PathResolution = TEXT("filesystem_realpath");
             Row.bFilesystemRegular = true;
         }
         else
         {
+            if (FPaths::IsRelative(Row.ReportedPath)) return false;
             Row.ResolvedPath = Row.ReportedPath;
+            Row.PathResolution = TEXT("dyld_shared_cache_logical_path");
         }
+        bExecutableObserved |= Row.ResolvedPath == ExecutableRealpath;
+        bModuleObserved |= Row.ResolvedPath == ModuleRealpath;
         Images.Add(MoveTemp(Row));
     }
     Images.Sort([](const FLoadedImageRow& A, const FLoadedImageRow& B)
     {
-        if (A.ResolvedPath != B.ResolvedPath) return A.ResolvedPath < B.ResolvedPath;
-        return A.ReportedPath < B.ReportedPath;
+        const int32 RealpathOrder = A.ResolvedPath.Compare(B.ResolvedPath, ESearchCase::CaseSensitive);
+        if (RealpathOrder != 0) return RealpathOrder < 0;
+        const int32 UuidOrder = A.MachOUuid.Compare(B.MachOUuid, ESearchCase::CaseSensitive);
+        if (UuidOrder != 0) return UuidOrder < 0;
+        return A.ReportedPath.Compare(B.ReportedPath, ESearchCase::CaseSensitive) < 0;
     });
-    TArray<TSharedPtr<FJsonValue>> Rows;
     FString Previous;
     for (const FLoadedImageRow& Image : Images)
     {
-        const FString Identity = Image.ResolvedPath + TEXT("\n") + Image.ReportedPath;
+        const FString Identity = Image.ResolvedPath + TEXT("\n") + Image.MachOUuid + TEXT("\n") + Image.ReportedPath;
         if (Identity == Previous) continue;
         Previous = Identity;
         TSharedPtr<FJsonObject> Row = MakeShared<FJsonObject>();
         Row->SetBoolField(TEXT("filesystem_regular_file"), Image.bFilesystemRegular);
+        Row->SetStringField(TEXT("mach_o_uuid"), Image.MachOUuid);
+        Row->SetStringField(TEXT("path_resolution"), Image.PathResolution);
         Row->SetStringField(TEXT("realpath"), Image.ResolvedPath);
         Row->SetStringField(TEXT("reported_path"), Image.ReportedPath);
-        Rows.Add(ObjectValue(Row));
+        OutRows.Add(ObjectValue(Row));
     }
-    return Rows;
+    return bExecutableObserved && bModuleObserved && OutRows.Num() > 0;
 }
 
 void SetNullOrString(TSharedPtr<FJsonObject>& Object, const TCHAR* Field, const FString& Value)
@@ -582,6 +636,22 @@ bool FCrossDomainOccupancyCommandRouter::VerifyObservableBinding(
         OutReason = TEXT("project_inventory_failed");
         return false;
     }
+    FString ModuleRealpath;
+    FString ModuleDigest;
+    if (!SimultaneousPhysicalDomainRuntimeAudit::ResolveAndHashRegularFile(
+            FModuleManager::Get().GetModuleFilename(TEXT("CityMaterializationProof")),
+            ModuleRealpath,
+            ModuleDigest))
+    {
+        OutReason = TEXT("module_identity_failed");
+        return false;
+    }
+    TArray<TSharedPtr<FJsonValue>> LoadedImages;
+    if (!LoadedImageInventory(ExecutableRealpath, ModuleRealpath, LoadedImages))
+    {
+        OutReason = TEXT("loaded_image_inventory_missing_bound_executable_or_module");
+        return false;
+    }
     TArray<TSharedPtr<FJsonValue>> ArgvValues;
     for (const FString& Argument : Arguments) ArgvValues.Add(StringValue(Argument));
     const TSharedPtr<FJsonValue> ArgvJson = MakeShared<FJsonValueArray>(ArgvValues);
@@ -664,15 +734,30 @@ bool FCrossDomainOccupancyCommandRouter::VerifyObservableBinding(
         TEXT("launch_cwd_realpath"), TEXT("inherited_descriptor_map_raw_sha256"), TEXT("control_pipe_id"),
         TEXT("structured_output_pipe_id"), TEXT("diagnostic_pipe_id")
     };
+    static const TCHAR* VerificationModes[] = {
+        TEXT("compiled_constant_identity"), TEXT("compiled_constant_identity"),
+        TEXT("harness_frozen_launch_plan_identity"), TEXT("harness_frozen_launch_plan_identity"),
+        TEXT("harness_frozen_launch_plan_identity"),
+        TEXT("independent_process_observation"), TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"), TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"), TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"), TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"),
+        TEXT("harness_created_and_independently_reobserved_identity"),
+        TEXT("independent_process_observation"), TEXT("independent_process_observation"),
+        TEXT("independent_process_observation"), TEXT("independent_process_observation"),
+        TEXT("harness_created_and_independently_reobserved_identity"),
+        TEXT("harness_created_and_independently_reobserved_identity"),
+        TEXT("harness_created_and_independently_reobserved_identity")
+    };
+    static_assert(UE_ARRAY_COUNT(Fields) == UE_ARRAY_COUNT(VerificationModes), "binding mode table must be field-complete");
     TArray<TSharedPtr<FJsonValue>> VerificationRows;
-    for (int Index = 0; Index < 22; ++Index)
+    for (int Index = 0; Index < UE_ARRAY_COUNT(Fields); ++Index)
     {
         TSharedPtr<FJsonObject> Row = MakeShared<FJsonObject>();
         Row->SetStringField(TEXT("field"), Fields[Index]);
         Row->SetBoolField(TEXT("matched"), true);
-        Row->SetStringField(TEXT("verification_mode"), Index < 2 ? TEXT("compiled_constant_identity") :
-            (Index < 5 ? TEXT("harness_frozen_launch_plan_identity") :
-            (Index >= 19 ? TEXT("harness_created_and_independently_reobserved_identity") : TEXT("independent_process_observation"))));
+        Row->SetStringField(TEXT("verification_mode"), VerificationModes[Index]);
         VerificationRows.Add(ObjectValue(Row));
     }
     OutRuntimeProvenance = MakeShared<FJsonObject>();
@@ -682,7 +767,7 @@ bool FCrossDomainOccupancyCommandRouter::VerifyObservableBinding(
     OutRuntimeProvenance->SetArrayField(TEXT("descriptor_kernel_identities"), KernelDescriptors);
     OutRuntimeProvenance->SetStringField(TEXT("domain_role"), ObservedRole);
     OutRuntimeProvenance->SetArrayField(TEXT("initial_world_actor_class_inventory"), ActorInventory(World.Get()));
-    OutRuntimeProvenance->SetArrayField(TEXT("loaded_image_inventory"), LoadedImageInventory());
+    OutRuntimeProvenance->SetArrayField(TEXT("loaded_image_inventory"), LoadedImages);
     OutRuntimeProvenance->SetObjectField(TEXT("observed_inherited_descriptor_map"), Descriptors);
     OutRuntimeProvenance->SetArrayField(TEXT("observed_launch_argv"), ArgvValues);
     OutRuntimeProvenance->SetObjectField(TEXT("observed_process_binding"), Observed);

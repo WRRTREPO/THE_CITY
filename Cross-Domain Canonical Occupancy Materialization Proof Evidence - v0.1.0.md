@@ -88,10 +88,12 @@ censuses. It is not inferred from an empty query, a receipt, a transform, route
 presence, or elapsed time. The subject is represented at neither endpoint
 while canonical occupancy is `in_transition`.
 
-Every successful refresh publishes one complete target generation before the
-predecessor generation is removed, verifies the exact live census, and then
-permits a synchronized representation-only disposition. No partial generation
-may claim current-head representation.
+Every successful refresh disables the current-head claim, destroys and verifies
+the absence of every predecessor-generation object, then spawns the target
+subject set and publishes the target anchor last as the generation commit
+marker. It next verifies the exact live census and only then permits a
+synchronized representation-only disposition. No partial generation may claim
+current-head representation.
 
 ## Controls, adversaries, and atomicity
 
@@ -122,6 +124,12 @@ stages in three contexts. Head-publication cases cover all nine harness stages
 for both canonical boundaries. Liveness cases separately detect original-child
 exit, wait status, reported birth mismatch, control-pipe closure,
 structured-output EOF, and a copied-label replacement process.
+
+For the reacquisition, the local UE Trace Server was started first in
+unsponsored mode and stopped after the live runs. This kept UE's trace helper
+from being spawned by a proof child and inheriting that child's proof pipes.
+It supplied no proof-semantic input, held no proof descriptor, and did not
+alter the exact frozen UE argv.
 
 ## Provenance and closed occurrence registry
 
@@ -163,7 +171,7 @@ ue_version: 5.8.0-55116800+++UE5+Release-5.8
 ue_editor_build: succeeded_with_DisableUnity_and_NoHotReloadFromIDE
 artifact_roles: 82/82
 release_members_excluding_manifest: 172/172
-release_verifier_adversaries: 30/30_rejected
+release_verifier_adversaries: 33/33_rejected
 manifest_self_excluding: true
 capacity_advancement: none
 phase_5: closed
@@ -183,7 +191,7 @@ no others. The verifier strictly reloads their canonical stored bytes,
 recomputes the four global matrices, validates every live and deterministic
 relation, reconstructs the 364-row occurrence registry, regenerates all 82
 artifacts in isolation, reruns the 45 focused and 215 predecessor contracts,
-reruns the source audit, and rejects 30 isolated in-memory verifier mutations.
+reruns the source audit, and rejects 33 isolated in-memory verifier mutations.
 
 After the self-excluding manifest exists, run the complete release gate from
 the repository root:

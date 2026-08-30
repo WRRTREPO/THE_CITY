@@ -28,6 +28,7 @@ from cross_domain_canonical_occupancy_materialization import (
     OPERATION_ROWS,
     PRIMARY_REFRESH_ORDERS,
     PROCESS_BINDING_FIELDS,
+    PROCESS_BINDING_VERIFICATION_MODES,
     PROOF_SCENARIO,
     PROOF_VERSION,
     PROJECTION_ROWS,
@@ -58,6 +59,7 @@ from cross_domain_canonical_occupancy_materialization import (
     strict_load_stored_json,
     validate_head_disposition,
     validate_materialization_receipt,
+    validate_runtime_dependency_inventory,
     write_json,
 )
 from cross_domain_canonical_occupancy_materialization_harness import (
@@ -453,10 +455,16 @@ def _validate_process_evidence(value: Any) -> dict[str, Any]:
     _require(provenance.get("observed_process_binding") == binding,
              "runtime provenance observed binding drift")
     verification = provenance.get("binding_verification_rows")
+    expected_verification = [
+        {
+            "field": field,
+            "matched": True,
+            "verification_mode": PROCESS_BINDING_VERIFICATION_MODES[field],
+        }
+        for field in PROCESS_BINDING_FIELDS
+    ]
     _require(
-        isinstance(verification, list)
-        and [row.get("field") for row in verification] == list(PROCESS_BINDING_FIELDS)
-        and all(row.get("matched") is True and isinstance(row.get("verification_mode"), str) for row in verification),
+        verification == expected_verification,
         "field-by-field binding verification drift",
     )
     argv = provenance.get("observed_launch_argv")
@@ -473,14 +481,8 @@ def _validate_process_evidence(value: Any) -> dict[str, Any]:
              "descriptor-map binding drift")
     _require(isinstance(inventory, dict) and sha256_value(inventory) == binding["project_config_and_module_inventory_raw_sha256"],
              "project inventory binding drift")
-    loaded = provenance.get("loaded_image_inventory")
-    _require(
-        isinstance(loaded, list) and loaded
-        and all(type(row.get("filesystem_regular_file")) is bool
-                and str(row.get("realpath", "")).startswith("/")
-                and str(row.get("reported_path", "")).startswith("/") for row in loaded)
-        and any(row.get("filesystem_regular_file") is True for row in loaded),
-        "loaded-image inventory drift",
+    validate_runtime_dependency_inventory(
+        provenance.get("loaded_image_inventory"), binding, inventory
     )
     actors = provenance.get("initial_world_actor_class_inventory")
     _require(
@@ -1559,8 +1561,18 @@ def _rebuilt_registry(
             repeat["repeat_witness"],
         ))
     identities = [identity for row in rows for identity in row["operational_process_instance_ids"]]
+    loaded_inventory_digests = [
+        inventory["loaded_image_inventory_raw_sha256"]
+        for row in rows
+        for inventory in row["loaded_image_and_initial_actor_inventory_digests"]
+    ]
     _require(len(rows) == 364 and len(identities) == len(set(identities)) == 457,
              "364-occurrence / 457-process registry closure drift")
+    _require(
+        len(loaded_inventory_digests) == 432
+        and len(set(loaded_inventory_digests)) == 1,
+        "432-process common exhaustive loaded-image inventory closure drift",
+    )
     return {
         "occurrence_count": 364,
         "process_occurrence_registry_schema": "CrossDomainOccupancyProcessOccurrenceRegistry.v1",
@@ -1771,6 +1783,46 @@ def _run_negative_tests(values: Mapping[str, Any]) -> int:
             return
         raise ValueError(f"verifier mutation was accepted: {label}")
 
+    def coordinate_w1_a_loaded_inventory(payload: dict[str, Any], replacement: list[dict[str, Any]]) -> None:
+        witness_name = PRIMARY_FILES["W1"]
+        process = payload[witness_name]["domain_processes"]["domain_A"]
+        process["runtime_provenance"]["loaded_image_inventory"] = replacement
+        input_audit_name = "cross_domain_occupancy_proof_semantic_input_audit.json"
+        input_rows = payload[input_audit_name]["process_rows"]
+        input_row = next(
+            row for row in input_rows
+            if row["witness"] == "W1" and row["domain_role"] == "domain_A"
+        )
+        input_row["loaded_image_inventory"] = copy.deepcopy(replacement)
+        registry_name = "cross_domain_occupancy_process_occurrence_registry.json"
+        registry_row = next(
+            row for row in payload[registry_name]["rows"]
+            if row["occurrence_id"] == "W1/domain_A"
+        )
+        registry_row["loaded_image_and_initial_actor_inventory_digests"][0][
+            "loaded_image_inventory_raw_sha256"
+        ] = sha256_value(replacement)
+        proof_run = payload["cross_domain_occupancy_proof_run.json"]
+        for name in (witness_name, input_audit_name, registry_name):
+            proof_run["artifact_payload_raw_sha256"][name] = sha256_value(payload[name])
+
+    def validate_coordinated_w1_a(payload: Mapping[str, Any]) -> None:
+        mutated_primary = {
+            witness: payload[filename] for witness, filename in PRIMARY_FILES.items()
+        }
+        _validate_primary(payload[PRIMARY_FILES["W1"]], "W1", payload)
+        _validate_input_audit(
+            payload["cross_domain_occupancy_proof_semantic_input_audit.json"],
+            mutated_primary,
+            payload["cross_domain_occupancy_source_audit.json"],
+        )
+        _validate_registry(
+            payload["cross_domain_occupancy_process_occurrence_registry.json"],
+            payload,
+            mutated_primary,
+        )
+        _validate_proof_run(payload["cross_domain_occupancy_proof_run.json"], payload)
+
     reject("canonical_chain", values["cross_domain_occupancy_canonical_chain.json"],
            lambda row: row.__setitem__("proof_scenario", "mutated"),
            lambda row: _require(row == canonical_chain(), "mutated canonical chain"))
@@ -1795,6 +1847,45 @@ def _run_negative_tests(values: Mapping[str, Any]) -> int:
     reject("primary_binding", primary["W1"],
            lambda row: row["domain_processes"]["domain_A"]["binding"].__setitem__("pid", -1),
            lambda row: _validate_primary(row, "W1"))
+    reject("primary_binding_verification_mode", primary["W1"],
+           lambda row: row["domain_processes"]["domain_A"]["runtime_provenance"]
+           ["binding_verification_rows"][14].__setitem__("verification_mode", "invented_unfrozen_mode"),
+           lambda row: _validate_primary(row, "W1"))
+    reject(
+        "coordinated_loaded_image_substitution",
+        values,
+        lambda row: coordinate_w1_a_loaded_inventory(row, [{
+            "filesystem_regular_file": True,
+            "mach_o_uuid": "00000000-0000-0000-0000-000000000000",
+            "path_resolution": "filesystem_realpath",
+            "realpath": "/private/tmp/not-the-proof-module.dylib",
+            "reported_path": "/private/tmp/not-the-proof-module.dylib",
+        }]),
+        validate_coordinated_w1_a,
+    )
+
+    def truncate_w1_a_loaded_inventory(payload: dict[str, Any]) -> None:
+        process = payload[PRIMARY_FILES["W1"]]["domain_processes"]["domain_A"]
+        binding = process["binding"]
+        module_path = str(
+            Path(binding["project_realpath"]).parent
+            / "Binaries" / "Mac" / "libUnrealEditor-CityMaterializationProof.dylib"
+        )
+        loaded = process["runtime_provenance"]["loaded_image_inventory"]
+        retained = [
+            row for row in loaded
+            if row["realpath"] in {binding["executable_realpath"], module_path}
+        ]
+        retained.append(next(row for row in loaded if row["filesystem_regular_file"] is False))
+        retained.sort(key=lambda row: (row["realpath"], row["mach_o_uuid"], row["reported_path"]))
+        coordinate_w1_a_loaded_inventory(payload, retained)
+
+    reject(
+        "coordinated_loaded_image_truncation",
+        values,
+        truncate_w1_a_loaded_inventory,
+        validate_coordinated_w1_a,
+    )
     reject("primary_trace", primary["W1"],
            lambda row: row["domain_processes"]["domain_A"]["runtime_trace"][0].__setitem__("trace_sequence", 9),
            lambda row: _validate_primary(row, "W1"))
@@ -1860,7 +1951,7 @@ def _run_negative_tests(values: Mapping[str, Any]) -> int:
     reject("proof_run_digest", proof_run,
            lambda row: row["artifact_payload_raw_sha256"].__setitem__(next(iter(row["artifact_payload_raw_sha256"])), "0" * 64),
            lambda row: _validate_proof_run(row, values | {"cross_domain_occupancy_proof_run.json": row}))
-    _require(rejected == 30, "30-mutation verifier closure drift")
+    _require(rejected == 33, "33-mutation verifier closure drift")
     return rejected
 
 
@@ -1966,7 +2057,7 @@ def main() -> int:
         return 0
     count = write_release() if arguments.command == "write-release" else verify_release()
     print(
-        f"verified {count}/{count} release members; verifier adversaries 30/30 rejected; "
+        f"verified {count}/{count} release members; verifier adversaries 33/33 rejected; "
         "manifest excludes itself; evidence remains unsealed"
     )
     return 0

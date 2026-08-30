@@ -65,7 +65,7 @@ build succeeds, all 4 primary witnesses, 6 controls, 4 asymmetric failures,
 23 binding adversaries, 121 authority subcases, 18 head faults, 138
 materialization faults, 36 observation faults, and 6 liveness adversaries pass,
 the source audit passes 30/30 with 18/18 mutations rejected, and the strict
-82-artifact verifier rejects 30/30 in-memory mutations. The self-excluding
+82-artifact verifier rejects 33/33 in-memory mutations. The self-excluding
 172/172-member release verifies; independent implementation review remains the
 candidate gate. Development Capacity remains v0.1.11, and Phase 5 remains
 closed.
@@ -160,7 +160,7 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   python3 proof_kernel/verify_cross_domain_canonical_occupancy_materialization_release.py verify
 ```
 
-The command must report **172/172** release members and **30/30** rejected
+The command must report **172/172** release members and **33/33** rejected
 verifier mutations. It also reconstructs all 82 artifacts, reruns 45/45
 focused contracts and 215/215 predecessor regressions, and reruns the 30/30
 source audit with all 18 source mutations rejected. The candidate remains
