@@ -206,6 +206,28 @@ PROCESS_BINDING_VERIFICATION_MODES = {
     "diagnostic_pipe_id": "harness_created_and_independently_reobserved_identity",
 }
 
+# Candidate-bound commitment acquired from the rebuilt UE 5.8 processes.  It
+# is deliberately outside the frozen specification constants: the exact
+# implementation/release candidate must bind the observed platform census,
+# not merely require all copied evidence to agree with itself.
+RUNTIME_DEPENDENCY_CENSUS_COMMITMENT = {
+    "commitment_schema": "CrossDomainOccupancyRuntimeDependencyCensusCommitment.v1",
+    "executable_mach_o_uuid": "9d40e3d7-8257-37b5-b0ac-40206324e0be",
+    "executable_raw_sha256": "9341cd404599745ebd5bb28014bd26686b5fc072ea73a79fd82e1c6abb361432",
+    "executable_realpath": "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+    "filesystem_loaded_image_count": 771,
+    "loaded_image_count": 1719,
+    "loaded_image_inventory_raw_sha256": "123bb5b3604f363a7566589cc95c4996ae7ad53d1328a4b97ac5865cd933dbfd",
+    "module_mach_o_uuid": "e0d9a98e-7f75-3268-96ef-070c35bec60a",
+    "module_raw_sha256": "f5dde1da9c8289ec4a4a333bb74f42b7b45a291aab9459fb11efb9070b8643f4",
+    "module_realpath": "/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/Binaries/Mac/libUnrealEditor-CityMaterializationProof.dylib",
+    "project_config_and_module_inventory_raw_sha256": "b671a375d707193fcd14311ee83106a65250cfedb0341845c5505146e69efca5",
+    "project_raw_sha256": "d4cf6ee332faf8705cd3eab6a3a9a2a110e5a41daa1c361e95a0181012aea7ac",
+    "project_realpath": "/Users/boandersson/Desktop/Games/THE_CITY/CityMaterializationProof/CityMaterializationProof.uproject",
+    "shared_cache_loaded_image_count": 948,
+    "unreal_engine_build_identity": "5.8.0-55116800+++UE5+Release-5.8",
+}
+
 WITNESS_IDS = (
     "w1_A_B__A_B", "w2_B_A__B_A", "w3_A_B__B_A", "w4_B_A__A_B",
     "c1_canonical_completion_independence", "c2_positive_Rtransit_absence",
@@ -489,6 +511,36 @@ def validate_runtime_dependency_inventory(
         "module_realpath": module_realpath,
         "shared_cache_loaded_image_count": shared_cache_count,
     }
+
+
+def validate_candidate_runtime_dependency_census(
+    loaded_images: Any,
+    binding: Mapping[str, Any],
+    project_inventory: Any,
+) -> dict[str, Any]:
+    """Require the exact independently acquired candidate census commitment."""
+
+    observed = {
+        "commitment_schema": "CrossDomainOccupancyRuntimeDependencyCensusCommitment.v1",
+        **validate_runtime_dependency_inventory(loaded_images, binding, project_inventory),
+        "executable_raw_sha256": binding.get("executable_raw_sha256"),
+        "executable_realpath": binding.get("executable_realpath"),
+        "project_config_and_module_inventory_raw_sha256":
+            binding.get("project_config_and_module_inventory_raw_sha256"),
+        "project_raw_sha256": binding.get("project_raw_sha256"),
+        "project_realpath": binding.get("project_realpath"),
+        "unreal_engine_build_identity": binding.get("unreal_engine_build_identity"),
+    }
+    if observed != RUNTIME_DEPENDENCY_CENSUS_COMMITMENT:
+        raise _reject(
+            "runtime_provenance",
+            "candidate_runtime_dependency_census_commitment_mismatch",
+            canonical_json({
+                "expected": RUNTIME_DEPENDENCY_CENSUS_COMMITMENT,
+                "observed": observed,
+            }),
+        )
+    return observed
 
 
 def strict_load_stored_json(raw: bytes) -> Any:

@@ -79,7 +79,7 @@ from cross_domain_canonical_occupancy_materialization import (
     strict_load_stored_json,
     validate_exact_directory,
     validate_materialization_receipt,
-    validate_runtime_dependency_inventory,
+    validate_candidate_runtime_dependency_census,
     validate_head_disposition,
     validate_projection,
     validate_visible_tuple,
@@ -532,7 +532,7 @@ def _validate_runtime_provenance(domain: LiveDomain, value: Mapping[str, Any]) -
         or value.get("binding_verification_rows") != expected_verification_rows
     ):
         raise RuntimeError("runtime provenance did not bind the exact launch")
-    inventory_validation = validate_runtime_dependency_inventory(
+    inventory_validation = validate_candidate_runtime_dependency_census(
         value.get("loaded_image_inventory"),
         domain.binding,
         value.get("project_config_and_module_inventory"),
@@ -2883,13 +2883,24 @@ def acquire_source_audit() -> dict[str, Any]:
         "S24_complete_cpp_call_surface_census": len(cpp) > 1000,
         "S25_complete_input_api_occurrence_census": all(type(value) is int for value in census.values()),
         "S26_exact_translation_unit_byte_identity_set": len(texts) == 15,
-        "S27_loaded_image_and_runtime_dependency_inventory": all(
-            token in cpp for token in (
-                "_dyld_image_count()", "_dyld_get_image_name(Index)",
-                "_dyld_get_image_header(Index)", "LoadedMachOUuid",
-                "bExecutableObserved", "bModuleObserved",
-                "LoadedImageInventory(ExecutableRealpath, ModuleRealpath, LoadedImages)",
-                "loaded_image_inventory",
+        "S27_loaded_image_and_runtime_dependency_inventory": (
+            all(
+                token in cpp for token in (
+                    "_dyld_image_count()", "_dyld_get_image_name(Index)",
+                    "_dyld_get_image_header(Index)", "LoadedMachOUuid",
+                    "bExecutableObserved", "bModuleObserved",
+                    "LoadedImageInventory(ExecutableRealpath, ModuleRealpath, LoadedImages)",
+                    "loaded_image_inventory",
+                )
+            )
+            and all(
+                token in python for token in (
+                    "RUNTIME_DEPENDENCY_CENSUS_COMMITMENT",
+                    "validate_candidate_runtime_dependency_census",
+                    "coordinate_global_loaded_inventory_substitution",
+                    "rewritten_inventories == 441",
+                    "rewritten_inventory_digests == 432",
+                )
             )
         ),
         "S28_initial_and_final_actor_inventory": "initial_world_actor_class_inventory" in cpp and "level_actor_slot_count" in cpp,

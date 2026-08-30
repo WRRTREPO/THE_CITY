@@ -59,7 +59,7 @@ from cross_domain_canonical_occupancy_materialization import (
     strict_load_stored_json,
     validate_head_disposition,
     validate_materialization_receipt,
-    validate_runtime_dependency_inventory,
+    validate_candidate_runtime_dependency_census,
     write_json,
 )
 from cross_domain_canonical_occupancy_materialization_harness import (
@@ -481,7 +481,7 @@ def _validate_process_evidence(value: Any) -> dict[str, Any]:
              "descriptor-map binding drift")
     _require(isinstance(inventory, dict) and sha256_value(inventory) == binding["project_config_and_module_inventory_raw_sha256"],
              "project inventory binding drift")
-    validate_runtime_dependency_inventory(
+    validate_candidate_runtime_dependency_census(
         provenance.get("loaded_image_inventory"), binding, inventory
     )
     actors = provenance.get("initial_world_actor_class_inventory")
@@ -1652,10 +1652,9 @@ def _load_artifacts(directory: Path) -> dict[str, Any]:
     return values
 
 
-def validate_artifact_semantics(
-    directory: Path, *, rerun_source_audit: bool = True,
-) -> dict[str, Any]:
-    values = _load_artifacts(directory)
+def _validate_artifact_values(
+    values: Mapping[str, Any], *, rerun_source_audit: bool = True,
+) -> Mapping[str, Any]:
     _require(values["cross_domain_occupancy_canonical_chain.json"] == canonical_chain(),
              "canonical-chain artifact drift")
     _require(values["cross_domain_occupancy_projection_matrix.json"] == projection_matrix(),
@@ -1703,6 +1702,14 @@ def validate_artifact_semantics(
                      f"{name} proof-scenario drift")
         if isinstance(value, dict) and "result" in value:
             _require(value["result"] == "PASS", f"{name} result drift")
+    return values
+
+
+def validate_artifact_semantics(
+    directory: Path, *, rerun_source_audit: bool = True,
+) -> dict[str, Any]:
+    values = _load_artifacts(directory)
+    _validate_artifact_values(values, rerun_source_audit=rerun_source_audit)
     return values
 
 
@@ -1823,6 +1830,92 @@ def _run_negative_tests(values: Mapping[str, Any]) -> int:
         )
         _validate_proof_run(payload["cross_domain_occupancy_proof_run.json"], payload)
 
+    def coordinated_manifest_lines(artifacts: Mapping[str, Any]) -> list[str]:
+        lines: list[str] = []
+        artifact_prefix = f"{ARTIFACT_DIRECTORY}/"
+        for relative in release_paths():
+            if relative.startswith(artifact_prefix):
+                digest = sha256_value(artifacts[Path(relative).name])
+            else:
+                digest = _sha(_regular_release_member(relative))
+            lines.append(f"{digest}  {relative}")
+        _require(len(lines) == 172, "global adversary manifest closure drift")
+        return lines
+
+    def coordinate_global_loaded_inventory_substitution(payload: dict[str, Any]) -> None:
+        artifacts = payload["artifacts"]
+        process = artifacts[PRIMARY_FILES["W1"]]["domain_processes"]["domain_A"]
+        loaded = process["runtime_provenance"]["loaded_image_inventory"]
+        executable_path = process["binding"]["executable_realpath"]
+        module_path = process["runtime_provenance"][
+            "project_config_and_module_inventory"
+        ]["members"][-1]["realpath"]
+        shared_rows = [
+            copy.deepcopy(row) for row in loaded
+            if row["filesystem_regular_file"] is False
+        ][:2]
+        executable_row = copy.deepcopy(next(
+            row for row in loaded if row["realpath"] == executable_path
+        ))
+        module_row = copy.deepcopy(next(
+            row for row in loaded if row["realpath"] == module_path
+        ))
+        executable_row["mach_o_uuid"] = "00000000-0000-0000-0000-000000000000"
+        module_row["mach_o_uuid"] = "11111111-1111-1111-1111-111111111111"
+        replacement = sorted(
+            [*shared_rows, executable_row, module_row],
+            key=lambda row: (row["realpath"], row["mach_o_uuid"], row["reported_path"]),
+        )
+        _require(
+            len(replacement) == 4
+            and len([row for row in replacement if row["filesystem_regular_file"]]) == 2
+            and len([row for row in replacement if not row["filesystem_regular_file"]]) == 2,
+            "global loaded-image adversary fixture drift",
+        )
+        replacement_digest = sha256_value(replacement)
+        rewritten_inventories = 0
+        rewritten_inventory_digests = 0
+
+        def rewrite(value: Any) -> None:
+            nonlocal rewritten_inventories, rewritten_inventory_digests
+            if isinstance(value, dict):
+                for key in tuple(value):
+                    if key == "loaded_image_inventory":
+                        value[key] = copy.deepcopy(replacement)
+                        rewritten_inventories += 1
+                    elif key == "loaded_image_inventory_raw_sha256":
+                        value[key] = replacement_digest
+                        rewritten_inventory_digests += 1
+                    else:
+                        rewrite(value[key])
+            elif isinstance(value, list):
+                for member in value:
+                    rewrite(member)
+
+        proof_run_name = "cross_domain_occupancy_proof_run.json"
+        for name, value in artifacts.items():
+            if name != proof_run_name:
+                rewrite(value)
+        _require(
+            rewritten_inventories == 441 and rewritten_inventory_digests == 432,
+            "global loaded-image adversary embedding census drift",
+        )
+        proof_run = artifacts[proof_run_name]
+        proof_run["artifact_payload_raw_sha256"] = {
+            name: sha256_value(value)
+            for name, value in sorted(artifacts.items())
+            if name != proof_run_name
+        }
+        payload["manifest_lines"] = coordinated_manifest_lines(artifacts)
+
+    def validate_global_loaded_inventory_substitution(payload: Mapping[str, Any]) -> None:
+        artifacts = payload["artifacts"]
+        _require(
+            payload.get("manifest_lines") == coordinated_manifest_lines(artifacts),
+            "globally rewritten manifest does not bind the substituted artifacts",
+        )
+        _validate_artifact_values(artifacts, rerun_source_audit=False)
+
     reject("canonical_chain", values["cross_domain_occupancy_canonical_chain.json"],
            lambda row: row.__setitem__("proof_scenario", "mutated"),
            lambda row: _require(row == canonical_chain(), "mutated canonical chain"))
@@ -1885,6 +1978,12 @@ def _run_negative_tests(values: Mapping[str, Any]) -> int:
         values,
         truncate_w1_a_loaded_inventory,
         validate_coordinated_w1_a,
+    )
+    reject(
+        "globally_coordinated_loaded_image_census_and_manifest_rewrite",
+        {"artifacts": values, "manifest_lines": []},
+        coordinate_global_loaded_inventory_substitution,
+        validate_global_loaded_inventory_substitution,
     )
     reject("primary_trace", primary["W1"],
            lambda row: row["domain_processes"]["domain_A"]["runtime_trace"][0].__setitem__("trace_sequence", 9),
@@ -1951,7 +2050,7 @@ def _run_negative_tests(values: Mapping[str, Any]) -> int:
     reject("proof_run_digest", proof_run,
            lambda row: row["artifact_payload_raw_sha256"].__setitem__(next(iter(row["artifact_payload_raw_sha256"])), "0" * 64),
            lambda row: _validate_proof_run(row, values | {"cross_domain_occupancy_proof_run.json": row}))
-    _require(rejected == 33, "33-mutation verifier closure drift")
+    _require(rejected == 34, "34-mutation verifier closure drift")
     return rejected
 
 
@@ -2057,7 +2156,7 @@ def main() -> int:
         return 0
     count = write_release() if arguments.command == "write-release" else verify_release()
     print(
-        f"verified {count}/{count} release members; verifier adversaries 33/33 rejected; "
+        f"verified {count}/{count} release members; verifier adversaries 34/34 rejected; "
         "manifest excludes itself; evidence remains unsealed"
     )
     return 0

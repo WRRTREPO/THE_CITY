@@ -25,6 +25,7 @@ from cross_domain_canonical_occupancy_materialization import (
     RECORD_FILENAMES,
     RECORD_ROLES,
     RECORDS,
+    RUNTIME_DEPENDENCY_CENSUS_COMMITMENT,
     CrossDomainOccupancyRejected,
     PhysicalCurrentHeadGuard,
     artifact_role_set_valid,
@@ -48,6 +49,7 @@ from cross_domain_canonical_occupancy_materialization import (
     sha256_value,
     stored_json_bytes,
     strict_load_stored_json,
+    validate_candidate_runtime_dependency_census,
     validate_materialization_receipt,
     validate_projection,
     validate_runtime_dependency_inventory,
@@ -325,6 +327,9 @@ class CrossDomainCanonicalOccupancyMaterializationTests(unittest.TestCase):
             },
         ]
         self.assertEqual(validate_runtime_dependency_inventory(loaded, binding, inventory)["loaded_image_count"], 3)
+        self.assertEqual(RUNTIME_DEPENDENCY_CENSUS_COMMITMENT["loaded_image_count"], 1719)
+        with self.assertRaises(CrossDomainOccupancyRejected):
+            validate_candidate_runtime_dependency_census(loaded, binding, inventory)
         self.assertEqual(len(GUARD_STATES), 7)
         self.assertEqual(len(projection_matrix()["rows"]), 6)
         self.assertEqual(len(operation_tuple_matrix()["rows"]), 6)

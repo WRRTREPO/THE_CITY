@@ -147,6 +147,32 @@ fresh_replay_processes: 8
 alternate_proof_semantic_channels: 0
 ```
 
+The candidate freezes the independently acquired runtime-dependency census as
+one implementation/release commitment, rather than accepting agreement among
+copied evidence as sufficient:
+
+```yaml
+runtime_dependency_census_schema: CrossDomainOccupancyRuntimeDependencyCensusCommitment.v1
+loaded_image_rows: 1719
+filesystem_rows: 771
+shared_cache_rows: 948
+loaded_image_inventory_raw_sha256: 123bb5b3604f363a7566589cc95c4996ae7ad53d1328a4b97ac5865cd933dbfd
+unreal_editor:
+  raw_sha256: 9341cd404599745ebd5bb28014bd26686b5fc072ea73a79fd82e1c6abb361432
+  mach_o_uuid: 9d40e3d7-8257-37b5-b0ac-40206324e0be
+project_module:
+  raw_sha256: f5dde1da9c8289ec4a4a333bb74f42b7b45a291aab9459fb11efb9070b8643f4
+  mach_o_uuid: e0d9a98e-7f75-3268-96ef-070c35bec60a
+runtime_provenance_embeddings: 433/433
+semantic_input_audit_copies: 8/8
+registry_inventory_digests: 432/432
+```
+
+The verifier rejects a coordinated rewrite of all 441 inventory embeddings,
+all registry digests, proof-run relations, and the release manifest. Exact
+agreement now means agreement with this acquired commitment, not merely with
+another attacker-controlled copy.
+
 The function-scoped source/dataflow audit passes 30/30 checks and rejects all
 18 declared source mutations. It binds the exact bytes of the four Python and
 eleven relevant Unreal/GameMode translation units, inventories every admitted
@@ -171,7 +197,7 @@ ue_version: 5.8.0-55116800+++UE5+Release-5.8
 ue_editor_build: succeeded_with_DisableUnity_and_NoHotReloadFromIDE
 artifact_roles: 82/82
 release_members_excluding_manifest: 172/172
-release_verifier_adversaries: 33/33_rejected
+release_verifier_adversaries: 34/34_rejected
 manifest_self_excluding: true
 capacity_advancement: none
 phase_5: closed
@@ -191,7 +217,7 @@ no others. The verifier strictly reloads their canonical stored bytes,
 recomputes the four global matrices, validates every live and deterministic
 relation, reconstructs the 364-row occurrence registry, regenerates all 82
 artifacts in isolation, reruns the 45 focused and 215 predecessor contracts,
-reruns the source audit, and rejects 33 isolated in-memory verifier mutations.
+reruns the source audit, and rejects 34 isolated in-memory verifier mutations.
 
 After the self-excluding manifest exists, run the complete release gate from
 the repository root:
