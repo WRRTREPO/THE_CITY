@@ -1,8 +1,8 @@
 # Cross-Domain Canonical Occupancy Materialization Proof Evidence
 
 **Version:** 0.1.0
-**Date:** 2026-08-29
-**Status:** Passed release candidate; independent implementation review pending.
+**Date:** 2026-08-30
+**Status:** Passed and sealed.
 **Specification:** [Cross-Domain Canonical Occupancy Materialization Proof v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
 **Frozen specification SHA-256:** `47889ac299cf2cfbea143a6a529b1253826e74ae9ddc83f0b25903117ff9406d`
 **Proof harness identity:** `CrossDomainCanonicalOccupancyMaterializationProof.v1` / `0.7.0-draft.80`
@@ -22,9 +22,18 @@ two independently committed canonical successors and two physical refresh
 cycles. Neither Unreal process received a canonical completion source or a
 canonical mutation path.
 
-This record does not seal itself. The generated proof-run artifact retains
-`evidence_status: unsealed`; the exact implementation/release commit must be
-submitted to independent review before any later forward seal decision.
+Independent review accepted the exact implementation/release candidate at
+commit `bee3ecca660f884f3af727affae3ab1ceae2c401`, tree
+`3302b4e34b412629776433a4b50b1b0a852e51ab`, without findings and returned
+`ACCEPT_FOR_OPERATOR_SEAL_REVIEW`. This forward record seals that accepted
+candidate without rewriting its history.
+
+The generated proof-run artifact retains its acquisition-time
+`evidence_status: unsealed` field, and the accepted verifier continues to
+refuse to self-authorize a seal. Those frozen candidate bytes are evidence,
+not operator authority. This governing evidence record and its exact
+self-excluding manifest record the later independent acceptance and forward
+seal.
 
 ## Canonical authority and exact chain
 
@@ -199,6 +208,7 @@ artifact_roles: 82/82
 release_members_excluding_manifest: 172/172
 release_verifier_adversaries: 34/34_rejected
 manifest_self_excluding: true
+evidence_status: passed_and_sealed
 capacity_advancement: none
 phase_5: closed
 ```
@@ -228,9 +238,29 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
   python3 proof_kernel/verify_cross_domain_canonical_occupancy_materialization_release.py verify
 ```
 
-## Candidate boundary
+## Seal record
 
-This candidate proves only one subject, two canonical sites, one canonical
+```yaml
+sealed_candidate_commit: bee3ecca660f884f3af727affae3ab1ceae2c401
+sealed_candidate_tree: 3302b4e34b412629776433a4b50b1b0a852e51ab
+independent_verdict: ACCEPT_FOR_OPERATOR_SEAL_REVIEW
+independent_findings: none
+seal_form: forward_history_preserving
+independent_archive_members: 649/649
+artifact_roles: 82/82
+release_members_excluding_manifest: 172/172
+release_verifier_adversaries: 34/34_rejected
+frozen_specification_sha256: 47889ac299cf2cfbea143a6a529b1253826e74ae9ddc83f0b25903117ff9406d
+capacity_record: THE_CITY Development Capacity and Progress Note v0.1.11
+capacity_record_sha256: c8849fc7f54b4a67234d76a260a4dcbd3cadc71061faf450257d1c46e4444dad
+capacity_advancement: none
+successor_selected: false
+phase_5: closed
+```
+
+## Sealed proof boundary
+
+The sealed evidence proves only one subject, two canonical sites, one canonical
 route, one transition, two original live domains, and two immediate-successor
 refreshes. It does not prove physical traversal, route occupancy or capacity,
 movement, interpolation, navigation, pathfinding, arrival detection, multiple
@@ -238,6 +268,6 @@ subjects, contention, player embodiment, multiplayer, networking, replication,
 rollback, save/load, World Partition, streaming, reconnect, recovery,
 production topology, performance, or city scale.
 
-Development Capacity remains v0.1.11. Phase 5 remains closed. No push,
-deployment, publication, or successor implementation is authorized by this
-candidate record.
+Development Capacity remains v0.1.11. Phase 5 remains closed. No successor is
+selected; the seal grants no authority beyond this exact bounded record. No
+push, deployment, or publication is authorized by this record.

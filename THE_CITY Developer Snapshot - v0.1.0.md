@@ -1,16 +1,16 @@
 # THE_CITY — Developer Snapshot
 
 **Version:** 0.1.0
-**Date:** 2026-08-29
+**Date:** 2026-08-30
 **Status:** Informational development snapshot. This note grants no scope or
 authority.
 **Snapshot basis:** Independently accepted and forward-sealed Phase-3 candidate
-commit `4e14b39`, the independently accepted Phase-4 specification freeze, and
-the passed unsealed Phase-4 implementation/release candidate
-**Governing continuation:** `0.7.0-draft.82`
+commit `4e14b39` and independently accepted and forward-sealed Phase-4 candidate
+commit `bee3ecca660f884f3af727affae3ab1ceae2c401`
+**Governing continuation:** `0.7.0-draft.83`
 **Governing capacity:** `THE_CITY Development Capacity and Progress Note
 v0.1.11`
-**Latest sealed proof:** `Simultaneous Physical Domains Proof v0.1.1`
+**Latest sealed proof:** `Cross-Domain Canonical Occupancy Materialization Proof v0.1.0`
 
 ## Current position
 
@@ -76,11 +76,13 @@ The sealed proof chain establishes these bounded capabilities:
     still representing H0, and independently rebind to exact H1 without
     physical representation becoming canonical authority.
 
-The current unsealed Phase-4 candidate additionally demonstrates the exact
-sealed `R0 → Rtransit → Rfinal` occupancy chain across those same two original
-live domains through byte-bound projections, receipts, and independent
-exhaustive live censuses. This becomes sealed proof only after independent
-implementation acceptance and a separate forward-seal decision.
+The sealed Phase-4 proof additionally demonstrates the exact sealed
+`R0 → Rtransit → Rfinal` occupancy chain across those same two original live
+domains through byte-bound projections, detached receipts, and independent
+exhaustive live censuses. Independent implementation review accepted exact
+candidate commit `bee3ecca660f884f3af727affae3ab1ceae2c401`, tree
+`3302b4e34b412629776433a4b50b1b0a852e51ab`, without findings; the forward
+record seals those exact bytes.
 
 ## Authority model
 
@@ -135,16 +137,19 @@ phase_4_cross_domain_canonical_occupancy_materialization:
   selected: true
   specification: v0.1.0_frozen
   frozen_proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1/0.7.0-draft.80
-  accepted_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7
-  accepted_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3
+  frozen_spec_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7
+  frozen_spec_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3
+  sealed_candidate_commit: bee3ecca660f884f3af727affae3ab1ceae2c401
+  sealed_candidate_tree: 3302b4e34b412629776433a4b50b1b0a852e51ab
   frozen: true
-  implementation: passed_bounded_phase_4_release_candidate
-  implementation_authority: bounded_phase_4_proof_only
-  unreal_source_change_authority: exact_frozen_phase_4_paths_only
-  evidence_authority: exact_frozen_phase_4_evidence_only
-  release_authority: exact_frozen_phase_4_release_only
-  evidence: passed_unsealed_candidate
-  independent_implementation_review: pending_exact_candidate_commit
+  implementation: sealed_bounded_phase_4_proof_only
+  implementation_authority: sealed_historical_scope_only
+  unreal_source_change_authority: sealed_historical_scope_only
+  evidence_authority: sealed_historical_scope_only
+  release_authority: verify_exact_sealed_release_only
+  evidence: passed_and_sealed
+  independent_implementation_review: ACCEPT_FOR_OPERATOR_SEAL_REVIEW
+  independent_findings: none
   review_validator: 20/20_checks_and_32/32_mutations_rejected
   focused_tests: 45/45
   predecessor_regressions: 215/215
@@ -156,6 +161,7 @@ phase_4_cross_domain_canonical_occupancy_materialization:
   artifact_members: 82
   manifest_members_excluding_manifest: 172
   capacity_advancement: none
+  successor_selected: false
   phase_5: closed
 ```
 
@@ -237,13 +243,16 @@ in-memory mutations. Final freeze review of candidate
 serialization, binding-order, liveness/asymmetric-failure, and harness-trace
 gaps and received independent `ACCEPT_FOR_FREEZE`. Only the exact frozen
 Python, Unreal, adapter, Actor, test, evidence, artifact, release, manifest,
-and governing-document surface was opened. That bounded implementation now
+and governing-document surface was opened. That bounded implementation
 passes its UE 5.8 build, 45/45 focused tests, 215/215 predecessor regressions,
 all frozen live/fault/adversary matrices, 30/30 source checks with 18/18
 mutations rejected, the exact 82-artifact semantic verifier with 34/34
-mutations rejected, and the self-excluding 172/172-member release. Evidence
-remains an unsealed candidate pending independent
-exact-commit implementation review; capacity and Phase 5 remain closed.
+mutations rejected, and the self-excluding 172/172-member release. Independent
+implementation review accepted exact candidate commit
+`bee3ecca660f884f3af727affae3ab1ceae2c401`, tree
+`3302b4e34b412629776433a4b50b1b0a852e51ab`, without findings and returned
+`ACCEPT_FOR_OPERATOR_SEAL_REVIEW`. The forward record seals that exact
+candidate; capacity and Phase 5 remain closed.
 
 ## Exact sealed Phase-2 canonical envelope
 
@@ -293,13 +302,13 @@ The current corpus does not establish:
 - stochastic identity, generalized planning, production topology, or a
   generalized movement/occupancy system; or
 - generalized or production cross-domain occupancy materialization beyond the
-  exact one-subject/two-site/two-live-domain Phase-4 candidate.
+  exact one-subject/two-site/two-live-domain Phase-4 seal.
 
 ## Development frontier
 
 [Simultaneous Physical Domains Proof —
 v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md)
-is the latest sealed proof under `SimultaneousPhysicalDomainsProof.v1.1` /
+is sealed predecessor evidence under `SimultaneousPhysicalDomainsProof.v1.1` /
 `0.7.0-draft.77`. Independent review accepted exact candidate commit
 `4e14b39a01ba712bfe559d004b0383fc7d9db7d6`, tree
 `9cd3d8568959cb6b3cfd5e9f06383a7efea6dd78`, without findings. Its 41/41
@@ -309,37 +318,40 @@ witnesses, exact fault and authority surfaces, 44 artifacts, and self-excluding
 
 [Cross-Domain Canonical Occupancy Materialization Proof —
 v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is the frozen specification behind the active passed, unsealed Phase-4 release
-candidate. Exact specification candidate commit
+is the frozen specification behind the latest sealed proof. Exact specification candidate commit
 `fd2d62f404936eb961d7d1571204f1a352439bd7`, tree
 `b8b7bd6259d72c685ac5dee3c1488b19025b0fb3`, received independent
 `ACCEPT_FOR_FREEZE`. The exact bounded implementation and its
-[candidate evidence](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md)
-now pass locally. Capacity remains v0.1.11. Evidence remains unsealed pending
-independent implementation review of the exact release-candidate commit.
+[sealed evidence](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md)
+pass the complete gate. Independent review accepted implementation candidate
+commit `bee3ecca660f884f3af727affae3ab1ceae2c401`, tree
+`3302b4e34b412629776433a4b50b1b0a852e51ab`, without findings, and the forward
+record seals those exact bytes. Capacity remains v0.1.11; no successor is
+selected and Phase 5 remains closed.
 
 Current authority:
 
 ```yaml
-working_unit: Cross-Domain Canonical Occupancy Materialization Proof v0.1.0 independent implementation review
-phase: 4
-successor_selected: true
+working_unit: none
+phase: none
+successor_selected: false
 simulation_identity: 0.7.0-draft.80
-accepted_candidate_commit: fd2d62f404936eb961d7d1571204f1a352439bd7
-accepted_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3
+sealed_candidate_commit: bee3ecca660f884f3af727affae3ab1ceae2c401
+sealed_candidate_tree: 3302b4e34b412629776433a4b50b1b0a852e51ab
 specification_status: frozen
 freeze_status: frozen
-implementation_authority: bounded_phase_4_proof_only
-unreal_source_change_authority: exact_frozen_phase_4_paths_only
-evidence_authority: exact_frozen_phase_4_evidence_only
-release_authority: exact_frozen_phase_4_release_only
-implementation_status: passed_bounded_release_candidate
-evidence_status: passed_unsealed_candidate
+implementation_authority: sealed_historical_scope_only
+unreal_source_change_authority: sealed_historical_scope_only
+evidence_authority: sealed_historical_scope_only
+release_authority: verify_exact_sealed_release_only
+implementation_status: sealed_bounded_phase_4_proof_only
+evidence_status: passed_and_sealed
 artifact_members: 82
 manifest_members_excluding_manifest: 172
 review_validator: 20/20_checks_and_32/32_mutations_rejected
 final_freeze_review: accepted_exact_candidate
-independent_implementation_review: pending_exact_candidate_commit
+independent_implementation_review: ACCEPT_FOR_OPERATOR_SEAL_REVIEW
+independent_findings: none
 governing_record_change_from_this_note: none
 capacity_change_from_this_note: none
 phase_5: closed
@@ -347,10 +359,8 @@ phase_5: closed
 
 ## Record discipline
 
-The version of this snapshot captured at the exact Phase-3 seal is a historical
-manifest-bound member. This current amendment is a successor-governance record
-and is not absorbed into or evidence for that historical manifest. It does not
-supersede the continuation, sealed evidence, capacity record, or proof
-contracts. Its purpose is to give developers a readable statement of what the
-machine can now demonstrably do, what it still cannot claim, and where
-authority currently stops.
+This snapshot is a manifest-bound informational member of the exact Phase-4
+forward seal. It does not supersede the continuation, sealed evidence, capacity
+record, or proof contracts. Its purpose is to give developers a readable
+statement of what the machine can now demonstrably do, what it still cannot
+claim, and where authority currently stops.
