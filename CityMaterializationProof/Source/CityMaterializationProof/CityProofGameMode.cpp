@@ -4,6 +4,7 @@
 #include "CityProofCharacter.h"
 #include "CanonicalSpatialTopologyProofAdapter.h"
 #include "ConcurrentExternalEvidenceProofAdapter.h"
+#include "CrossDomainOccupancyCommandRouter.h"
 #include "IntegratedUnrealProofAdapter.h"
 #include "SimultaneousPhysicalDomainCommandRouter.h"
 #include "Engine/World.h"
@@ -14,12 +15,22 @@
 
 namespace
 {
+TUniquePtr<FCrossDomainOccupancyCommandRouter> GCrossDomainOccupancyRouter;
+
+bool IsCrossDomainOccupancyProofProcess()
+{
+    const FString CommandLine(FCommandLine::Get());
+    return CommandLine.Contains(TEXT("-Multiprocess")) &&
+        CommandLine.Contains(TEXT("-CrossDomainOccupancyProof"));
+}
+
 bool IsSimultaneousPhysicalDomainProcess()
 {
     FString IntegratedPayloadPath;
     FParse::Value(FCommandLine::Get(), TEXT("IntegratedProofPayload="), IntegratedPayloadPath);
     const FString CommandLine(FCommandLine::Get());
     return CommandLine.Contains(TEXT("-Multiprocess")) &&
+        !CommandLine.Contains(TEXT("-CrossDomainOccupancyProof")) &&
         !CommandLine.Contains(TEXT("CanonicalTopologyProof")) &&
         !CommandLine.Contains(TEXT("ConcurrentEvidence")) &&
         IntegratedPayloadPath.IsEmpty();
@@ -28,7 +39,7 @@ bool IsSimultaneousPhysicalDomainProcess()
 
 ACityProofGameMode::ACityProofGameMode()
 {
-    if (IsSimultaneousPhysicalDomainProcess())
+    if (IsCrossDomainOccupancyProofProcess() || IsSimultaneousPhysicalDomainProcess())
     {
         // Phase 3 is representation-only.  Prevent GameMode restart/spectator
         // paths from constructing or possessing any Pawn before BeginPlay.
@@ -72,6 +83,7 @@ void ACityProofGameMode::BeginPlay()
     // without a named topology, concurrent-evidence, or integrated payload.
     // The router still begins unbound and can acquire proof semantics only
     // from its one exact process-binding command on the original stdin pipe.
+    const bool bCrossDomainOccupancyProofProcess = IsCrossDomainOccupancyProofProcess();
     const bool bSimultaneousPhysicalDomainProcess = IsSimultaneousPhysicalDomainProcess();
     if (bTopologyProofRequested)
     {
@@ -80,6 +92,16 @@ void ACityProofGameMode::BeginPlay()
     else if (bConcurrentProofRequested)
     {
         GetWorld()->SpawnActor<AConcurrentExternalEvidenceProofAdapter>(AConcurrentExternalEvidenceProofAdapter::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+    }
+    else if (bCrossDomainOccupancyProofProcess)
+    {
+        // Phase 4 uses a retained non-UObject router so the exhaustive world
+        // census contains only the positive anchor and optional subject Actors.
+        GCrossDomainOccupancyRouter = MakeUnique<FCrossDomainOccupancyCommandRouter>();
+        if (!GCrossDomainOccupancyRouter->Start(GetWorld()))
+        {
+            GCrossDomainOccupancyRouter.Reset();
+        }
     }
     else if (bSimultaneousPhysicalDomainProcess)
     {
@@ -96,7 +118,7 @@ void ACityProofGameMode::BeginPlay()
 
     // The Phase-3 dispatch terminates here.  It never enters the legacy
     // player-controller, Pawn creation, possession, view-target, or input path.
-    if (!bSimultaneousPhysicalDomainProcess)
+    if (!bSimultaneousPhysicalDomainProcess && !bCrossDomainOccupancyProofProcess)
     {
         APlayerController* Controller = GetWorld()->GetFirstPlayerController();
         if (Controller != nullptr)

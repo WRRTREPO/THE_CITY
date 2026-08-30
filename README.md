@@ -7,7 +7,7 @@ strategic authority.
 > **The city holds facts; the crew's presence renders those facts into detail.**
 
 **Current sealed proof record:** [Simultaneous Physical Domains Proof — v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md).
-The governing continuation is [v0.7.0-draft.81](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
+The governing continuation is [v0.7.0-draft.82](Co-op%20Open-City%20FPS%20Simulation%20-%20v0.7%20Working%20Continuation.md).
 [Simultaneous Physical Domains Proof v0.1.1](Simultaneous%20Physical%20Domains%20Proof%20-%20v0.1.1.md)
 is sealed under `SimultaneousPhysicalDomainsProof.v1.1` / `0.7.0-draft.77`. It
 reuses the exact sealed Phase-1 H0/H1 canonical transition while requiring two
@@ -36,7 +36,8 @@ seal advanced no capacity and selected no successor.
 
 [Cross-Domain Canonical Occupancy Materialization Proof
 v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is now the frozen Phase-4 working unit under
+is the frozen specification for the active passed, unsealed Phase-4 release
+candidate under
 `CrossDomainCanonicalOccupancyMaterializationProof.v1` /
 `0.7.0-draft.80`. It composes the exact sealed Phase-2 R0 → Rtransit → Rfinal
 occupancy chain with the same two original, simultaneously live Phase-3 Unreal
@@ -57,8 +58,17 @@ field-exact LV01–LV06 and AF01–AF04 matrices, and complete successful, fault
 and liveness-adversary harness traces. Independent review returned
 `ACCEPT_FOR_FREEZE` for those exact bytes. The specification is frozen and
 authorizes only its exact bounded Phase-4 Python, Unreal, evidence, artifact,
-and release-verification paths. Evidence remains unsealed, Development
-Capacity remains v0.1.11, and Phase 5 remains closed.
+and release-verification paths. That bounded implementation is now a passed
+[release candidate](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md):
+45/45 focused tests and 215/215 predecessor regressions pass, the UE 5.8 editor
+build succeeds, all 4 primary witnesses, 6 controls, 4 asymmetric failures,
+23 binding adversaries, 121 authority subcases, 18 head faults, 138
+materialization faults, 36 observation faults, and 6 liveness adversaries pass,
+the source audit passes 30/30 with 18/18 mutations rejected, and the strict
+82-artifact verifier rejects 30/30 in-memory mutations. The self-excluding
+172/172-member release verifies; independent implementation review remains the
+candidate gate. Development Capacity remains v0.1.11, and Phase 5 remains
+closed.
 The [Resolution Semantics Law v0.1.1](Resolution%20Semantics%20Law%20-%20v0.1.1.md)
 and its implemented [substrate proof v0.1.0](Resolution%20Semantics%20Substrate%20Proof%20-%20Draft.md)
 are sealed. Causal-LOD Equivalence, record-relative chronological resolution,
@@ -120,6 +130,7 @@ proposals. Unreal cannot write city truth or causal-ledger entries.
 | [Canonical Spatial Topology Identity](Canonical%20Spatial%20Topology%20Identity%20Proof%20Evidence%20-%20v0.1.0.md) | Two exact canonical sites and one unordered canonical route retain their endpoint identity through one access mutation, total source-representation destruction, and isolated fresh UE reconstruction; labels and Actor identity remain non-authoritative. |
 | [Canonical Occupancy Transition](Canonical%20Occupancy%20Transition%20Proof%20Evidence%20-%20v0.1.0.md) | One exact subject leaves settled site B, enters one resource-owning canonical transition, and settles at site A only after a fresh Rtransit-bound completion; blocked access fails ordinarily without occupancy or reservation residue. |
 | [Simultaneous Physical Domains](Simultaneous%20Physical%20Domains%20Proof%20Evidence%20-%20v0.1.1.md) | Two original process-isolated UE domains remain alive across one independent canonical H0-to-H1 commit, are mechanically stale while still representing H0, and independently rebind to exact H1 through receipt-verified reconstruction plus independent live-world observation. |
+| [Cross-Domain Canonical Occupancy Materialization](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md) | The exact sealed Phase-2 R0/Rtransit/Rfinal occupancy chain is represented across the same two original live UE domains through byte-bound projections, detached receipts, exhaustive independent live censuses, and fail-closed head dispositions; canonical records remain the sole occupancy and completion authority. The implementation is a passed unsealed release candidate pending independent review. |
 
 The current capacity record is [THE_CITY Development Capacity and Progress Note — v0.1.11](THE_CITY%20Development%20Capacity%20and%20Progress%20Note%20-%20v0.1.11.md).
 
@@ -139,6 +150,22 @@ PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
 These review-only commands must report **20/20** structural checks and
 **32/32** rejected in-memory mutations. The validator is outside the frozen
 Phase-4 release and proves no runtime behavior.
+
+Verify the complete Phase-4 release candidate:
+
+```sh
+cd "/Users/boandersson/Desktop/Games/THE_CITY"
+PYTHONDONTWRITEBYTECODE=1 PYTHONPYCACHEPREFIX=/private/tmp/thecity_pycache \
+  PYTHONPATH=proof_kernel \
+  python3 proof_kernel/verify_cross_domain_canonical_occupancy_materialization_release.py verify
+```
+
+The command must report **172/172** release members and **30/30** rejected
+verifier mutations. It also reconstructs all 82 artifacts, reruns 45/45
+focused contracts and 215/215 predecessor regressions, and reruns the 30/30
+source audit with all 18 source mutations rejected. The candidate remains
+unsealed until independent implementation review and a separate forward-seal
+decision.
 
 Verify the sealed Phase-3 release package from an isolated export of its exact
 forward-seal commit. The live working tree now contains successor-governance

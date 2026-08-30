@@ -3,15 +3,15 @@
 **Version:** 0.1.0 (current amendment: 2026-08-29)\
 **Date:** 2026-08-29\
 **Status:** Current-state handoff and repository-agent operating guidance.\
-**Governing continuation:** `0.7.0-draft.81`\
+**Governing continuation:** `0.7.0-draft.82`\
 **Latest sealed proof:** `Simultaneous Physical Domains Proof v0.1.1`\
 **Latest capacity record:**
 `THE_CITY Development Capacity and Progress Note v0.1.11`
 
 ## Authority boundary
 
-This imported handoff summarizes the sealed project state and the currently
-frozen bounded-implementation boundary. It does not override system,
+This imported handoff summarizes the sealed project state and the current
+passed, unsealed bounded-release-candidate boundary. It does not override system,
 developer, or user instructions, and it does not supersede the named
 continuation, sealed evidence, capacity record, or repository state.
 
@@ -100,7 +100,8 @@ seal advanced no capacity and selected no successor at sealing.
 
 [Cross-Domain Canonical Occupancy Materialization Proof —
 v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is now the frozen Phase-4 working unit under
+is the frozen specification behind the active passed, unsealed Phase-4 release
+candidate under
 `CrossDomainCanonicalOccupancyMaterializationProof.v1` /
 `0.7.0-draft.80`. It binds the exact sealed Phase-2 R0 → Rtransit → Rfinal
 occupancy chain to the same two original, simultaneously live Phase-3 Unreal
@@ -117,8 +118,15 @@ mutations. Final freeze review of candidate
 binding-order, liveness/asymmetric-failure, and harness-trace gaps. Independent
 exact-object review returned `ACCEPT_FOR_FREEZE`. The specification now grants
 only its declared bounded Phase-4 implementation, Unreal-source, evidence,
-artifact, and release-verification authority. Evidence remains unsealed;
-capacity and Phase 5 remain closed.
+artifact, and release-verification authority. That bounded implementation is
+now complete and its [candidate evidence](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20Evidence%20-%20v0.1.0.md)
+passes: 45/45 focused tests, 215/215 predecessor regressions, the UE 5.8
+non-unity build, every frozen live/fault/adversary row, 30/30 source checks with
+18/18 source mutations rejected, exact 82-artifact semantic verification,
+30/30 verifier mutations rejected, and the self-excluding 172/172-member
+release. Evidence remains unsealed pending
+independent exact-commit implementation review; capacity and Phase 5 remain
+closed.
 
 ## Current proof progression
 
@@ -493,8 +501,8 @@ streaming identity
    PROVEN / SEALED
 
 10. Cross-domain canonical occupancy materialization
-    ░░░░░░░░░░░░░░░░░░░░
-    SPECIFICATION REVIEW ONLY / NOT FROZEN / NOT IMPLEMENTED
+    ████████████████████
+    PASSED RELEASE CANDIDATE / INDEPENDENT REVIEW PENDING / UNSEALED
 ```
 
 The bars are illustrative. The textual statuses are authoritative.
@@ -539,7 +547,8 @@ That is now proven evidence.
 
 The forward-corrected Phase-3 implementation and exact release are sealed in
 their bounded two-live-domain scope. The separately reviewed Phase-4 freeze
-grants only the exact bounded implementation surface recorded below and
+granted only the exact bounded surface recorded below. That surface is now a
+passed release candidate awaiting independent implementation review and
 advances no capacity.
 
 # Repo-agent instruction
@@ -550,7 +559,7 @@ Treat these as the current governing records:
 
 ``` yaml
 continuation:
-  version: 0.7.0-draft.81
+  version: 0.7.0-draft.82
 
 latest_capacity_record:
   version: 0.1.11
@@ -572,16 +581,23 @@ active_proof:
   accepted_candidate_tree: b8b7bd6259d72c685ac5dee3c1488b19025b0fb3
   canonical_source_payload: CanonicalOccupancyTransitionPayload.v1
   physical_lifecycle_source: SimultaneousPhysicalDomainsProof.v1.1
-  status: frozen_specification
+  status: passed_bounded_release_candidate
   freeze_status: frozen
   implementation_authority: bounded_phase_4_proof_only
   unreal_source_change_authority: exact_frozen_phase_4_paths_only
   evidence_authority: exact_frozen_phase_4_evidence_only
   release_authority: exact_frozen_phase_4_release_only
-  evidence_status: unsealed
+  evidence_status: passed_unsealed_candidate
+  independent_implementation_review: pending_exact_candidate_commit
   artifact_members: 82
   manifest_members_excluding_manifest: 172
   review_validator: 20/20_checks_and_32/32_mutations_rejected
+  focused_tests: 45/45
+  predecessor_regressions: 215/215
+  source_audit: 30/30_checks_and_18/18_mutations_rejected
+  release_verifier: 82/82_artifacts_172/172_members_and_30/30_mutations_rejected
+  registered_occurrences: 364
+  registered_unique_processes: 457
   final_freeze_review: accepted_exact_candidate
   capacity_advancement: none
   phase_5: closed
@@ -704,11 +720,11 @@ bounded paths were the complete authorized Phase-3 implementation surface and
 are now sealed historical scope; every other Phase-3 or production path
 remains prohibited.
 
-## Active Phase-4 frozen implementation boundary
+## Active Phase-4 release-candidate boundary
 
 [Cross-Domain Canonical Occupancy Materialization Proof —
 v0.1.0](Cross-Domain%20Canonical%20Occupancy%20Materialization%20Proof%20-%20Draft.md)
-is the sole current working unit and frozen Phase-4 specification. The first
+is the sole current review unit and frozen Phase-4 specification. The first
 independent exact-candidate review and the later final freeze review of
 candidate `299aa865c5757fb63aeef27a9c4eb48554dcea6f` returned
 `STOP_WITH_FINDINGS`. Corrected candidate commit
@@ -717,9 +733,10 @@ candidate `299aa865c5757fb63aeef27a9c4eb48554dcea6f` returned
 independent `ACCEPT_FOR_FREEZE`. This stage authorizes only the exact four new
 Python paths, ten new Unreal paths, bounded `CityProofGameMode.cpp` branch,
 evidence path, four governing paths, 82-member artifact directory, and
-self-excluding 172-member release declared by the frozen specification. It
-does not authorize any other implementation, capacity advancement, Phase 5,
-production architecture, or adjacent scope.
+self-excluding 172-member release declared by the frozen specification. That
+exact bounded surface is now implemented and locally verified. It does not
+authorize any other implementation, capacity advancement, Phase 5, production
+architecture, or adjacent scope.
 
 The frozen proof composes, without modifying, two exact predecessor laws:
 
@@ -751,9 +768,10 @@ acceptance, asymmetric failures at both cycles, the ordered 22-field process
 identity with distinct logical and stored serialization orders, the exact six
 liveness and four malformed-projection adversaries, successful/fault-complete
 harness traces, complete authority/fault/source adversaries, and the exact
-82-artifact/172-member release. Implementation may proceed only within the
-exact frozen paths and branch; evidence remains unsealed until every acceptance
-gate is executed and independently reviewed.
+82-artifact/172-member release. Implementation completed only within the exact
+frozen paths and branch. The complete local acceptance gate passes; evidence
+remains unsealed until the exact candidate commit is independently reviewed
+and a separate forward-seal decision is made.
 
 Do not begin any of the following without a separately reviewed specification and
 explicit implementation authority:
@@ -904,8 +922,8 @@ stale-domain quarantine, independent H1 refresh, fault surfaces, provenance,
 source audit, and replay are sealed predecessor evidence. Development Capacity
 remains v0.1.11.
 
-Cross-Domain Canonical Occupancy Materialization Proof v0.1.0 is the frozen
-Phase-4 working unit. It closes
+Cross-Domain Canonical Occupancy Materialization Proof v0.1.0 is the active
+passed, unsealed Phase-4 release candidate. It closes
 the exact sealed Phase-2 artifact binding, same two original Phase-3 processes,
 two commits and refresh cycles, six byte-bound projections, exhaustive live
 censuses, exact Rtransit zero-Actor evidence, guard/publication/disposition
@@ -914,10 +932,11 @@ release contract. Exact candidate commit
 `fd2d62f404936eb961d7d1571204f1a352439bd7`, tree
 `b8b7bd6259d72c685ac5dee3c1488b19025b0fb3`, received independent
 `ACCEPT_FOR_FREEZE`. Implementation, Unreal-source changes, evidence,
-artifacts, and release construction are authorized only inside the exact
-frozen boundary. Capacity advancement and Phase 5 remain unauthorized.
+artifacts, and release construction occurred only inside the exact frozen
+boundary and now pass the complete local gate. Independent implementation
+review of the exact candidate commit remains pending. Capacity advancement and
+Phase 5 remain unauthorized.
 
-> **Do not infer a proven cross-domain occupancy materialization, physical
-> movement, evidence arbitration, multiplayer, networking, streaming, capacity
-> advancement, or adjacent spatial architecture from the bounded Phase-3 seal
-> or the frozen Phase-4 specification.**
+> **Do not generalize the exact unsealed Phase-4 candidate into physical
+> movement, route occupancy, evidence arbitration, multiplayer, networking,
+> streaming, capacity advancement, or adjacent spatial architecture.**
