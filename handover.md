@@ -1,6 +1,6 @@
 # THE_CITY Session Handover
 
-**Generated:** 2026-08-30T08:03:35Z
+**Generated:** 2026-08-30T08:20:03Z
 
 **Repository:** `/Users/boandersson/Desktop/Games/THE_CITY`
 
@@ -8,11 +8,79 @@
 
 **Authority:** Committed informational successor only; this file is not a proof contract, seal, capacity record, release member, or implementation authorization
 
+## Phase-4 forward seal — 2026-08-30
+
+This is the current operational record. It supersedes the Phase-4 candidate,
+review-status, implementation-authority, current-working-unit, and next-gate
+statements in every later historical section of this handover.
+
+```yaml
+sealed_candidate_commit: bee3ecca660f884f3af727affae3ab1ceae2c401
+sealed_candidate_tree: 3302b4e34b412629776433a4b50b1b0a852e51ab
+sealed_candidate_parent: 9944799d3f704dce82c204387fbd1b37aa19b2bd
+independent_review_record_commit: 64682797a94b2dbe843c819f570a06ecf9c3f3bb
+independent_verdict: ACCEPT_FOR_OPERATOR_SEAL_REVIEW
+independent_findings: none
+seal_commit: 5d4eac983de281fcf7b03d78453e5f131204b946
+seal_tree: e01411b0af3e819474d33e73432148585ec6a34c
+seal_parent: 64682797a94b2dbe843c819f570a06ecf9c3f3bb
+seal_subject: Seal cross-domain occupancy materialization proof
+seal_form: forward_history_preserving
+governing_continuation: 0.7.0-draft.83
+proof_harness_identity: CrossDomainCanonicalOccupancyMaterializationProof.v1
+simulation_identity: 0.7.0-draft.80
+frozen_spec_sha256: 47889ac299cf2cfbea143a6a529b1253826e74ae9ddc83f0b25903117ff9406d
+artifact_roles: 82/82
+release_members_excluding_manifest: 172/172
+release_verifier_adversaries: 34/34_rejected
+focused_tests: 45/45
+predecessor_regressions: 215/215
+source_checks: 30/30
+source_mutations: 18/18_rejected
+specification_validator: 20/20
+specification_mutations: 32/32_rejected
+accepted_candidate_isolated_export: 172/172_and_34/34_rejected
+phase_2_seal_export: 33/33
+phase_3_seal_export: 111/111_and_41/41_rejected
+generated_proof_run_evidence_status: unsealed_acquisition_time
+governing_evidence_status: passed_and_sealed
+capacity_record: THE_CITY Development Capacity and Progress Note v0.1.11
+capacity_record_sha256: c8849fc7f54b4a67234d76a260a4dcbd3cadc71061faf450257d1c46e4444dad
+capacity_advancement: none
+working_unit: none
+successor_selected: false
+phase_5: closed
+push_performed: false
+next_gate: separate_operator_successor_selection_and_specification_freeze
+```
+
+The forward seal changes only the five governing/evidence records and their
+self-excluding manifest. The exact accepted implementation, eleven relevant
+Unreal/GameMode translation units, 82 artifacts, frozen specification, and
+capacity record remain byte-identical to candidate
+`bee3ecca660f884f3af727affae3ab1ceae2c401`.
+
+The accepted candidate passed its 172/172 release verification from an isolated
+Git export. The live seal package then passed 172/172 with 34/34 verifier
+adversaries rejected. Isolated predecessor exports separately passed Phase 2
+33/33 and Phase 3 111/111 with 41/41 Phase-3 verifier adversaries rejected.
+
+The generated proof-run artifact and verifier output retain the frozen
+acquisition-time statement that evidence is unsealed. They do not self-grant
+operator authority. Independent acceptance plus seal commit
+`5d4eac983de281fcf7b03d78453e5f131204b946`, tree
+`e01411b0af3e819474d33e73432148585ec6a34c`, establish the later governing
+forward seal. This handover is excluded from the 172-member release, so its
+informational successor commit cannot alter the sealed bytes.
+
+No successor is selected. Development Capacity remains v0.1.11, Phase 5 and
+adjacent production scope remain closed, and no push was performed.
+
 ## Phase-4 independent implementation review — 2026-08-30
 
-This is the current operational record. It supersedes the Phase-4
-implementation-candidate, review-status, and next-gate statements in every
-later historical section of this handover.
+This is the exact pre-seal independent review record. The forward-seal record
+above supersedes its current-state and next-gate statements while preserving
+its review testimony.
 
 ```yaml
 reviewed_candidate_commit: bee3ecca660f884f3af727affae3ab1ceae2c401
