@@ -1,12 +1,66 @@
 # THE_CITY Session Handover
 
-**Generated:** 2026-08-29T21:57:30Z
+**Generated:** 2026-08-30T08:03:35Z
 
 **Repository:** `/Users/boandersson/Desktop/Games/THE_CITY`
 
 **Purpose:** Semantic and executable handover for the next repository session
 
 **Authority:** Committed informational successor only; this file is not a proof contract, seal, capacity record, release member, or implementation authorization
+
+## Phase-4 independent implementation review — 2026-08-30
+
+This is the current operational record. It supersedes the Phase-4
+implementation-candidate, review-status, and next-gate statements in every
+later historical section of this handover.
+
+```yaml
+reviewed_candidate_commit: bee3ecca660f884f3af727affae3ab1ceae2c401
+reviewed_candidate_tree: 3302b4e34b412629776433a4b50b1b0a852e51ab
+reviewed_candidate_parent: 9944799d3f704dce82c204387fbd1b37aa19b2bd
+reviewed_candidate_subject: Bind Phase 4 runtime dependency census
+independent_verdict: ACCEPT_FOR_OPERATOR_SEAL_REVIEW
+independent_findings: none
+review_testimony_is_a_seal: false
+frozen_spec_sha256: 47889ac299cf2cfbea143a6a529b1253826e74ae9ddc83f0b25903117ff9406d
+artifact_roles: 82/82
+release_members_excluding_manifest: 172/172
+release_verifier_adversaries: 34/34_rejected
+focused_tests: 45/45
+predecessor_regressions: 215/215
+source_checks: 30/30
+source_mutations: 18/18_rejected
+specification_validator: 20/20
+specification_mutations: 32/32_rejected
+phase_2_seal_export: 33/33
+phase_3_seal_export: 111/111
+phase_3_verifier_adversaries: 41/41_rejected
+evidence_status: unsealed
+capacity_record: THE_CITY Development Capacity and Progress Note v0.1.11
+capacity_advancement: none
+phase_5: closed
+push_performed: false
+next_gate: operator_forward_seal_review
+```
+
+The reviewer authenticated 649/649 entries from a fresh archive of the exact
+candidate. All 433 `process_root_realpath` verification rows retain the frozen
+field mode, and the evidence states predecessor removal before target subject
+and anchor publication. The candidate binds all 441 loaded-image inventory
+embeddings and 432 registry digest embeddings to the independently acquired
+1,719-row runtime-dependency commitment.
+
+Both the preserved common four-row substitution and a fresh common five-row
+substitution rewrote every inventory embedding, every registry digest, the
+proof-run relations, executable/module UUIDs, and all 172 manifest lines. Both
+were rejected at the semantic commitment gate. The unmodified candidate passed
+the complete release and predecessor checks above.
+
+This handover is excluded from the 172-member release. Review or seal only
+candidate commit `bee3ecca660f884f3af727affae3ab1ceae2c401`, tree
+`3302b4e34b412629776433a4b50b1b0a852e51ab`, not this later informational
+commit. No seal, capacity change, Phase-5 work, or push follows from review
+testimony alone.
 
 ## Phase-4 specification freeze — 2026-08-29
 
