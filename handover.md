@@ -7,19 +7,19 @@
 
 ## Current state
 
-**Phase 4 is sealed. Phase 5 is open for specification review only.**
+**Phase 4 is sealed. Phase 5 specification is frozen.**
 
-The operator selected **Live Cross-Domain Evidence Round-Trip Proof** with “Approved. Execute”. The [selection record](PHASE_5_SELECTION.json) binds the [candidate specification](Live%20Cross-Domain%20Evidence%20Round-Trip%20Proof%20-%20Draft.md) and its machine-readable contract. This updates current development routing. It changes no historical seal. Drafts 1 and 2 received independent REVISE verdicts. Draft 3 closes the remaining trace encoding and exact fault-code findings and awaits focused exact-candidate review. The candidate remains unfrozen.
+The operator selected **Live Cross-Domain Evidence Round-Trip Proof** with “Approved. Execute”. The [selection record](PHASE_5_SELECTION.json) binds the [candidate specification](Live%20Cross-Domain%20Evidence%20Round-Trip%20Proof%20-%20Draft.md) and its machine-readable contract. This updates current development routing. It changes no historical seal. The independent reviewer returned CONTINUE with no remaining findings for draft 3. The operator approved the freeze with “OK execute next step”. [The freeze record](PHASE_5_FREEZE.json) binds exact candidate commit `712fff25e3e256a77b733f7ca108aa9d7ad00d1e`, tree `7000cda24b090f2b1fd34b41b7cb524034590071`, both specification hashes and the [preserved review](References/Phase5SpecificationReview/draft3/REVIEW.md). The reviewed specification bytes retain their historical candidate labels. The forward freeze record supplies current status.
 
 | Record | Current value |
 | --- | --- |
 | Latest sealed proof | Cross-Domain Canonical Occupancy Materialization Proof v0.1.0 |
 | Governing continuation | 0.7.0-draft.83 |
 | Capacity record | THE_CITY Development Capacity and Progress Note v0.1.11 |
-| Current working unit | Live Cross-Domain Evidence Round-Trip Proof specification review |
+| Current working unit | Frozen Live Cross-Domain Evidence Round-Trip Proof; governed implementation preparation |
 | Proof artifacts | 82 |
 | Sealed release members | 172, excluding the manifest |
-| Next development decision | Independent exact-candidate specification review, corrections, then freeze |
+| Next development step | Continue MCDP gates, then its emitted PhoenixRising handoff and clean implementation contract |
 
 The sealed proof represents the exact canonical `R0 → Rtransit → Rfinal` occupancy chain across two original, simultaneously live Unreal domains. Canonical Python records own occupancy and completion. Unreal represents those records.
 
@@ -114,7 +114,7 @@ The original handover is outside the 172-member release. CITY's preservation che
 
 Live Unreal execution from `/Users/boandersson/Projects/CITY` remains unverified. The source project and module names remain `CityMaterializationProof`. Historical executable paths in sealed evidence remain provenance; this move does not rewrite them or prove a fresh Unreal build.
 
-There is no open Phase-3 or Phase-4 implementation unit. Phase 5 is open for specification review only. Game implementation follows exact review and freeze. Do not regenerate sealed releases or launch historical acquisition commands to validate this document change.
+There is no open Phase-3 or Phase-4 implementation unit. Phase 5 specification is frozen. Game implementation follows the remaining MCDP gates, its emitted PhoenixRising handoff and a clean implementation contract. Do not regenerate sealed releases or launch historical acquisition commands to validate this document change.
 
 Run the review-only checker from CITY:
 
@@ -123,4 +123,4 @@ python3 -B proof_kernel/validate_live_cross_domain_evidence_round_trip_spec.py -
 python3 -B proof_kernel/validate_live_cross_domain_evidence_round_trip_spec.py --self-test --json
 ```
 
-The checker verifies structural commitments. It proves no Unreal execution or independent review acceptance.
+The checker verifies structural commitments and calls native freeze validation. The stored independent review supplies acceptance advice; the operator freeze supplies current specification authority. Neither proves Unreal execution or a game seal.

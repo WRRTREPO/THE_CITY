@@ -19,6 +19,11 @@ SELECTION = 'PHASE_5_SELECTION.json'
 SPECIFICATION = 'Live Cross-Domain Evidence Round-Trip Proof - Draft.md'
 SPEC_CONTRACT = 'proof_kernel/live_cross_domain_evidence_round_trip_contract.json'
 SPEC_VALIDATOR = 'proof_kernel/validate_live_cross_domain_evidence_round_trip_spec.py'
+FREEZE = 'PHASE_5_FREEZE.json'
+FREEZE_SHA256 = 'a6415491efd6abd75f6b1d14c542c33d560c0705cb483ef75afda7c74cca8a79'
+FROZEN_CANDIDATE = {'commit': '712fff25e3e256a77b733f7ca108aa9d7ad00d1e', 'tree': '7000cda24b090f2b1fd34b41b7cb524034590071'}
+FROZEN_DOCUMENTS = {'Live Cross-Domain Evidence Round-Trip Proof - Draft.md': 'ecb21d9a4b8adede4ec886ac5239404fdbc492b11eb1a3ac9d419a04d8552214', 'proof_kernel/live_cross_domain_evidence_round_trip_contract.json': 'b862ceba039b1f2f418b01fe32221f14f095ce4894d163077b4eaa31dd0a8755'}
+REVIEW_MEMBERS = {'References/Phase5SpecificationReview/draft3/REVIEW.md': '8ead85b0a9074fec13e7d53f32b504e2ea196f5622d241b6548523e88e8517f4', 'References/Phase5SpecificationReview/draft3/review.json': '1da6199da0de3d5aca3e905a715d7ddf55d0de7c75373b7176ac40ac9445dc8f', 'References/Phase5SpecificationReview/draft3/snapshot-end.json': 'becd7fc5cde08995c74a29c0200de868f97b7dc9f036c6640a1ad246a4e3a035'}
 CLAIMS = {'live_unreal_from_city': False, 'phase_5_authorized': False,
           'production_ready': False, 'trusted_ci': False, 'new_game_seal': False}
 
@@ -56,7 +61,7 @@ def identity():
 
 def snapshot():
     paths = set(git('ls-files', '-z').split('\0')) - {''}
-    paths.update((SELECTION, SPECIFICATION, SPEC_CONTRACT, SPEC_VALIDATOR))
+    paths.update((SELECTION, SPECIFICATION, SPEC_CONTRACT, SPEC_VALIDATOR, FREEZE, *REVIEW_MEMBERS))
     # Include new governance code during candidate validation, before the first commit.
     for folder in ('tools/controltower', 'tests/controltower'):
         paths.update(p.relative_to(ROOT).as_posix() for p in (ROOT / folder).rglob('*')
@@ -99,17 +104,84 @@ def preserved():
     return data
 
 
+def strict_json(path):
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('duplicate JSON key: ' + key)
+            result[key] = value
+        return result
+    return json.loads(path.read_text(), object_pairs_hook=unique,
+                      parse_constant=lambda _: (_ for _ in ()).throw(ValueError('non-finite JSON')))
+
+
+def bounded_hash(root, name):
+    path = root / name
+    if not path.resolve().is_relative_to(root.resolve()):
+        raise ValueError('freeze path escapes repository: ' + name)
+    if any(p.is_symlink() for p in (path, *path.parents) if p != root and p.is_relative_to(root)):
+        raise ValueError('symlink in freeze path: ' + name)
+    return file_hash(path)
+
+
+def load_freeze(root=ROOT):
+    """Authenticate the operator freeze against the fixed independent review.
+
+    Neither a changed checksum in selection nor a self-authored review can
+    transfer this approval to another candidate. This is development governance.
+    """
+    try:
+        if bounded_hash(root, FREEZE) != FREEZE_SHA256:
+            raise ValueError('operator freeze bytes differ')
+        value = strict_json(root / FREEZE)
+        if value['schema'] != 'city.specification_freeze.v1' or value['status'] != 'specification_frozen':
+            raise ValueError('freeze identity differs')
+        if value['candidate'] != FROZEN_CANDIDATE or value['frozen_documents'] != FROZEN_DOCUMENTS:
+            raise ValueError('reviewed candidate differs')
+        if value['independent_review']['members'] != REVIEW_MEMBERS:
+            raise ValueError('review membership differs')
+        for name, expected in REVIEW_MEMBERS.items():
+            if bounded_hash(root, name) != expected:
+                raise ValueError('independent review bytes differ: ' + name)
+        review = strict_json(root / 'References/Phase5SpecificationReview/draft3/review.json')
+        end = strict_json(root / 'References/Phase5SpecificationReview/draft3/snapshot-end.json')
+        if (review['recommendation'] != 'CONTINUE' or review['findings'] != []
+                or review['ready_for_freeze_decision'] is not True
+                or review['snapshot_stable'] is not True or end['snapshot_stable'] is not True):
+            raise ValueError('independent review does not support freeze')
+        for field, review_field in [('commit', 'head'), ('tree', 'tree')]:
+            if review[review_field] != FROZEN_CANDIDATE[field] or end[review_field] != FROZEN_CANDIDATE[field]:
+                raise ValueError('review snapshot differs')
+        if git('rev-parse', FROZEN_CANDIDATE['commit'] + '^{tree}').strip() != FROZEN_CANDIDATE['tree']:
+            raise ValueError('candidate Git tree differs')
+        git('merge-base', '--is-ancestor', FROZEN_CANDIDATE['commit'], 'HEAD')
+        for name, expected in FROZEN_DOCUMENTS.items():
+            committed = git('show', FROZEN_CANDIDATE['commit'] + ':' + name).encode('utf-8')
+            if (bounded_hash(root, name) != expected or hashlib.sha256(committed).hexdigest() != expected
+                    or end['reviewed_file_hashes'][name] != expected):
+                raise ValueError('frozen document bytes differ: ' + name)
+        if value['authority'] != {'specification_frozen': True, 'game_implementation_authorized': False,
+                                  'evidence_acquired': False, 'game_sealed': False,
+                                  'production_ready': False, 'trusted_ci': False}:
+            raise ValueError('freeze grants unapproved authority')
+        return value
+    except (Refusal, OSError, ValueError, KeyError, TypeError) as exc:
+        raise Refusal('CITY_FREEZE_INVALID', str(exc)) from exc
+
+
 def load_selection(root=ROOT):
     """Read a bounded selection, never infer implementation authority from it."""
     expected = {
         'schema': 'city.successor_selection.v1', 'phase': 5,
-        'status': 'specification_review', 'successor': 'Live Cross-Domain Evidence Round-Trip Proof',
+        'status': 'specification_frozen', 'successor': 'Live Cross-Domain Evidence Round-Trip Proof',
         'version': '0.1.0-draft.3', 'selected_by': 'operator', 'approval': 'Approved. Execute',
         'approval_date': '2026-09-06',
         'selection_base_commit': '8b933f7d4caf48957789ad5ca6846c510df668cd',
         'specification_path': SPECIFICATION, 'contract_path': SPEC_CONTRACT,
-        'implementation_authorized': False, 'independent_review': 'pending',
-        'specification_frozen': False, 'evidence_sealed': False,
+        'implementation_authorized': False, 'independent_review': 'CONTINUE',
+        'specification_frozen': True, 'evidence_sealed': False,
+        'freeze_path': FREEZE, 'freeze_sha256': FREEZE_SHA256,
         'capacity': '0.1.11', 'sealed_continuation': '0.7.0-draft.83',
     }
     def unique(pairs):
@@ -131,9 +203,10 @@ def load_selection(root=ROOT):
             path = root / value[field + '_path']
             if not path.resolve().is_relative_to(root.resolve()) or file_hash(path) != value[field + '_sha256']:
                 raise ValueError('selected document bytes differ: ' + field)
-        return value
     except (Refusal, OSError, ValueError, KeyError, TypeError) as exc:
         raise Refusal('CITY_SELECTION_INVALID', str(exc)) from exc
+    load_freeze(root)
+    return value
 
 
 def assert_claims(claims):
@@ -212,7 +285,8 @@ def answer(action):
         result.update(active_proof='Cross-Domain Canonical Occupancy Materialization Proof v0.1.0',
                       continuation=selection['sealed_continuation'], capacity=selection['capacity'],
                       phase_5=selection['status'], successor=selection['successor'],
-                      specification_frozen=False, implementation_authorized=False,
+                      specification_frozen=selection['specification_frozen'], implementation_authorized=False,
+                      freeze_path=FREEZE, reviewed_candidate=FROZEN_CANDIDATE, independent_review=selection['independent_review'],
                       selection_path=SELECTION, specification_path=SPECIFICATION,
                       authority='canonical_python_records',
                       development_checkout=str(ROOT), reference_checkout='/Users/boandersson/Desktop/Games/THE_CITY',
@@ -235,9 +309,11 @@ def answer(action):
                       limits=['Live Unreal execution from CITY has not been acquired.'],
                       **validation_state(current, files))
     elif action == 'next-action':
-        result.update(next_action='review_successor_specification', argv=['python3', '-B', SPEC_VALIDATOR, '--json'],
+        result.update(next_action='continue_governed_implementation_preparation', argv=['python3', '-B', SPEC_VALIDATOR, '--json'],
                       controltower_argv=['../ControlTower', 'repo', 'CITY', 'run', 'city.verify-release', '--approve', '--json'],
-                      future_work='Review the exact selected specification, resolve findings, and freeze before game implementation.',
+                      future_work='Continue the active MCDP session through its actual phase gates. Use the emitted P16 PhoenixRising handoff and a clean implementation contract before game code.',
+                      protocol_next_argv=['../ControlTower', 'mcdp', 'next', 'mcdp-city-live-evidence-spec'],
+                      specification_frozen=True, freeze_path=FREEZE,
                       phase_5=selection['status'], implementation_authorized=False)
     elif action == 'rollback-plan':
         result.update(plan_only=True, baseline_commit=data['commit'], baseline_tree=data['tree'],

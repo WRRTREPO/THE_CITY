@@ -1,0 +1,20 @@
+{
+  "utc": "2026-09-06T20:12:35.633383+00:00",
+  "repo": "/Users/boandersson/Projects/CITY",
+  "head": "712fff25e3e256a77b733f7ca108aa9d7ad00d1e",
+  "tree": "7000cda24b090f2b1fd34b41b7cb524034590071",
+  "branch": "main",
+  "status_porcelain_v2": "# branch.oid 712fff25e3e256a77b733f7ca108aa9d7ad00d1e\n# branch.head main\n# branch.upstream origin/main\n# branch.ab +1 -0",
+  "upstream_counts": "1\t0",
+  "reviewed_file_hashes": {
+    "Live Cross-Domain Evidence Round-Trip Proof - Draft.md": "ecb21d9a4b8adede4ec886ac5239404fdbc492b11eb1a3ac9d419a04d8552214",
+    "PHASE_5_SELECTION.json": "182156cfbc1361269582270f8e96da7f619ce5bf940a9b3412e8637f4439e049",
+    "handover.md": "4984d26bd101b40915131967de82771003b7426c1b7a99b5302991d18807a795",
+    "proof_kernel/live_cross_domain_evidence_round_trip_contract.json": "b862ceba039b1f2f418b01fe32221f14f095ce4894d163077b4eaa31dd0a8755",
+    "proof_kernel/validate_live_cross_domain_evidence_round_trip_spec.py": "557cb2483b89030371b56dc894eeb8e577567653ff9c6c4a160ef5baa093b508",
+    "tools/controltower/city_native.py": "b0335c7900ab79c2ccafbc08c547415910f8aaf21c65b5b6942b8169bcdbd251"
+  },
+  "snapshot_stable": true,
+  "changed_reviewed_files": [],
+  "transport_policy": "Upstream-count change from root pushing this unchanged commit is recorded but does not invalidate unchanged HEAD/tree/reviewed bytes."
+}

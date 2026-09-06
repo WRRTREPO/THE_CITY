@@ -71,7 +71,7 @@ def execute(case):
             assert value['source_identity'] == native.identity()
             assert value['claims'] == native.CLAIMS and value['failure_codes'] == []
             outputs[action] = value
-        assert outputs['strategic-status']['phase_5'] == 'specification_review'
+        assert outputs['strategic-status']['phase_5'] == 'specification_frozen'
         assert outputs['strategic-status']['successor'] == 'Live Cross-Domain Evidence Round-Trip Proof'
         assert outputs['strategic-status']['implementation_authorized'] is False
         assert outputs['health']['health_state'] == 'degraded'
@@ -142,7 +142,7 @@ def execute(case):
         detail = {'reference_files': refs}
     elif case == 'handover-current':
         text = (ROOT / 'handover.md').read_text()
-        assert 'Phase 4 is sealed. Phase 5 is open for specification review only.' in text
+        assert 'Phase 4 is sealed. Phase 5 specification is frozen.' in text
         assert 'cd /Users/boandersson/Projects/CITY' in text
         assert '/Users/boandersson/Desktop' not in text
         assert 'The current work is Phase 3' not in text
@@ -152,7 +152,7 @@ def execute(case):
         assert 'References/Handover/handover-2026-08-30.md' in text
         links = re.findall(r'\[[^\]]+\]\(([^)]+)\)', text)
         assert links and all((ROOT / unquote(link)).is_file() for link in links)
-        detail = {'local_links_verified': len(links), 'native_routes': 6, 'phase_4': 'sealed', 'phase_5': 'specification_review'}
+        detail = {'local_links_verified': len(links), 'native_routes': 6, 'phase_4': 'sealed', 'phase_5': 'specification_frozen'}
     elif case == 'archive-integrity':
         data = native.baseline()
         expected = subprocess.check_output(['git', 'show', data['commit'] + ':handover.md'], cwd=ROOT)
@@ -198,14 +198,79 @@ def execute(case):
         selected = native.load_selection()
         proc, state = run('strategic-status')
         assert proc.returncode == 0 and state['successor'] == selected['successor']
-        assert state['phase_5'] == 'specification_review'
-        assert state['implementation_authorized'] is False and state['specification_frozen'] is False
+        assert state['phase_5'] == 'specification_frozen'
+        assert state['implementation_authorized'] is False and state['specification_frozen'] is True
         assert native.SELECTION in native.snapshot() and native.SPEC_CONTRACT in native.snapshot()
         detail = {'selected': state['successor'], 'implementation_authorized': False}
+    elif case == 'freeze-valid':
+        freeze = native.load_freeze()
+        selected = native.load_selection()
+        assert freeze['candidate'] == native.FROZEN_CANDIDATE
+        assert selected['specification_frozen'] is True
+        assert selected['implementation_authorized'] is False
+        for name, expected in native.FROZEN_DOCUMENTS.items():
+            original = subprocess.check_output(['git', 'show', native.FROZEN_CANDIDATE['commit']+':'+name], cwd=ROOT)
+            assert (ROOT / name).read_bytes() == original
+            assert hashlib.sha256(original).hexdigest() == expected
+        assert all(name in native.snapshot() for name in [native.FREEZE, *native.REVIEW_MEMBERS])
+        detail = {'candidate':freeze['candidate'], 'frozen_specification_bytes_unchanged':True}
+    elif case == 'freeze-routing':
+        proc, state = run('strategic-status'); assert proc.returncode == 0
+        proc, next_action = run('next-action'); assert proc.returncode == 0
+        assert state['specification_frozen'] is True and state['independent_review'] == 'CONTINUE'
+        assert state['reviewed_candidate'] == native.FROZEN_CANDIDATE
+        assert state['claims']['phase_5_authorized'] is False and state['implementation_authorized'] is False
+        assert next_action['next_action'] == 'continue_governed_implementation_preparation'
+        assert next_action['protocol_next_argv'] == ['../ControlTower','mcdp','next','mcdp-city-live-evidence-spec']
+        detail = {'phase_5':state['phase_5'], 'next_action':next_action['next_action'], 'implementation_authorized':False}
+    elif case.startswith('freeze-'):
+        with tempfile.TemporaryDirectory(prefix='city-freeze-', dir='/private/tmp') as tmp:
+            fixture = Path(tmp)
+            for name in (native.SELECTION, native.SPECIFICATION, native.SPEC_CONTRACT, native.FREEZE, *native.REVIEW_MEMBERS):
+                dest=fixture/name; dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes((ROOT/name).read_bytes())
+            freeze_path=fixture/native.FREEZE
+            freeze=json.loads(freeze_path.read_text())
+            if case == 'freeze-missing':
+                freeze_path.unlink()
+            elif case == 'freeze-tampered':
+                freeze_path.write_bytes(freeze_path.read_bytes()+b' ')
+            elif case == 'freeze-wrong-candidate':
+                freeze['candidate']['commit']='0'*40
+                freeze['candidate']['tree']='0'*40
+                freeze_path.write_text(json.dumps(freeze))
+            elif case == 'freeze-review-missing':
+                (fixture/'References/Phase5SpecificationReview/draft3/review.json').unlink()
+            elif case == 'freeze-review-rehashed':
+                name='References/Phase5SpecificationReview/draft3/review.json'
+                review=json.loads((fixture/name).read_text());review['findings']=[{'id':'unresolved'}];review['recommendation']='REVISE'
+                (fixture/name).write_text(json.dumps(review))
+                freeze['independent_review']['members'][name]=hashlib.sha256((fixture/name).read_bytes()).hexdigest()
+                freeze_path.write_text(json.dumps(freeze))
+            elif case == 'freeze-spec-rehashed':
+                (fixture/native.SPECIFICATION).write_text('Changed scope')
+                freeze['frozen_documents'][native.SPECIFICATION]=hashlib.sha256((fixture/native.SPECIFICATION).read_bytes()).hexdigest()
+                freeze_path.write_text(json.dumps(freeze))
+            elif case == 'freeze-authority':
+                freeze['authority']['game_implementation_authorized']=True
+                freeze_path.write_text(json.dumps(freeze))
+            elif case == 'freeze-extra-field':
+                freeze['authority']['waiver']=True
+                freeze_path.write_text(json.dumps(freeze))
+            elif case == 'freeze-duplicate-key':
+                freeze_path.write_text(freeze_path.read_text().replace('"phase": 5,','"phase": 5, "phase": 5,'))
+            else:
+                raise AssertionError('Unknown freeze case')
+            # Rehashing selection does not transfer operator approval.
+            if freeze_path.exists():
+                selected=json.loads((fixture/native.SELECTION).read_text())
+                selected['freeze_sha256']=hashlib.sha256(freeze_path.read_bytes()).hexdigest()
+                (fixture/native.SELECTION).write_text(json.dumps(selected))
+            native.load_freeze(fixture)
+            raise AssertionError('Invalid freeze accepted')
     elif case.startswith('selection-'):
         with tempfile.TemporaryDirectory(prefix='city-selection-', dir='/private/tmp') as tmp:
             fixture = Path(tmp)
-            for name in (native.SELECTION, native.SPECIFICATION, native.SPEC_CONTRACT):
+            for name in (native.SELECTION, native.SPECIFICATION, native.SPEC_CONTRACT, native.FREEZE, *native.REVIEW_MEMBERS):
                 dest = fixture / name
                 dest.parent.mkdir(parents=True, exist_ok=True)
                 dest.write_bytes((ROOT / name).read_bytes())

@@ -1,0 +1,85 @@
+{
+  "schema": "city.independent_specification_followup.v1",
+  "protocol_version": "1.6",
+  "stance": "CONTRACT_CONFORMANCE",
+  "candidate_version": "0.1.0-draft.3",
+  "input_type": "exact_committed_candidate_diff",
+  "base_commit": "1ea8c897dad549ba62c8be9b0fdbcca09a837c67",
+  "repo": "/Users/boandersson/Projects/CITY",
+  "git_state": "COMMITTED_HEAD",
+  "head": "712fff25e3e256a77b733f7ca108aa9d7ad00d1e",
+  "tree": "7000cda24b090f2b1fd34b41b7cb524034590071",
+  "snapshot_stable": true,
+  "recommendation": "CONTINUE",
+  "decision_advice": "ready_for_operator_specification_freeze_decision",
+  "ready_for_freeze_decision": true,
+  "findings": [],
+  "prior_findings": [
+    {
+      "id": "R1",
+      "status": "closed",
+      "review_basis": "carried forward unchanged from draft-2 exact review"
+    },
+    {
+      "id": "R3",
+      "status": "closed",
+      "review_basis": "carried forward unchanged from draft-2 exact review"
+    },
+    {
+      "id": "R5",
+      "status": "closed",
+      "review_basis": "carried forward unchanged from draft-2 exact review"
+    },
+    {
+      "id": "R6",
+      "status": "closed",
+      "review_basis": "carried forward unchanged from draft-2 exact review"
+    },
+    {
+      "id": "R7",
+      "status": "closed",
+      "review_basis": "carried forward unchanged from draft-2 exact review"
+    },
+    {
+      "id": "R2",
+      "status": "closed",
+      "review_basis": "Draft 3 typed admission/construction/resolution arguments, exact function dispatch and reconstruction, nested predecessor equality and permitted deviations, returned values, base64 bytes and typed fault states."
+    },
+    {
+      "id": "R4",
+      "status": "closed",
+      "review_basis": "Draft 3 canonical_fault_codes matches all six actual stage-qualified exceptions recorded by this reviewer; canonical_fault_programs requires the complete code."
+    }
+  ],
+  "scope": "Focused R2/R4 repair review and repair-induced contradictions; carry forward previously closed findings.",
+  "checks": {
+    "document_validation": "pass",
+    "document_self_test": "pass",
+    "section_digests": 43,
+    "closed_schema_definitions": 49,
+    "rejected_contract_adversaries": 21,
+    "rejected_schema_objects": 147,
+    "canonical_fault_code_comparisons": 6,
+    "canonical_fault_codes_all_match": true,
+    "previously_closed_sections_unchanged": true
+  },
+  "authority": {
+    "specification_frozen": false,
+    "implementation_authorized": false,
+    "game_sealed": false
+  },
+  "review_actions": {
+    "repository_mutations": 0,
+    "controltower_calls": 0,
+    "builds": 0,
+    "live_processes": 0,
+    "commits": 0,
+    "pushes": 0,
+    "seals": 0
+  },
+  "nonclaims": [
+    "Advice supports an operator specification-freeze decision only.",
+    "No game implementation, acquisition, runtime feasibility, game seal or trusted-CI result.",
+    "Document/schema checks are structural evidence, not independent semantic acceptance by themselves."
+  ]
+}

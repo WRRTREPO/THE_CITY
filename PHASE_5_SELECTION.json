@@ -1,7 +1,7 @@
 {
   "schema": "city.successor_selection.v1",
   "phase": 5,
-  "status": "specification_review",
+  "status": "specification_frozen",
   "successor": "Live Cross-Domain Evidence Round-Trip Proof",
   "version": "0.1.0-draft.3",
   "selected_by": "operator",
@@ -13,9 +13,11 @@
   "contract_path": "proof_kernel/live_cross_domain_evidence_round_trip_contract.json",
   "contract_sha256": "b862ceba039b1f2f418b01fe32221f14f095ce4894d163077b4eaa31dd0a8755",
   "implementation_authorized": false,
-  "independent_review": "pending",
-  "specification_frozen": false,
+  "independent_review": "CONTINUE",
+  "specification_frozen": true,
   "evidence_sealed": false,
   "capacity": "0.1.11",
-  "sealed_continuation": "0.7.0-draft.83"
+  "sealed_continuation": "0.7.0-draft.83",
+  "freeze_path": "PHASE_5_FREEZE.json",
+  "freeze_sha256": "a6415491efd6abd75f6b1d14c542c33d560c0705cb483ef75afda7c74cca8a79"
 }

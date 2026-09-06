@@ -1,7 +1,8 @@
 # CITY Runtime Manifest
 
-- Selected successor: `PHASE_5_SELECTION.json`; Phase 5 specification review only.
-- Candidate spec: `Live Cross-Domain Evidence Round-Trip Proof - Draft.md`.
+- Selected successor: `PHASE_5_SELECTION.json`; Phase 5 specification frozen.
+- Frozen exact draft-3 spec: `Live Cross-Domain Evidence Round-Trip Proof - Draft.md`.
+- Freeze: `PHASE_5_FREEZE.json`; exact review preserved under `References/Phase5SpecificationReview/draft3/`.
 - Document check: `python3 -B proof_kernel/validate_live_cross_domain_evidence_round_trip_spec.py --self-test --json`.
 - Successor MCDP session: `mcdp-city-live-evidence-spec`; no P16/Phoenix handoff yet.
 - Native entry: `./start.sh`.

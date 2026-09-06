@@ -1,0 +1,51 @@
+{
+  "schema": "city.specification_freeze.v1",
+  "phase": 5,
+  "status": "specification_frozen",
+  "successor": "Live Cross-Domain Evidence Round-Trip Proof",
+  "candidate_version": "0.1.0-draft.3",
+  "candidate": {
+    "commit": "712fff25e3e256a77b733f7ca108aa9d7ad00d1e",
+    "tree": "7000cda24b090f2b1fd34b41b7cb524034590071"
+  },
+  "frozen_documents": {
+    "Live Cross-Domain Evidence Round-Trip Proof - Draft.md": "ecb21d9a4b8adede4ec886ac5239404fdbc492b11eb1a3ac9d419a04d8552214",
+    "proof_kernel/live_cross_domain_evidence_round_trip_contract.json": "b862ceba039b1f2f418b01fe32221f14f095ce4894d163077b4eaa31dd0a8755"
+  },
+  "independent_review": {
+    "reviewer": "/root/city_independent_spec_review",
+    "stance": "CONTRACT_CONFORMANCE",
+    "verdict": "CONTINUE",
+    "remaining_findings": [],
+    "members": {
+      "References/Phase5SpecificationReview/draft3/REVIEW.md": "8ead85b0a9074fec13e7d53f32b504e2ea196f5622d241b6548523e88e8517f4",
+      "References/Phase5SpecificationReview/draft3/review.json": "1da6199da0de3d5aca3e905a715d7ddf55d0de7c75373b7176ac40ac9445dc8f",
+      "References/Phase5SpecificationReview/draft3/snapshot-end.json": "becd7fc5cde08995c74a29c0200de868f97b7dc9f036c6640a1ad246a4e3a035"
+    }
+  },
+  "operator_decision": {
+    "instruction": "OK execute next step",
+    "decided_at": "2026-09-06T20:27:17.006904+00:00",
+    "scope": "freeze_exact_reviewed_specification"
+  },
+  "implementation": {
+    "status": "not_started",
+    "authorized_by_this_record": false,
+    "required_continuation": [
+      "Complete the remaining MCDP phases with actual evidence.",
+      "Use only the PhoenixRising mount command emitted by the real P16 handoff.",
+      "Seal a clean implementation contract for the frozen source and evidence scope."
+    ]
+  },
+  "authority": {
+    "specification_frozen": true,
+    "game_implementation_authorized": false,
+    "evidence_acquired": false,
+    "game_sealed": false,
+    "production_ready": false,
+    "trusted_ci": false
+  },
+  "sealed_continuation": "0.7.0-draft.83",
+  "capacity": "0.1.11",
+  "interpretation": "Forward operator freeze of the exact reviewed bytes. Candidate review-time status fields remain historical. This record governs current specification status; it does not change the frozen game requirements or complete MCDP P16."
+}
