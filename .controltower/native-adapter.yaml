@@ -1,0 +1,168 @@
+schema: controltower.native_repo_adapter.v1
+repo: CITY
+interface_version: 1
+description: Evidence-reconciled native ControlTower adapter for CITY.
+capabilities:
+- id: city.health
+  description: Check original byte integrity and governance.
+- id: city.next-action
+  description: Read the next permitted verification action.
+- id: city.rollback-plan
+  description: Plan rollback without executing it.
+- id: city.strategic-status
+  description: Read current proof and authority.
+- id: city.validation-state
+  description: Read exact-HEAD verification receipt state.
+- id: city.verify-release
+  description: Execute the frozen stored-release verifier.
+actions:
+- id: city.health
+  capability: city.health
+  argv:
+  - ./start.sh
+  - health
+  - --json
+  mutability: read_only
+  timeout_seconds: 30
+  expected_json:
+    /action: health
+    /claims/live_unreal_from_city: false
+    /claims/phase_5_authorized: false
+    /repo: CITY
+    /schema: city.native.v1
+    /status: pass
+  receipt_path: .controltower/receipts/native-city-health.json
+  failure_code: CITY_CITY_HEALTH_FAILED
+  rollback_link: AGENTS.md
+  requires_lease: false
+  allow_forwarded_args: false
+  effects:
+    source: none
+    runtime: none
+    evidence: receipt
+    external: none
+- id: city.next-action
+  capability: city.next-action
+  argv:
+  - ./start.sh
+  - next-action
+  - --json
+  mutability: read_only
+  timeout_seconds: 30
+  expected_json:
+    /action: next-action
+    /claims/live_unreal_from_city: false
+    /claims/phase_5_authorized: false
+    /repo: CITY
+    /schema: city.native.v1
+    /status: pass
+  receipt_path: .controltower/receipts/native-city-next-action.json
+  failure_code: CITY_CITY_NEXT_ACTION_FAILED
+  rollback_link: AGENTS.md
+  requires_lease: false
+  allow_forwarded_args: false
+  effects:
+    source: none
+    runtime: none
+    evidence: receipt
+    external: none
+- id: city.rollback-plan
+  capability: city.rollback-plan
+  argv:
+  - ./start.sh
+  - rollback-plan
+  - --json
+  mutability: read_only
+  timeout_seconds: 30
+  expected_json:
+    /action: rollback-plan
+    /claims/live_unreal_from_city: false
+    /claims/phase_5_authorized: false
+    /repo: CITY
+    /schema: city.native.v1
+    /status: pass
+  receipt_path: .controltower/receipts/native-city-rollback-plan.json
+  failure_code: CITY_CITY_ROLLBACK_PLAN_FAILED
+  rollback_link: AGENTS.md
+  requires_lease: false
+  allow_forwarded_args: false
+  effects:
+    source: none
+    runtime: none
+    evidence: receipt
+    external: none
+- id: city.strategic-status
+  capability: city.strategic-status
+  argv:
+  - ./start.sh
+  - strategic-status
+  - --json
+  mutability: read_only
+  timeout_seconds: 30
+  expected_json:
+    /action: strategic-status
+    /claims/live_unreal_from_city: false
+    /claims/phase_5_authorized: false
+    /repo: CITY
+    /schema: city.native.v1
+    /status: pass
+  receipt_path: .controltower/receipts/native-city-strategic-status.json
+  failure_code: CITY_CITY_STRATEGIC_STATUS_FAILED
+  rollback_link: AGENTS.md
+  requires_lease: false
+  allow_forwarded_args: false
+  effects:
+    source: none
+    runtime: none
+    evidence: receipt
+    external: none
+- id: city.validation-state
+  capability: city.validation-state
+  argv:
+  - ./start.sh
+  - validation-state
+  - --json
+  mutability: read_only
+  timeout_seconds: 30
+  expected_json:
+    /action: validation-state
+    /claims/live_unreal_from_city: false
+    /claims/phase_5_authorized: false
+    /repo: CITY
+    /schema: city.native.v1
+    /status: pass
+  receipt_path: .controltower/receipts/native-city-validation-state.json
+  failure_code: CITY_CITY_VALIDATION_STATE_FAILED
+  rollback_link: AGENTS.md
+  requires_lease: false
+  allow_forwarded_args: false
+  effects:
+    source: none
+    runtime: none
+    evidence: receipt
+    external: none
+- id: city.verify-release
+  capability: city.verify-release
+  argv:
+  - ./start.sh
+  - verify-release
+  - --json
+  mutability: read_only
+  timeout_seconds: 360
+  expected_json:
+    /action: verify-release
+    /claims/live_unreal_from_city: false
+    /claims/phase_5_authorized: false
+    /repo: CITY
+    /schema: city.native.v1
+    /status: pass
+  receipt_path: .controltower/receipts/native-city-verify-release.json
+  failure_code: CITY_CITY_VERIFY_RELEASE_FAILED
+  rollback_link: AGENTS.md
+  requires_lease: false
+  allow_forwarded_args: false
+  effects:
+    source: none
+    runtime: none
+    evidence: receipt
+    external: none
