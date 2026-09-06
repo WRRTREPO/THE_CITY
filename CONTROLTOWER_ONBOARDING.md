@@ -28,3 +28,7 @@ The release verifier checks stored evidence. It does not launch or rebuild Unrea
 Onboarding evidence lives in Projects `Synthesis/CITYOnboarding/` and the owning mount, closure, and telemetry directories. This is local development evidence.
 
 `claims.phase_5_authorized=false` means game implementation is not authorized by this interface. The separate `phase_5=specification_frozen` state records the operator-approved freeze of exact draft 3. The reviewed document and contract remain byte-identical. Native routes validate the pinned freeze, candidate commit/tree and preserved independent review. Remaining MCDP gates, the exact emitted PhoenixRising handoff and a clean implementation contract precede game implementation. Structural validation grants no game seal or live-runtime claim.
+
+## Approved MCDP applicability
+
+Read [MCDP applicability](MCDP_APPLICABILITY.md). The root-owned CITY record binds the approved intermediate contract acceptance for P2–P16. Phoenix retains the unchanged live acceptance obligation. The public bind/validate routes preserve session history. A binding or document check completes no phase and authorizes no game implementation.

@@ -74,7 +74,7 @@ To run that verifier through ControlTower and persist an exact-HEAD receipt, use
 
 ControlTower writes its local development receipts under `.controltower/receipts/`. Refresh the CITY mount after committing. A changed commit or file fingerprint makes the old validation receipt stale.
 
-The repo-owned interface, adapter, profile, truth context, and managed SwedeVO mirror are installed. Mutation work still follows the local authority rules, sealed contract, active MCDP intake, and fresh Control Plane Gate. The operator has now selected the successor. Selection does not complete MCDP or create a PhoenixRising handoff. The active successor session is `mcdp-city-live-evidence-spec`.
+The repo-owned interface, adapter, profile, truth context, and managed SwedeVO mirror are installed. Mutation work still follows the local authority rules, sealed contract, active MCDP intake, and fresh Control Plane Gate. The operator has now selected the successor. Selection does not complete MCDP or create a PhoenixRising handoff. The active successor session is `mcdp-city-live-evidence-spec`. Its P4 attack found a continuation sequencing conflict and returned the session to P2. The operator approved a scoped applicability repair. [MCDP applicability](MCDP_APPLICABILITY.md) separates intermediate contract acceptance from the unchanged live proof assigned to Phoenix. Use the live MCDP state for the current step; the repair itself advances no gate.
 
 ## Original Git history after LFS conversion
 
