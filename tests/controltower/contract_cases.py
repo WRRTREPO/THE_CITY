@@ -234,9 +234,9 @@ def execute(case):
             result = json.loads(proc.stdout)
             assert proc.returncode == 0 and result['status'] == 'pass', result
             assert result['unreal_executed'] is False and result['independent_review_accepted'] is False
-            assert result['primary_witnesses'] == 8 and result['artifact_files'] == 201
+            assert result['primary_witnesses'] == 8 and result['artifact_files'] == 219
             if case == 'spec-self-test':
-                assert result['adversaries_rejected'] == 14
+                assert result['adversaries_rejected'] == 21 and result['schema_adversaries_rejected'] > 100
             detail = result
         else:
             if case == 'spec-witness-hole':
