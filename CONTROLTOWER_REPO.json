@@ -100,7 +100,7 @@
   "notes": "Active THE_CITY development checkout. Desktop remains reference. Six native governance and verification routes.",
   "primary_stack": "Python / Unreal Engine 5.8 C++",
   "project": "CITY",
-  "runtime_state": "Phase 4 sealed; stored evidence preserved; live Unreal from CITY unverified; Phase 5 closed.",
+  "runtime_state": "Phase 4 sealed; Live Cross-Domain Evidence Round-Trip Proof selected; Phase 5 specification review only; live Unreal from CITY unverified.",
   "schema": "controltower.repo_matrix_manifest.v1",
   "status": "Active"
 }

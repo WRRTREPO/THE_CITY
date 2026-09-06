@@ -1,0 +1,21 @@
+{
+  "schema": "city.successor_selection.v1",
+  "phase": 5,
+  "status": "specification_review",
+  "successor": "Live Cross-Domain Evidence Round-Trip Proof",
+  "version": "0.1.0-draft.1",
+  "selected_by": "operator",
+  "approval": "Approved. Execute",
+  "approval_date": "2026-09-06",
+  "selection_base_commit": "8b933f7d4caf48957789ad5ca6846c510df668cd",
+  "specification_path": "Live Cross-Domain Evidence Round-Trip Proof - Draft.md",
+  "specification_sha256": "f1a81c74846051d99c9f19d12da539218b6f38e9344f00bad8c78915332d10e8",
+  "contract_path": "proof_kernel/live_cross_domain_evidence_round_trip_contract.json",
+  "contract_sha256": "6913c51609ba443af8e634f697d70fafb1f60456696a64c896f0f640628c41e5",
+  "implementation_authorized": false,
+  "independent_review": "pending",
+  "specification_frozen": false,
+  "evidence_sealed": false,
+  "capacity": "0.1.11",
+  "sealed_continuation": "0.7.0-draft.83"
+}

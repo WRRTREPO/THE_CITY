@@ -1,0 +1,1580 @@
+{
+  "schema": "city.live_cross_domain_evidence_spec.v1",
+  "identity": {
+    "proof": "Live Cross-Domain Evidence Round-Trip Proof",
+    "version": "0.1.0-draft.1",
+    "phase": 5,
+    "status": "specification_review",
+    "implementation_authorized": false,
+    "evidence_sealed": false
+  },
+  "predecessors": {
+    "Concurrent External Evidence Arbitration Proof - Draft.md": "d00a867aae53cd8f58817532bdd85d9eb2e3c5686c04f881015dc9720e6f9ecd",
+    "Concurrent External Evidence Arbitration Proof Evidence - v0.1.0.md": "72f1e2db17500cd75b422904195fbdbd2cda375b3cab0a73dbfdbf4ca06fc2f5",
+    "Cross-Domain Canonical Occupancy Materialization Proof - Draft.md": "47889ac299cf2cfbea143a6a529b1253826e74ae9ddc83f0b25903117ff9406d",
+    "Cross-Domain Canonical Occupancy Materialization Proof Evidence - v0.1.0.md": "4a8146b507f5d8542abd742ee3b6da93d0368af4f98f5f8837f1d923c8598026",
+    "proof_kernel/concurrent_external_evidence_arbitration.py": "c2f8c3543a1ef954ec57f5d3dbc28df9260310241c5f590747032dcf555e0690"
+  },
+  "canonical_records": {
+    "proof_kernel/ConcurrentExternalEvidenceArbitrationProofRecords/concurrent_external_QA.json": "57e3a15fbe844e232ab738a6b44828e3a9b74d31095bdf2f327f4159fe164ad4",
+    "proof_kernel/ConcurrentExternalEvidenceArbitrationProofRecords/concurrent_external_QB.json": "ddc12eba2d928961502a22d6095d9317b436ff0d648574cb08edb49254351650",
+    "proof_kernel/ConcurrentExternalEvidenceArbitrationProofRecords/concurrent_external_R0.json": "8cea1aa6ae3ab2d7a25b6b660c91c26d26a1340ab4f2b67e134f7b7feb12cb12",
+    "proof_kernel/ConcurrentExternalEvidenceArbitrationProofRecords/concurrent_external_R1.json": "8e2862666a75833c8cff5c1faf9b783fb1d694de9df94fb5a4663fef599ea63c"
+  },
+  "scope": {
+    "domains": [
+      "domain_A",
+      "domain_B"
+    ],
+    "candidate_inputs": [
+      "QA",
+      "QB"
+    ],
+    "resource": "shared_slot_01",
+    "canonical_records": [
+      "R0",
+      "R1"
+    ],
+    "canonical_boundaries": 1,
+    "fixed_candidate_set": true,
+    "original_processes_required": true,
+    "canonical_source": "proof_kernel/concurrent_external_evidence_arbitration.py",
+    "canonical_order": [
+      "occurrence_time",
+      "external_phase",
+      "canonical_external_priority",
+      "input_id"
+    ],
+    "canonical_mutation_owner": "python_resolver",
+    "unreal_authority": "proposal_and_representation_only",
+    "predecessor_bytes_mutable": false
+  },
+  "exclusions": [
+    "networking",
+    "open_ended_live_collection",
+    "autonomous_batch_members",
+    "additional_input_classes",
+    "physical_movement",
+    "multiple_subjects",
+    "streaming",
+    "randomness",
+    "retry",
+    "re_admission",
+    "recovery",
+    "production_scale",
+    "trusted_ci"
+  ],
+  "witnesses": [
+    {
+      "id": "W1",
+      "emission": [
+        "domain_A",
+        "domain_B"
+      ],
+      "presentation": [
+        "domain_A",
+        "domain_B"
+      ],
+      "refresh": [
+        "domain_A",
+        "domain_B"
+      ]
+    },
+    {
+      "id": "W2",
+      "emission": [
+        "domain_A",
+        "domain_B"
+      ],
+      "presentation": [
+        "domain_A",
+        "domain_B"
+      ],
+      "refresh": [
+        "domain_B",
+        "domain_A"
+      ]
+    },
+    {
+      "id": "W3",
+      "emission": [
+        "domain_A",
+        "domain_B"
+      ],
+      "presentation": [
+        "domain_B",
+        "domain_A"
+      ],
+      "refresh": [
+        "domain_A",
+        "domain_B"
+      ]
+    },
+    {
+      "id": "W4",
+      "emission": [
+        "domain_A",
+        "domain_B"
+      ],
+      "presentation": [
+        "domain_B",
+        "domain_A"
+      ],
+      "refresh": [
+        "domain_B",
+        "domain_A"
+      ]
+    },
+    {
+      "id": "W5",
+      "emission": [
+        "domain_B",
+        "domain_A"
+      ],
+      "presentation": [
+        "domain_A",
+        "domain_B"
+      ],
+      "refresh": [
+        "domain_A",
+        "domain_B"
+      ]
+    },
+    {
+      "id": "W6",
+      "emission": [
+        "domain_B",
+        "domain_A"
+      ],
+      "presentation": [
+        "domain_A",
+        "domain_B"
+      ],
+      "refresh": [
+        "domain_B",
+        "domain_A"
+      ]
+    },
+    {
+      "id": "W7",
+      "emission": [
+        "domain_B",
+        "domain_A"
+      ],
+      "presentation": [
+        "domain_B",
+        "domain_A"
+      ],
+      "refresh": [
+        "domain_A",
+        "domain_B"
+      ]
+    },
+    {
+      "id": "W8",
+      "emission": [
+        "domain_B",
+        "domain_A"
+      ],
+      "presentation": [
+        "domain_B",
+        "domain_A"
+      ],
+      "refresh": [
+        "domain_B",
+        "domain_A"
+      ]
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": "L0",
+      "canonical": "R0",
+      "domain_A": "current_R0",
+      "domain_B": "current_R0"
+    },
+    {
+      "id": "L1",
+      "canonical": "R0",
+      "domain_A": "emitted_QA",
+      "domain_B": "emitted_QB"
+    },
+    {
+      "id": "L2",
+      "canonical": "R0",
+      "domain_A": "batch_admitted",
+      "domain_B": "batch_admitted"
+    },
+    {
+      "id": "L3",
+      "canonical": "R1",
+      "domain_A": "stale_R0",
+      "domain_B": "stale_R0"
+    },
+    {
+      "id": "L4",
+      "canonical": "R1",
+      "domain_A": "refresh_order_dependent",
+      "domain_B": "refresh_order_dependent"
+    },
+    {
+      "id": "L5",
+      "canonical": "R1",
+      "domain_A": "current_R1",
+      "domain_B": "current_R1"
+    }
+  ],
+  "failure_cases": [
+    {
+      "id": "F01",
+      "trigger": "missing_Q",
+      "boundary": "before_commit",
+      "failure_code": "LCER_INPUT_SET_INVALID",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F02",
+      "trigger": "malformed_Q",
+      "boundary": "before_commit",
+      "failure_code": "LCER_EVIDENCE_INVALID",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F03",
+      "trigger": "redirected_Q",
+      "boundary": "before_commit",
+      "failure_code": "LCER_EVIDENCE_INVALID",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F04",
+      "trigger": "duplicate_input_or_event",
+      "boundary": "before_commit",
+      "failure_code": "LCER_INPUT_SET_INVALID",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F05",
+      "trigger": "stale_source_record",
+      "boundary": "before_commit",
+      "failure_code": "LCER_STALE_EVIDENCE",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F06",
+      "trigger": "incompatible_consequence",
+      "boundary": "before_commit",
+      "failure_code": "LCER_EVIDENCE_INVALID",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F07",
+      "trigger": "process_replacement_before_commit",
+      "boundary": "before_commit",
+      "failure_code": "LCER_PROCESS_INVALID",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F08",
+      "trigger": "source_exit_before_complete_set",
+      "boundary": "before_commit",
+      "failure_code": "LCER_PROCESS_INVALID",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F09",
+      "trigger": "provisional_state_as_projection",
+      "boundary": "before_commit",
+      "failure_code": "LCER_PROJECTION_INVALID",
+      "canonical_remains": "R0",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F10",
+      "trigger": "replay_after_commit",
+      "boundary": "after_commit",
+      "failure_code": "LCER_STALE_EVIDENCE",
+      "canonical_remains": "R1",
+      "affected_representation": "unchanged"
+    },
+    {
+      "id": "F11",
+      "trigger": "domain_A_exit_after_commit",
+      "boundary": "after_commit",
+      "failure_code": "LCER_PROCESS_INVALID",
+      "canonical_remains": "R1",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F12",
+      "trigger": "domain_B_exit_after_commit",
+      "boundary": "after_commit",
+      "failure_code": "LCER_PROCESS_INVALID",
+      "canonical_remains": "R1",
+      "affected_representation": "unavailable"
+    },
+    {
+      "id": "F13",
+      "trigger": "domain_A_partial_refresh",
+      "boundary": "after_commit",
+      "failure_code": "LCER_REFRESH_INVALID",
+      "canonical_remains": "R1",
+      "affected_representation": "stale"
+    },
+    {
+      "id": "F14",
+      "trigger": "domain_B_partial_refresh",
+      "boundary": "after_commit",
+      "failure_code": "LCER_REFRESH_INVALID",
+      "canonical_remains": "R1",
+      "affected_representation": "stale"
+    },
+    {
+      "id": "F15",
+      "trigger": "valid_receipt_wrong_live_owner",
+      "boundary": "after_commit",
+      "failure_code": "LCER_OBSERVATION_INVALID",
+      "canonical_remains": "R1",
+      "affected_representation": "stale"
+    },
+    {
+      "id": "F16",
+      "trigger": "duplicate_or_old_generation_actor",
+      "boundary": "after_commit",
+      "failure_code": "LCER_OBSERVATION_INVALID",
+      "canonical_remains": "R1",
+      "affected_representation": "stale"
+    },
+    {
+      "id": "F17",
+      "trigger": "stale_projection_after_commit",
+      "boundary": "after_commit",
+      "failure_code": "LCER_PROJECTION_INVALID",
+      "canonical_remains": "R1",
+      "affected_representation": "stale"
+    },
+    {
+      "id": "F18",
+      "trigger": "altered_refresh_binding",
+      "boundary": "after_commit",
+      "failure_code": "LCER_PROCESS_INVALID",
+      "canonical_remains": "R1",
+      "affected_representation": "stale"
+    }
+  ],
+  "canonical_faults": [
+    "after_qa_provisional_mutation",
+    "after_qb_ordinary_gate_evaluation",
+    "during_replay_barrier_construction",
+    "during_batch_ledger_construction",
+    "after_complete_r1_before_validation",
+    "after_complete_r1_validation_before_publication"
+  ],
+  "process_binding_fields": [
+    "witness_id",
+    "domain",
+    "launch_id",
+    "pid",
+    "macos_birth_tuple",
+    "executable_realpath",
+    "executable_sha256",
+    "project_realpath",
+    "project_sha256",
+    "module_inventory_sha256",
+    "argv_sha256",
+    "environment_sha256",
+    "descriptor_map_sha256",
+    "process_root_realpath"
+  ],
+  "observation_fields": [
+    "schema",
+    "witness_id",
+    "domain",
+    "launch_id",
+    "operation_id",
+    "binding_sha256",
+    "record_sha256",
+    "generation",
+    "anchor_count",
+    "resource_actor_count",
+    "allocation_owner",
+    "all_proof_actor_ids"
+  ],
+  "evidence_fields": [
+    "schema",
+    "witness_id",
+    "domain",
+    "launch_id",
+    "operation_id",
+    "binding_sha256",
+    "q_raw_sha256",
+    "q_canonical_hash",
+    "physical_event_id",
+    "source_record_hash",
+    "interaction_counter"
+  ],
+  "output_fields": [
+    "schema",
+    "proof",
+    "version",
+    "witness_id",
+    "status",
+    "failure_codes",
+    "process_bindings",
+    "liveness_checkpoints",
+    "canonical_artifacts",
+    "captured_evidence",
+    "materialization_receipts",
+    "live_observations",
+    "head_dispositions",
+    "command_trace",
+    "artifact_sha256",
+    "claims"
+  ],
+  "runtime": {
+    "project": "CityMaterializationProof/CityMaterializationProof.uproject",
+    "engine": "/Users/Shared/Epic Games/UE_5.8/Engine/Binaries/Mac/UnrealEditor.app/Contents/MacOS/UnrealEditor",
+    "integration": "additive_runtime_plugin",
+    "plugin": "CityMaterializationProof/Plugins/CityLiveEvidenceProof",
+    "game_mode": "/Script/CityLiveEvidenceProof.CityLiveEvidenceGameMode",
+    "map": "/Engine/Maps/Entry",
+    "transport": "parent_child_pipes",
+    "canonical_state_to_child": "committed_projection_only",
+    "timeout_seconds": 60,
+    "timeout_effect": "terminal_witness_failure_without_membership_change",
+    "output_root": "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords"
+  },
+  "planned_commands": {
+    "acquire": [
+      "python3",
+      "-B",
+      "proof_kernel/live_cross_domain_evidence_round_trip_harness.py",
+      "acquire",
+      "--runtime-parent",
+      "{absolute_unique_temp_root}",
+      "--output",
+      "{fresh_output_root}"
+    ],
+    "verify": [
+      "python3",
+      "-B",
+      "proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py",
+      "verify",
+      "--artifacts",
+      "{artifact_root}"
+    ],
+    "test": [
+      "python3",
+      "-B",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "proof_kernel",
+      "-p",
+      "test_live_cross_domain_evidence_round_trip.py"
+    ]
+  },
+  "planned_source_paths": [
+    "proof_kernel/live_cross_domain_evidence_round_trip.py",
+    "proof_kernel/live_cross_domain_evidence_round_trip_harness.py",
+    "proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py",
+    "proof_kernel/test_live_cross_domain_evidence_round_trip.py",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/CityLiveEvidenceProof.uplugin",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/CityLiveEvidenceProof.Build.cs",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceProofModule.cpp",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Public/CityLiveEvidenceGameMode.h",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Public/CityLiveEvidenceActors.h",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceActors.cpp"
+  ],
+  "cost": {
+    "successful_builds_per_candidate": 1,
+    "primary_pair_runs": 8,
+    "primary_process_launches": 16,
+    "failure_pair_runs": 18,
+    "canonical_fault_pair_runs": 6,
+    "total_pair_runs_per_acquisition": 32,
+    "total_original_process_launches": 64,
+    "replacement_process_launches": 1,
+    "runtime_seconds_per_case_limit": 900,
+    "total_wall_time_estimate": "unmeasured",
+    "artifact_policy": "fresh_successor_artifacts_only",
+    "artifact_files": 201,
+    "release_members_excluding_manifest": 220
+  },
+  "review_gate": {
+    "document_validator_proves": "structural_specification_consistency_only",
+    "independent_review": "pending",
+    "freeze": "pending",
+    "mcdp_session": "mcdp-city-live-evidence-spec",
+    "phoenix_handoff": "not_created",
+    "runtime_proof": "not_run"
+  },
+  "wire_schemas": {
+    "process_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "witness_id",
+        "domain",
+        "launch_id",
+        "pid",
+        "macos_birth_tuple",
+        "executable_realpath",
+        "executable_sha256",
+        "project_realpath",
+        "project_sha256",
+        "module_inventory_sha256",
+        "argv_sha256",
+        "environment_sha256",
+        "descriptor_map_sha256",
+        "process_root_realpath"
+      ],
+      "properties": {
+        "witness_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "domain_A",
+            "domain_B"
+          ]
+        },
+        "launch_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pid": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "macos_birth_tuple": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "seconds",
+            "microseconds"
+          ],
+          "properties": {
+            "seconds": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "microseconds": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 999999
+            }
+          }
+        },
+        "executable_realpath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executable_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "project_realpath": {
+          "type": "string",
+          "minLength": 1
+        },
+        "project_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "module_inventory_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "argv_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "environment_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "descriptor_map_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "process_root_realpath": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "projection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "witness_id",
+        "domain",
+        "launch_id",
+        "operation_id",
+        "binding_sha256",
+        "record_role",
+        "record_raw_sha256",
+        "record_canonical_hash",
+        "generation",
+        "allocation_owner"
+      ],
+      "properties": {
+        "schema": {
+          "const": "city.live_evidence_projection.v1"
+        },
+        "witness_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "domain_A",
+            "domain_B"
+          ]
+        },
+        "launch_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "record_role": {
+          "enum": [
+            "R0",
+            "R1"
+          ]
+        },
+        "record_raw_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "record_canonical_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "generation": {
+          "enum": [
+            0,
+            1
+          ]
+        },
+        "allocation_owner": {
+          "enum": [
+            null,
+            "domain_A"
+          ]
+        }
+      }
+    },
+    "command": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "witness_id",
+        "domain",
+        "launch_id",
+        "operation_id",
+        "binding_sha256",
+        "command",
+        "payload"
+      ],
+      "properties": {
+        "schema": {
+          "const": "city.live_evidence_command.v1"
+        },
+        "witness_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "domain_A",
+            "domain_B"
+          ]
+        },
+        "launch_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "command": {
+          "enum": [
+            "bind",
+            "materialize",
+            "emit",
+            "inspect",
+            "arm_fault",
+            "shutdown"
+          ]
+        },
+        "payload": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "schema",
+                "witness_id",
+                "domain",
+                "launch_id",
+                "operation_id",
+                "binding_sha256",
+                "record_role",
+                "record_raw_sha256",
+                "record_canonical_hash",
+                "generation",
+                "allocation_owner"
+              ],
+              "properties": {
+                "schema": {
+                  "const": "city.live_evidence_projection.v1"
+                },
+                "witness_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "domain": {
+                  "enum": [
+                    "domain_A",
+                    "domain_B"
+                  ]
+                },
+                "launch_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "operation_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "binding_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "record_role": {
+                  "enum": [
+                    "R0",
+                    "R1"
+                  ]
+                },
+                "record_raw_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "record_canonical_hash": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "generation": {
+                  "enum": [
+                    0,
+                    1
+                  ]
+                },
+                "allocation_owner": {
+                  "enum": [
+                    null,
+                    "domain_A"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "failure_case"
+              ],
+              "properties": {
+                "failure_case": {
+                  "enum": [
+                    "F01",
+                    "F02",
+                    "F03",
+                    "F04",
+                    "F05",
+                    "F06",
+                    "F07",
+                    "F08",
+                    "F09",
+                    "F10",
+                    "F11",
+                    "F12",
+                    "F13",
+                    "F14",
+                    "F15",
+                    "F16",
+                    "F17",
+                    "F18"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "witness_id",
+                "domain",
+                "launch_id",
+                "pid",
+                "macos_birth_tuple",
+                "executable_realpath",
+                "executable_sha256",
+                "project_realpath",
+                "project_sha256",
+                "module_inventory_sha256",
+                "argv_sha256",
+                "environment_sha256",
+                "descriptor_map_sha256",
+                "process_root_realpath"
+              ],
+              "properties": {
+                "witness_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "domain": {
+                  "enum": [
+                    "domain_A",
+                    "domain_B"
+                  ]
+                },
+                "launch_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "pid": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "macos_birth_tuple": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "seconds",
+                    "microseconds"
+                  ],
+                  "properties": {
+                    "seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "microseconds": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 999999
+                    }
+                  }
+                },
+                "executable_realpath": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "executable_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "project_realpath": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "project_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "module_inventory_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "argv_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "environment_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "descriptor_map_sha256": {
+                  "type": "string",
+                  "pattern": "^[0-9a-f]{64}$"
+                },
+                "process_root_realpath": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "live_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "witness_id",
+        "domain",
+        "launch_id",
+        "operation_id",
+        "binding_sha256",
+        "record_sha256",
+        "generation",
+        "anchor_count",
+        "resource_actor_count",
+        "allocation_owner",
+        "all_proof_actor_ids"
+      ],
+      "properties": {
+        "schema": {
+          "const": "city.live_evidence_observation.v1"
+        },
+        "witness_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "domain_A",
+            "domain_B"
+          ]
+        },
+        "launch_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "record_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "generation": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "anchor_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resource_actor_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "allocation_owner": {
+          "enum": [
+            null,
+            "domain_A"
+          ]
+        },
+        "all_proof_actor_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "emission_wrapper": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "witness_id",
+        "domain",
+        "launch_id",
+        "operation_id",
+        "binding_sha256",
+        "q_raw_sha256",
+        "q_canonical_hash",
+        "physical_event_id",
+        "source_record_hash",
+        "interaction_counter"
+      ],
+      "properties": {
+        "schema": {
+          "const": "city.live_evidence_emission.v1"
+        },
+        "witness_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "domain": {
+          "enum": [
+            "domain_A",
+            "domain_B"
+          ]
+        },
+        "launch_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "binding_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "q_raw_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "q_canonical_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "physical_event_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_record_hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "interaction_counter": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "command_contract": {
+    "bind": "first command only; binding payload; verifies exact parent-observed identity",
+    "materialize": "projection payload; R0 generation 0 once then R1 generation 1 once; anchor published last",
+    "emit": "null payload; exactly once at accepted R0; actual Actor interaction",
+    "inspect": "null payload; independent world enumeration",
+    "arm_fault": "failure_case payload; once, only its exact F-row boundary; canonical faults remain Python-only",
+    "shutdown": "null payload; terminal; no restart",
+    "unknown_or_duplicate": "reject before side effects",
+    "operation_ids": "bind_0001,materialize_0001,emit_0001,inspect_L0,inspect_L1,inspect_L2,inspect_L3,materialize_0002,inspect_L4,inspect_L5,arm_fault_0001,shutdown_0001; each at most once per domain except terminal failure ends remainder"
+  },
+  "launch_argv": [
+    "{engine}",
+    "{absolute_city_project}",
+    "/Engine/Maps/Entry?game=/Script/CityLiveEvidenceProof.CityLiveEvidenceGameMode",
+    "-game",
+    "-unattended",
+    "-nosplash",
+    "-NoSound",
+    "-log",
+    "-LCERDomain={domain}",
+    "-LCERWitness={witness_id}",
+    "-LCERLaunch={launch_id}",
+    "-LCERRoot={absolute_domain_root}",
+    "-UserDir={absolute_domain_root}/user"
+  ],
+  "launch_environment": {
+    "HOME": "{absolute_domain_root}/home",
+    "TMPDIR": "{absolute_domain_root}/tmp",
+    "USER": "{observed_operator_user}",
+    "LOGNAME": "{observed_operator_user}",
+    "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+    "LANG": "C",
+    "LC_ALL": "C"
+  },
+  "descriptor_contract": {
+    "stdin": 0,
+    "stdout": 1,
+    "stderr": 2,
+    "inherited_proof_descriptors": [
+      0,
+      1,
+      2
+    ],
+    "transport": "canonical JSON lines on stdin/stdout; UE log lines on stdout retained and parsed separately; stderr captured verbatim",
+    "extra_descriptor_rule": "close all nonstandard inherited descriptors; audit before acceptance; refuse child helpers retaining proof pipes"
+  },
+  "build_argv": [
+    "/Users/Shared/Epic Games/UE_5.8/Engine/Build/BatchFiles/Mac/Build.sh",
+    "CityMaterializationProofEditor",
+    "Mac",
+    "Development",
+    "-Project={absolute_city_project}",
+    "-NoUnity",
+    "-WaitMutex"
+  ],
+  "plugin_contract": {
+    "name": "CityLiveEvidenceProof",
+    "module_type": "Runtime",
+    "loading_phase": "Default",
+    "enabled_by_default": true,
+    "can_contain_content": false,
+    "game_mode_selection": "explicit launch map URL only",
+    "existing_source_edits": false,
+    "extra_plugins": "only observed engine defaults and this declared plugin; record full loaded module identity; no undeclared proof-semantic input"
+  },
+  "artifact_relative_paths": [
+    "acquisition.json",
+    "build.json",
+    "build.log",
+    "canonical/R0.json",
+    "canonical/R1.json",
+    "canonical/QA.json",
+    "canonical/QB.json",
+    "W1/record.json",
+    "W1/harness.jsonl",
+    "W1/domain_A.stdout.log",
+    "W1/domain_A.stderr.log",
+    "W1/domain_B.stdout.log",
+    "W1/domain_B.stderr.log",
+    "W2/record.json",
+    "W2/harness.jsonl",
+    "W2/domain_A.stdout.log",
+    "W2/domain_A.stderr.log",
+    "W2/domain_B.stdout.log",
+    "W2/domain_B.stderr.log",
+    "W3/record.json",
+    "W3/harness.jsonl",
+    "W3/domain_A.stdout.log",
+    "W3/domain_A.stderr.log",
+    "W3/domain_B.stdout.log",
+    "W3/domain_B.stderr.log",
+    "W4/record.json",
+    "W4/harness.jsonl",
+    "W4/domain_A.stdout.log",
+    "W4/domain_A.stderr.log",
+    "W4/domain_B.stdout.log",
+    "W4/domain_B.stderr.log",
+    "W5/record.json",
+    "W5/harness.jsonl",
+    "W5/domain_A.stdout.log",
+    "W5/domain_A.stderr.log",
+    "W5/domain_B.stdout.log",
+    "W5/domain_B.stderr.log",
+    "W6/record.json",
+    "W6/harness.jsonl",
+    "W6/domain_A.stdout.log",
+    "W6/domain_A.stderr.log",
+    "W6/domain_B.stdout.log",
+    "W6/domain_B.stderr.log",
+    "W7/record.json",
+    "W7/harness.jsonl",
+    "W7/domain_A.stdout.log",
+    "W7/domain_A.stderr.log",
+    "W7/domain_B.stdout.log",
+    "W7/domain_B.stderr.log",
+    "W8/record.json",
+    "W8/harness.jsonl",
+    "W8/domain_A.stdout.log",
+    "W8/domain_A.stderr.log",
+    "W8/domain_B.stdout.log",
+    "W8/domain_B.stderr.log",
+    "F01/record.json",
+    "F01/harness.jsonl",
+    "F01/domain_A.stdout.log",
+    "F01/domain_A.stderr.log",
+    "F01/domain_B.stdout.log",
+    "F01/domain_B.stderr.log",
+    "F02/record.json",
+    "F02/harness.jsonl",
+    "F02/domain_A.stdout.log",
+    "F02/domain_A.stderr.log",
+    "F02/domain_B.stdout.log",
+    "F02/domain_B.stderr.log",
+    "F03/record.json",
+    "F03/harness.jsonl",
+    "F03/domain_A.stdout.log",
+    "F03/domain_A.stderr.log",
+    "F03/domain_B.stdout.log",
+    "F03/domain_B.stderr.log",
+    "F04/record.json",
+    "F04/harness.jsonl",
+    "F04/domain_A.stdout.log",
+    "F04/domain_A.stderr.log",
+    "F04/domain_B.stdout.log",
+    "F04/domain_B.stderr.log",
+    "F05/record.json",
+    "F05/harness.jsonl",
+    "F05/domain_A.stdout.log",
+    "F05/domain_A.stderr.log",
+    "F05/domain_B.stdout.log",
+    "F05/domain_B.stderr.log",
+    "F06/record.json",
+    "F06/harness.jsonl",
+    "F06/domain_A.stdout.log",
+    "F06/domain_A.stderr.log",
+    "F06/domain_B.stdout.log",
+    "F06/domain_B.stderr.log",
+    "F07/record.json",
+    "F07/harness.jsonl",
+    "F07/domain_A.stdout.log",
+    "F07/domain_A.stderr.log",
+    "F07/domain_B.stdout.log",
+    "F07/domain_B.stderr.log",
+    "F08/record.json",
+    "F08/harness.jsonl",
+    "F08/domain_A.stdout.log",
+    "F08/domain_A.stderr.log",
+    "F08/domain_B.stdout.log",
+    "F08/domain_B.stderr.log",
+    "F09/record.json",
+    "F09/harness.jsonl",
+    "F09/domain_A.stdout.log",
+    "F09/domain_A.stderr.log",
+    "F09/domain_B.stdout.log",
+    "F09/domain_B.stderr.log",
+    "F10/record.json",
+    "F10/harness.jsonl",
+    "F10/domain_A.stdout.log",
+    "F10/domain_A.stderr.log",
+    "F10/domain_B.stdout.log",
+    "F10/domain_B.stderr.log",
+    "F11/record.json",
+    "F11/harness.jsonl",
+    "F11/domain_A.stdout.log",
+    "F11/domain_A.stderr.log",
+    "F11/domain_B.stdout.log",
+    "F11/domain_B.stderr.log",
+    "F12/record.json",
+    "F12/harness.jsonl",
+    "F12/domain_A.stdout.log",
+    "F12/domain_A.stderr.log",
+    "F12/domain_B.stdout.log",
+    "F12/domain_B.stderr.log",
+    "F13/record.json",
+    "F13/harness.jsonl",
+    "F13/domain_A.stdout.log",
+    "F13/domain_A.stderr.log",
+    "F13/domain_B.stdout.log",
+    "F13/domain_B.stderr.log",
+    "F14/record.json",
+    "F14/harness.jsonl",
+    "F14/domain_A.stdout.log",
+    "F14/domain_A.stderr.log",
+    "F14/domain_B.stdout.log",
+    "F14/domain_B.stderr.log",
+    "F15/record.json",
+    "F15/harness.jsonl",
+    "F15/domain_A.stdout.log",
+    "F15/domain_A.stderr.log",
+    "F15/domain_B.stdout.log",
+    "F15/domain_B.stderr.log",
+    "F16/record.json",
+    "F16/harness.jsonl",
+    "F16/domain_A.stdout.log",
+    "F16/domain_A.stderr.log",
+    "F16/domain_B.stdout.log",
+    "F16/domain_B.stderr.log",
+    "F17/record.json",
+    "F17/harness.jsonl",
+    "F17/domain_A.stdout.log",
+    "F17/domain_A.stderr.log",
+    "F17/domain_B.stdout.log",
+    "F17/domain_B.stderr.log",
+    "F18/record.json",
+    "F18/harness.jsonl",
+    "F18/domain_A.stdout.log",
+    "F18/domain_A.stderr.log",
+    "F18/domain_B.stdout.log",
+    "F18/domain_B.stderr.log",
+    "C01/record.json",
+    "C01/harness.jsonl",
+    "C01/domain_A.stdout.log",
+    "C01/domain_A.stderr.log",
+    "C01/domain_B.stdout.log",
+    "C01/domain_B.stderr.log",
+    "C02/record.json",
+    "C02/harness.jsonl",
+    "C02/domain_A.stdout.log",
+    "C02/domain_A.stderr.log",
+    "C02/domain_B.stdout.log",
+    "C02/domain_B.stderr.log",
+    "C03/record.json",
+    "C03/harness.jsonl",
+    "C03/domain_A.stdout.log",
+    "C03/domain_A.stderr.log",
+    "C03/domain_B.stdout.log",
+    "C03/domain_B.stderr.log",
+    "C04/record.json",
+    "C04/harness.jsonl",
+    "C04/domain_A.stdout.log",
+    "C04/domain_A.stderr.log",
+    "C04/domain_B.stdout.log",
+    "C04/domain_B.stderr.log",
+    "C05/record.json",
+    "C05/harness.jsonl",
+    "C05/domain_A.stdout.log",
+    "C05/domain_A.stderr.log",
+    "C05/domain_B.stdout.log",
+    "C05/domain_B.stderr.log",
+    "C06/record.json",
+    "C06/harness.jsonl",
+    "C06/domain_A.stdout.log",
+    "C06/domain_A.stderr.log",
+    "C06/domain_B.stdout.log",
+    "C06/domain_B.stderr.log",
+    "F07/replacement.stdout.log",
+    "F07/replacement.stderr.log"
+  ],
+  "artifact_record_contract": {
+    "record.json": "one closed output_fields object; raw Q bytes and old detached receipts stored losslessly as canonical UTF-8 strings in captured_evidence; missing capture is null with a failed case disposition, never a synthetic Q",
+    "harness.jsonl": "ordered append-only command, binding, liveness, head, disposition and fault events; each line has sequence, event_id, operation_id, domain, monotonic_ns, payload and previous_event_sha256; payload must match its declared command/response/fault schema",
+    "stdout_stderr": "verbatim bytes from named original process; replacement logs separate in F07; empty bytes do not prove liveness",
+    "acquisition.json": "enumerates exact case IDs and artifact paths/hash/size; source commit/tree and build receipt hash; all failures must have exact expected code and canonical bytes; schema city.live_evidence_acquisition.v1",
+    "build.json": "exact argv, cwd, source commit/tree, returncode, start/end timestamps, log hash, editor/project/module hashes and loaded executable inventory; compile success alone makes no live claim"
+  },
+  "release_members": [
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/CityLiveEvidenceProof.uplugin",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/CityLiveEvidenceProof.Build.cs",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceActors.cpp",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceProofModule.cpp",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Public/CityLiveEvidenceActors.h",
+    "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Public/CityLiveEvidenceGameMode.h",
+    "Concurrent External Evidence Arbitration Proof - Draft.md",
+    "Concurrent External Evidence Arbitration Proof Evidence - v0.1.0.md",
+    "Cross-Domain Canonical Occupancy Materialization Proof - Draft.md",
+    "Cross-Domain Canonical Occupancy Materialization Proof Evidence - v0.1.0.md",
+    "Live Cross-Domain Evidence Round-Trip Proof - Draft.md",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C01/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C01/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C01/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C01/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C01/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C01/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C02/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C02/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C02/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C02/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C02/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C02/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C03/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C03/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C03/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C03/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C03/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C03/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C04/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C04/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C04/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C04/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C04/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C04/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C05/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C05/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C05/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C05/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C05/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C05/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C06/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C06/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C06/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C06/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C06/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/C06/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F01/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F01/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F01/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F01/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F01/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F01/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F02/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F02/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F02/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F02/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F02/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F02/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F03/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F03/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F03/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F03/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F03/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F03/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F04/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F04/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F04/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F04/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F04/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F04/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F05/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F05/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F05/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F05/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F05/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F05/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F06/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F06/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F06/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F06/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F06/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F06/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F07/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F07/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F07/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F07/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F07/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F07/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F07/replacement.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F07/replacement.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F08/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F08/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F08/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F08/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F08/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F08/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F09/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F09/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F09/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F09/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F09/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F09/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F10/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F10/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F10/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F10/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F10/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F10/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F11/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F11/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F11/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F11/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F11/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F11/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F12/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F12/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F12/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F12/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F12/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F12/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F13/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F13/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F13/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F13/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F13/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F13/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F14/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F14/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F14/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F14/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F14/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F14/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F15/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F15/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F15/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F15/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F15/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F15/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F16/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F16/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F16/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F16/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F16/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F16/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F17/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F17/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F17/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F17/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F17/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F17/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F18/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F18/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F18/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F18/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F18/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/F18/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W1/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W1/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W1/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W1/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W1/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W1/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W2/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W2/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W2/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W2/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W2/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W2/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W3/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W3/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W3/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W3/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W3/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W3/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W4/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W4/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W4/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W4/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W4/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W4/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W5/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W5/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W5/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W5/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W5/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W5/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W6/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W6/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W6/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W6/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W6/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W6/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W7/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W7/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W7/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W7/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W7/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W7/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W8/domain_A.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W8/domain_A.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W8/domain_B.stderr.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W8/domain_B.stdout.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W8/harness.jsonl",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/W8/record.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/acquisition.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/build.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/build.log",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/canonical/QA.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/canonical/QB.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/canonical/R0.json",
+    "proof_kernel/LiveCrossDomainEvidenceRoundTripProofRecords/canonical/R1.json",
+    "proof_kernel/concurrent_external_evidence_arbitration.py",
+    "proof_kernel/live_cross_domain_evidence_round_trip.py",
+    "proof_kernel/live_cross_domain_evidence_round_trip_contract.json",
+    "proof_kernel/live_cross_domain_evidence_round_trip_harness.py",
+    "proof_kernel/test_live_cross_domain_evidence_round_trip.py",
+    "proof_kernel/validate_live_cross_domain_evidence_round_trip_spec.py",
+    "proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py"
+  ],
+  "release_manifest": "Live Cross-Domain Evidence Round-Trip Proof - v0.1.0 SHA256SUMS.txt"
+}

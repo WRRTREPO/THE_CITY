@@ -71,13 +71,14 @@ def execute(case):
             assert value['source_identity'] == native.identity()
             assert value['claims'] == native.CLAIMS and value['failure_codes'] == []
             outputs[action] = value
-        assert outputs['strategic-status']['phase_5'] == 'closed'
-        assert outputs['strategic-status']['successor'] == 'not_selected'
+        assert outputs['strategic-status']['phase_5'] == 'specification_review'
+        assert outputs['strategic-status']['successor'] == 'Live Cross-Domain Evidence Round-Trip Proof'
+        assert outputs['strategic-status']['implementation_authorized'] is False
         assert outputs['health']['health_state'] == 'degraded'
         assert outputs['health']['governance_state'] == 'ready'
         assert outputs['rollback-plan']['plan_only'] is True
         assert outputs['rollback-plan']['destructive_commands_executed'] == 0
-        assert outputs['next-action']['argv'] == ['./start.sh', 'verify-release', '--json']
+        assert outputs['next-action']['argv'] == ['python3', '-B', native.SPEC_VALIDATOR, '--json']
         interface = json.loads((ROOT / '.controltower/interface.json').read_text())
         manifest = json.loads((ROOT / 'CONTROLTOWER_REPO.json').read_text())
         assert len(interface['commands']) == len(native.ACTIONS) == 6
@@ -141,7 +142,7 @@ def execute(case):
         detail = {'reference_files': refs}
     elif case == 'handover-current':
         text = (ROOT / 'handover.md').read_text()
-        assert 'Phase 4 is sealed. Phase 5 is closed. No successor is selected.' in text
+        assert 'Phase 4 is sealed. Phase 5 is open for specification review only.' in text
         assert 'cd /Users/boandersson/Projects/CITY' in text
         assert '/Users/boandersson/Desktop' not in text
         assert 'The current work is Phase 3' not in text
@@ -151,7 +152,7 @@ def execute(case):
         assert 'References/Handover/handover-2026-08-30.md' in text
         links = re.findall(r'\[[^\]]+\]\(([^)]+)\)', text)
         assert links and all((ROOT / unquote(link)).is_file() for link in links)
-        detail = {'local_links_verified': len(links), 'native_routes': 6, 'phase_4': 'sealed', 'phase_5': 'closed'}
+        detail = {'local_links_verified': len(links), 'native_routes': 6, 'phase_4': 'sealed', 'phase_5': 'specification_review'}
     elif case == 'archive-integrity':
         data = native.baseline()
         expected = subprocess.check_output(['git', 'show', data['commit'] + ':handover.md'], cwd=ROOT)
@@ -193,6 +194,70 @@ def execute(case):
                                                  text=True, env=env).strip()
                 assert actual == tree
         detail = {'original_objects_verified': originals, 'network_access': False}
+    elif case == 'successor-state':
+        selected = native.load_selection()
+        proc, state = run('strategic-status')
+        assert proc.returncode == 0 and state['successor'] == selected['successor']
+        assert state['phase_5'] == 'specification_review'
+        assert state['implementation_authorized'] is False and state['specification_frozen'] is False
+        assert native.SELECTION in native.snapshot() and native.SPEC_CONTRACT in native.snapshot()
+        detail = {'selected': state['successor'], 'implementation_authorized': False}
+    elif case.startswith('selection-'):
+        with tempfile.TemporaryDirectory(prefix='city-selection-', dir='/private/tmp') as tmp:
+            fixture = Path(tmp)
+            for name in (native.SELECTION, native.SPECIFICATION, native.SPEC_CONTRACT):
+                dest = fixture / name
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                dest.write_bytes((ROOT / name).read_bytes())
+            if case == 'selection-missing':
+                (fixture / native.SELECTION).unlink()
+            elif case == 'selection-tampered':
+                (fixture / native.SPECIFICATION).write_text('Changed selected scope')
+            elif case == 'selection-escalation':
+                value = json.loads((fixture / native.SELECTION).read_text())
+                value['implementation_authorized'] = True
+                (fixture / native.SELECTION).write_text(json.dumps(value))
+            else:
+                raise AssertionError('Unknown selection case')
+            native.load_selection(fixture)
+            raise AssertionError('Bad selection accepted')
+    elif case.startswith('spec-'):
+        loaded = importlib.util.spec_from_file_location('city_spec', ROOT / native.SPEC_VALIDATOR)
+        checker = importlib.util.module_from_spec(loaded)
+        loaded.loader.exec_module(checker)
+        contract = checker.parse((ROOT / native.SPEC_CONTRACT).read_text())
+        if case in ('spec-contract', 'spec-self-test'):
+            args = ['python3', '-B', native.SPEC_VALIDATOR, '--json']
+            if case == 'spec-self-test':
+                args.append('--self-test')
+            proc = subprocess.run(args, cwd=ROOT, text=True, capture_output=True, timeout=30)
+            result = json.loads(proc.stdout)
+            assert proc.returncode == 0 and result['status'] == 'pass', result
+            assert result['unreal_executed'] is False and result['independent_review_accepted'] is False
+            assert result['primary_witnesses'] == 8 and result['artifact_files'] == 201
+            if case == 'spec-self-test':
+                assert result['adversaries_rejected'] == 14
+            detail = result
+        else:
+            if case == 'spec-witness-hole':
+                contract['witnesses'].pop()
+            elif case == 'spec-order':
+                contract['scope']['canonical_order'] = ['arrival_time']
+            elif case == 'spec-extra-field':
+                contract['wire_schemas']['projection']['additionalProperties'] = True
+            elif case == 'spec-failure':
+                contract['failure_cases'][10]['canonical_remains'] = 'R0'
+            elif case == 'spec-path':
+                contract['planned_source_paths'][0] = '../escaped.py'
+            elif case == 'spec-authority':
+                contract['identity']['implementation_authorized'] = True
+            else:
+                raise AssertionError('Unknown spec case')
+            try:
+                checker.validate_contract(contract)
+            except checker.InvalidSpec as exc:
+                raise native.Refusal('CITY_SPEC_INVALID', str(exc)) from exc
+            raise AssertionError('Invalid specification accepted')
     else:
         raise AssertionError('Unknown case: ' + case)
     native.assert_unchanged(before, native.snapshot())

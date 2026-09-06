@@ -15,6 +15,10 @@ BASELINE = ROOT / 'tools/controltower/baseline.json'
 SCHEMA = 'city.native.v1'
 ACTIONS = ('strategic-status', 'health', 'next-action', 'rollback-plan', 'validation-state', 'verify-release')
 ARCHIVED_ORIGINALS = {'handover.md': 'References/Handover/handover-2026-08-30.md'}
+SELECTION = 'PHASE_5_SELECTION.json'
+SPECIFICATION = 'Live Cross-Domain Evidence Round-Trip Proof - Draft.md'
+SPEC_CONTRACT = 'proof_kernel/live_cross_domain_evidence_round_trip_contract.json'
+SPEC_VALIDATOR = 'proof_kernel/validate_live_cross_domain_evidence_round_trip_spec.py'
 CLAIMS = {'live_unreal_from_city': False, 'phase_5_authorized': False,
           'production_ready': False, 'trusted_ci': False, 'new_game_seal': False}
 
@@ -52,6 +56,7 @@ def identity():
 
 def snapshot():
     paths = set(git('ls-files', '-z').split('\0')) - {''}
+    paths.update((SELECTION, SPECIFICATION, SPEC_CONTRACT, SPEC_VALIDATOR))
     # Include new governance code during candidate validation, before the first commit.
     for folder in ('tools/controltower', 'tests/controltower'):
         paths.update(p.relative_to(ROOT).as_posix() for p in (ROOT / folder).rglob('*')
@@ -92,6 +97,43 @@ def preserved():
     if changed:
         raise Refusal('CITY_RELEASE_CHANGED', changed)
     return data
+
+
+def load_selection(root=ROOT):
+    """Read a bounded selection, never infer implementation authority from it."""
+    expected = {
+        'schema': 'city.successor_selection.v1', 'phase': 5,
+        'status': 'specification_review', 'successor': 'Live Cross-Domain Evidence Round-Trip Proof',
+        'version': '0.1.0-draft.1', 'selected_by': 'operator', 'approval': 'Approved. Execute',
+        'approval_date': '2026-09-06',
+        'selection_base_commit': '8b933f7d4caf48957789ad5ca6846c510df668cd',
+        'specification_path': SPECIFICATION, 'contract_path': SPEC_CONTRACT,
+        'implementation_authorized': False, 'independent_review': 'pending',
+        'specification_frozen': False, 'evidence_sealed': False,
+        'capacity': '0.1.11', 'sealed_continuation': '0.7.0-draft.83',
+    }
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError('duplicate selection key')
+            result[key] = value
+        return result
+    try:
+        file_hash(root / SELECTION)
+        value = json.loads((root / SELECTION).read_text(), object_pairs_hook=unique)
+        if not isinstance(value, dict) or set(value) != set(expected) | {'specification_sha256', 'contract_sha256'}:
+            raise ValueError('selection fields differ')
+        for key, item in expected.items():
+            if type(value[key]) is not type(item) or value[key] != item:
+                raise ValueError('selection authority differs: ' + key)
+        for field in ('specification', 'contract'):
+            path = root / value[field + '_path']
+            if not path.resolve().is_relative_to(root.resolve()) or file_hash(path) != value[field + '_sha256']:
+                raise ValueError('selected document bytes differ: ' + field)
+        return value
+    except (Refusal, OSError, ValueError, KeyError, TypeError) as exc:
+        raise Refusal('CITY_SELECTION_INVALID', str(exc)) from exc
 
 
 def assert_claims(claims):
@@ -161,16 +203,20 @@ def verify_release():
 
 def answer(action):
     data = preserved()
+    selection = load_selection()
     current = identity()
     files = snapshot()
     result = {'schema': SCHEMA, 'status': 'pass', 'repo': 'CITY', 'action': action,
               'source_identity': current, 'claims': CLAIMS, 'failure_codes': []}
     if action == 'strategic-status':
         result.update(active_proof='Cross-Domain Canonical Occupancy Materialization Proof v0.1.0',
-                      continuation='0.7.0-draft.83', capacity='0.1.11', phase_5='closed',
-                      successor='not_selected', authority='canonical_python_records',
+                      continuation=selection['sealed_continuation'], capacity=selection['capacity'],
+                      phase_5=selection['status'], successor=selection['successor'],
+                      specification_frozen=False, implementation_authorized=False,
+                      selection_path=SELECTION, specification_path=SPECIFICATION,
+                      authority='canonical_python_records',
                       development_checkout=str(ROOT), reference_checkout='/Users/boandersson/Desktop/Games/THE_CITY',
-                      source_documents=['THE_CITY Current Proof State and Repo-Agent Instruction - v0.1.0.md',
+                      source_documents=[SELECTION, SPECIFICATION, 'THE_CITY Current Proof State and Repo-Agent Instruction - v0.1.0.md',
                                         'Co-op Open-City FPS Simulation - v0.7 Working Continuation.md'])
     elif action == 'health':
         refs_changed = check_files(data['references'])
@@ -185,13 +231,14 @@ def answer(action):
                       verified_baseline_files=len(data['files']), release_member_count=172,
                       originals_at_original_paths=len(data['files']) - len(ARCHIVED_ORIGINALS),
                       archived_originals=ARCHIVED_ORIGINALS,
+                      successor_state=selection['status'],
                       limits=['Live Unreal execution from CITY has not been acquired.'],
                       **validation_state(current, files))
     elif action == 'next-action':
-        result.update(next_action='verify_sealed_release', argv=['./start.sh', 'verify-release', '--json'],
+        result.update(next_action='review_successor_specification', argv=['python3', '-B', SPEC_VALIDATOR, '--json'],
                       controltower_argv=['../ControlTower', 'repo', 'CITY', 'run', 'city.verify-release', '--approve', '--json'],
-                      future_work='Select and authorize a successor through MCDP before game implementation.',
-                      phase_5='closed')
+                      future_work='Review the exact selected specification, resolve findings, and freeze before game implementation.',
+                      phase_5=selection['status'], implementation_authorized=False)
     elif action == 'rollback-plan':
         result.update(plan_only=True, baseline_commit=data['commit'], baseline_tree=data['tree'],
                       steps=['Save current work and inspect Git status.',

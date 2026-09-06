@@ -5,7 +5,7 @@ The Desktop checkout is preserved reference material. Internal Unreal project an
 
 Read `handover.md`, `CONTROLTOWER_ONBOARDING.md`, `RUNTIME_MANIFEST.md`, and `THE_CITY Current Proof State and Repo-Agent Instruction - v0.1.0.md` first. Then read the named continuation, sealed evidence, and capacity record for the requested work.
 
-The current continuation is `0.7.0-draft.83`. Capacity is `0.1.11`. Phase 4 is sealed in its exact bounded scope. No successor is selected. Phase 5 is closed.
+The sealed continuation is `0.7.0-draft.83`. Capacity is `0.1.11`. Phase 4 is sealed in its exact bounded scope. The operator selected **Live Cross-Domain Evidence Round-Trip Proof**. Phase 5 is open for specification review only. Read `PHASE_5_SELECTION.json` and `Live Cross-Domain Evidence Round-Trip Proof - Draft.md` for current work. The specification is unfrozen; game implementation and evidence acquisition remain closed until the agreed review and freeze. Historical no-successor statements describe the Phase-4 seal and do not override this selection.
 
 Python canonical records own city truth. Unreal owns local representation and bounded evidence proposals. Governance onboarding grants no new game implementation authority.
 
