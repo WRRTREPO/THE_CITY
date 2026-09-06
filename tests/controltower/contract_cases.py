@@ -5,10 +5,13 @@ import copy
 import hashlib
 import importlib.util
 import json
+import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
+from urllib.parse import unquote
 
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location('city_native', ROOT / 'tools/controltower/city_native.py')
@@ -43,7 +46,9 @@ def execute(case):
         names = subprocess.check_output(['git', 'ls-tree', '-r', '--name-only', data['commit']], cwd=ROOT, text=True).splitlines()
         assert set(names) == set(data['files'])
         assert len(names) == 653
-        assert not native.check_files(data['files'])
+        locations = dict(data['files'])
+        locations['References/Handover/handover-2026-08-30.md'] = locations.pop('handover.md')
+        assert not native.check_files(locations)
         manifest = ROOT / data['release_manifest']
         members = {line[66:]: line[:64] for line in manifest.read_text().splitlines()}
         assert len(members) == 172 and not native.check_files(members)
@@ -134,6 +139,60 @@ def execute(case):
         refs = native.baseline()['references']
         assert len(refs) == 2 and not native.check_files(refs)
         detail = {'reference_files': refs}
+    elif case == 'handover-current':
+        text = (ROOT / 'handover.md').read_text()
+        assert 'Phase 4 is sealed. Phase 5 is closed. No successor is selected.' in text
+        assert 'cd /Users/boandersson/Projects/CITY' in text
+        assert '/Users/boandersson/Desktop' not in text
+        assert 'The current work is Phase 3' not in text
+        assert '## 20. Short return card' not in text
+        assert all('./start.sh ' + action + ' --json' in text for action in native.ACTIONS)
+        assert 'References/Git%20History/README.md' in text
+        assert 'References/Handover/handover-2026-08-30.md' in text
+        links = re.findall(r'\[[^\]]+\]\(([^)]+)\)', text)
+        assert links and all((ROOT / unquote(link)).is_file() for link in links)
+        detail = {'local_links_verified': len(links), 'native_routes': 6, 'phase_4': 'sealed', 'phase_5': 'closed'}
+    elif case == 'archive-integrity':
+        data = native.baseline()
+        expected = subprocess.check_output(['git', 'show', data['commit'] + ':handover.md'], cwd=ROOT)
+        archive = ROOT / 'References/Handover/handover-2026-08-30.md'
+        assert archive.read_bytes() == expected
+        assert archive.read_bytes() != (ROOT / 'handover.md').read_bytes()
+        assert native.ARCHIVED_ORIGINALS == {'handover.md': 'References/Handover/handover-2026-08-30.md'}
+        assert (ROOT / 'tools/controltower/baseline.json').read_bytes() == subprocess.check_output(
+            ['git', 'show', '1bf77c54b42db9dac2f26fcb6eac326664540ab7:tools/controltower/baseline.json'], cwd=ROOT)
+        assert not native.check_original_files(data['files'])
+        detail = {'original_handover_sha256': hashlib.sha256(expected).hexdigest(),
+                  'originals_in_place': 652, 'originals_archived': 1, 'baseline_unchanged': True}
+    elif case in ('archive-corrupt', 'archive-missing'):
+        expected = {'handover.md': native.baseline()['files']['handover.md']}
+        with tempfile.TemporaryDirectory(prefix='city-archive-fault-', dir='/private/tmp') as temp:
+            fixture = Path(temp)
+            # A valid original at the old path must not hide a missing or corrupt archive.
+            (fixture / 'handover.md').write_bytes((ROOT / native.ARCHIVED_ORIGINALS['handover.md']).read_bytes())
+            if case == 'archive-corrupt':
+                archive = fixture / native.ARCHIVED_ORIGINALS['handover.md']
+                archive.parent.mkdir(parents=True)
+                archive.write_bytes((fixture / 'handover.md').read_bytes() + b'corrupt')
+            changed = native.check_original_files(expected, fixture)
+            assert changed == ['handover.md']
+            raise native.Refusal('CITY_RELEASE_CHANGED', changed)
+    elif case == 'history-audit':
+        bundle = ROOT / 'References/Git History/THE_CITY-pre-LFS.bundle'
+        assert native.file_hash(bundle) == '5dc6076cdcfeb880872e15adaca880b0f20255e28d1312b1597faac666ea1f0e'
+        env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+        with tempfile.TemporaryDirectory(prefix='city-original-history-', dir='/private/tmp') as temp:
+            repository = Path(temp) / 'repo.git'
+            cloned = subprocess.run(['git', 'clone', '--bare', str(bundle), str(repository)],
+                                    capture_output=True, text=True, env=env, timeout=30)
+            assert cloned.returncode == 0, cloned.stderr
+            originals = {'bee3ecca660f884f3af727affae3ab1ceae2c401': '3302b4e34b412629776433a4b50b1b0a852e51ab',
+                         '5d4eac983de281fcf7b03d78453e5f131204b946': 'e01411b0af3e819474d33e73432148585ec6a34c'}
+            for commit, tree in originals.items():
+                actual = subprocess.check_output(['git', '--git-dir=' + str(repository), 'rev-parse', commit + '^{tree}'],
+                                                 text=True, env=env).strip()
+                assert actual == tree
+        detail = {'original_objects_verified': originals, 'network_access': False}
     else:
         raise AssertionError('Unknown case: ' + case)
     native.assert_unchanged(before, native.snapshot())

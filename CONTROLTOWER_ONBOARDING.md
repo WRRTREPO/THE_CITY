@@ -4,6 +4,8 @@ Work here: `/Users/boandersson/Projects/CITY`.
 Origin remains `https://github.com/WRRTREPO/THE_CITY.git`.
 The folder name changes. The game and Unreal module names do not.
 
+Start with [the current CITY handover](handover.md). Phase 4 is sealed. Phase 5 is closed. The original handover remains byte-preserved in [the historical archive](References/Handover/handover-2026-08-30.md). The native preservation check verifies that archived original plus the other 652 original files in place.
+
 The original checkout and its generated Unreal build files remain on Desktop. This clone has the committed source, hydrated LFS evidence, and complete original-history bundle. The two imported references retain their bytes.
 
 `README.md` is part of the sealed release. Its historical Desktop commands remain unchanged. Use these commands from CITY:

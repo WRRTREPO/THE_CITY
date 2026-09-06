@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BASELINE = ROOT / 'tools/controltower/baseline.json'
 SCHEMA = 'city.native.v1'
 ACTIONS = ('strategic-status', 'health', 'next-action', 'rollback-plan', 'validation-state', 'verify-release')
+ARCHIVED_ORIGINALS = {'handover.md': 'References/Handover/handover-2026-08-30.md'}
 CLAIMS = {'live_unreal_from_city': False, 'phase_5_authorized': False,
           'production_ready': False, 'trusted_ci': False, 'new_game_seal': False}
 
@@ -78,9 +79,16 @@ def check_files(expected, root=ROOT):
     return changed
 
 
+def check_original_files(expected, root=ROOT):
+    # The operator-authorized current handover replaces only this informational
+    # document. Its original bytes remain checked against the unchanged baseline.
+    return [path for path, digest in expected.items()
+            if check_files({ARCHIVED_ORIGINALS.get(path, path): digest}, root)]
+
+
 def preserved():
     data = baseline()
-    changed = check_files(data['files'])
+    changed = check_original_files(data['files'])
     if changed:
         raise Refusal('CITY_RELEASE_CHANGED', changed)
     return data
@@ -175,6 +183,8 @@ def answer(action):
             raise Refusal('CITY_GOVERNANCE_INVALID', {'reference_changes': refs_changed, 'interface_valid': valid_interface, 'governance_present': governance})
         result.update(health_state='degraded', governance_state='ready', sealed_files='intact',
                       verified_baseline_files=len(data['files']), release_member_count=172,
+                      originals_at_original_paths=len(data['files']) - len(ARCHIVED_ORIGINALS),
+                      archived_originals=ARCHIVED_ORIGINALS,
                       limits=['Live Unreal execution from CITY has not been acquired.'],
                       **validation_state(current, files))
     elif action == 'next-action':
