@@ -1,0 +1,20 @@
+# CITY Agent Authority
+
+`/Users/boandersson/Projects/CITY` is the active development checkout of THE_CITY.
+The Desktop checkout is preserved reference material. Internal Unreal project and module names remain `CityMaterializationProof`.
+
+Read `CONTROLTOWER_ONBOARDING.md`, `RUNTIME_MANIFEST.md`, and `THE_CITY Current Proof State and Repo-Agent Instruction - v0.1.0.md` first. Then read the named continuation, sealed evidence, and capacity record for the requested work.
+
+The current continuation is `0.7.0-draft.83`. Capacity is `0.1.11`. Phase 4 is sealed in its exact bounded scope. No successor is selected. Phase 5 is closed.
+
+Python canonical records own city truth. Unreal owns local representation and bounded evidence proposals. Governance onboarding grants no new game implementation authority.
+
+Run `./start.sh --status --json` and `./start.sh --validate --json`. Run `./start.sh verify-release --json` to recheck the stored sealed release. Use `../ControlTower repo CITY run city.verify-release --approve --json` to persist an exact-HEAD validation receipt.
+
+All original tracked files are preserved by this adoption, including README, sealed manifests, evidence, and source. Do not rewrite historical absolute Unreal paths. Do not regenerate release manifests to include governance files. The two imported reference documents grant no implementation authority.
+
+For changes, follow Projects-root laws. Verify the truth contract. Seal a clean baseline contract before code changes. Keep MCDP active on configured mutation paths. Pass the Control Plane Gate with a fresh CITY mount, profile, protocol, and truth context. PhoenixRising requires the exact completed MCDP P16 handoff. Do not manufacture that handoff.
+
+Native actions run offline, use no credentials, preserve tracked source, and grant no new game seal, live Unreal relocation, production readiness, or trusted CI claim. ControlTower writes local development receipts under `.controltower/receipts/`.
+
+Rollback is a plan. Save work first. Inspect the original baseline in a separate checkout. Revert only reviewed onboarding commits under operator authority. Refresh or demount through Projects-root ControlTower. Never reset the Desktop reference or delete evidence to repair a failed check.
