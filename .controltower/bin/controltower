@@ -1,0 +1,275 @@
+#!/usr/bin/env python3
+# CONTROLTOWER_REPO_MOUNT_SHIM installed_by=ControlTower version=v1
+# CITY native extension: the standard mount status route uses city.strategic-status.
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+
+SHIM_PATH = Path(__file__).resolve()
+if SHIM_PATH.parent.name == "bin" and SHIM_PATH.parent.parent.name == ".controltower":
+    ROOT = SHIM_PATH.parent.parent.parent
+else:
+    ROOT = SHIM_PATH.parent
+INTERFACE_PATH = ROOT / ".controltower" / "interface.json"
+
+
+def load_interface():
+    try:
+        with INTERFACE_PATH.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+    except Exception as exc:
+        return None, str(exc)
+    return payload, None
+
+
+def commands_by_id(interface):
+    commands = {
+        command.get("id"): command
+        for command in interface.get("commands", [])
+        if isinstance(command, dict) and command.get("id")
+    }
+    if "city.strategic-status" in commands:
+        commands.setdefault("mount.status", commands["city.strategic-status"])
+    return commands
+
+
+def emit_json(payload):
+    print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def command_payload(interface):
+    return {
+        "schema": "controltower.repo_local_commands.v1",
+        "repo": interface.get("repo"),
+        "commands": interface.get("commands", []),
+    }
+
+
+def capability_payload(interface):
+    return {
+        "schema": "controltower.repo_local_capabilities.v1",
+        "repo": interface.get("repo"),
+        "shim_version": interface.get("shim_version"),
+        "installed_by": interface.get("installed_by"),
+        "available_commands": [
+            command.get("id")
+            for command in interface.get("commands", [])
+            if command.get("available") is not False
+        ],
+        "unclaimed_domains": interface.get("unclaimed_domains", []),
+    }
+
+
+def run_declared(command, original_args, json_output=False):
+    if not command or command.get("available") is False:
+        if json_output:
+            emit_json({"schema": "controltower.repo_local_run.v1", "status": "unavailable", "command": command})
+        else:
+            print("ControlTower command unavailable", file=sys.stderr)
+        return 2
+    argv = command.get("argv") or []
+    if not argv:
+        if json_output:
+            emit_json({"schema": "controltower.repo_local_run.v1", "status": "invalid", "reason": "empty argv"})
+        else:
+            print("ControlTower command has empty argv", file=sys.stderr)
+        return 3
+    passthrough = []
+    allowed = set(command.get("passthrough_args", []))
+    skip = {"--json"}
+    for arg in original_args:
+        if arg in skip:
+            continue
+        if arg in allowed:
+            passthrough.append(arg)
+    timeout = int(command.get("timeout_seconds") or 60)
+    try:
+        result = subprocess.run(argv + passthrough, cwd=ROOT, text=True, capture_output=True, check=False, timeout=timeout)
+    except subprocess.TimeoutExpired as exc:
+        if json_output:
+            emit_json(
+                {
+                    "schema": "controltower.repo_local_run.v1",
+                    "repo": ROOT.name,
+                    "command_id": command.get("id"),
+                    "argv": argv + passthrough,
+                    "status": "fail",
+                    "returncode": 124,
+                    "stdout": exc.stdout or "",
+                    "stderr": f"timeout after {timeout}s",
+                }
+            )
+        else:
+            print(f"ControlTower command timed out after {timeout}s", file=sys.stderr)
+        return 124
+    if json_output:
+        emit_json(
+            {
+                "schema": "controltower.repo_local_run.v1",
+                "repo": ROOT.name,
+                "command_id": command.get("id"),
+                "argv": argv + passthrough,
+                "status": "pass" if result.returncode == 0 else "fail",
+                "returncode": result.returncode,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+            }
+        )
+    else:
+        if result.stdout:
+            print(result.stdout, end="")
+        if result.stderr:
+            print(result.stderr, end="", file=sys.stderr)
+    return result.returncode
+
+
+def find_projects_root():
+    candidates = []
+    env_root = None
+    try:
+        import os
+
+        env_root = os.environ.get("CONTROLTOWER_PROJECTS_ROOT")
+    except Exception:
+        env_root = None
+    if env_root:
+        candidates.append(Path(env_root))
+    candidates.extend(ROOT.parents)
+    for candidate in candidates:
+        if (candidate / "ControlTower").exists() and (candidate / "start.sh").exists() and (candidate / "REPO_MATRIX.json").exists():
+            return candidate
+    return None
+
+
+def run_workspace(argv, interface, json_output=False):
+    projects_root = find_projects_root()
+    repo = (interface or {}).get("repo") or ROOT.name
+    if projects_root is None:
+        payload = {
+            "schema": "controltower.repo_local_workspace_bridge.v1",
+            "repo": repo,
+            "status": "fail",
+            "reason": "projects_root_not_found",
+        }
+        if json_output:
+            emit_json(payload)
+        else:
+            print("Projects-root ControlTower not found from this repo.", file=sys.stderr)
+        return 3
+    if not argv or argv[0] in {"--help", "-h"}:
+        print(
+            "usage: ./.controltower/bin/controltower workspace status|protocols|mcdp [status|candidates]|capabilities <request>|controltower <args...>",
+            file=sys.stderr,
+        )
+        return 0 if argv and argv[0] in {"--help", "-h"} else 2
+    action = argv[0]
+    if action == "status":
+        command = ["./ControlTower", "--status"]
+    elif action in {"controltower", "ct", "run"}:
+        passthrough = [arg for arg in argv[1:] if arg != "--json"]
+        if not passthrough:
+            print("workspace controltower requires ControlTower arguments", file=sys.stderr)
+            return 2
+        command = ["./ControlTower"] + passthrough
+    elif action == "protocols":
+        command = ["./start.sh", "--protocol-posture-json" if json_output else "--protocol-posture"]
+    elif action == "mcdp":
+        mode = argv[1] if len(argv) > 1 else "status"
+        if mode == "status":
+            command = ["./ControlTower", "mcdp", "status"]
+        elif mode == "candidates":
+            command = ["./ControlTower", "mcdp", "candidates"]
+            if json_output:
+                command.append("--json")
+        else:
+            print(f"Unknown MCDP mode: {mode}", file=sys.stderr)
+            return 2
+    elif action == "capabilities":
+        request = " ".join(arg for arg in argv[1:] if arg != "--json").strip()
+        if not request:
+            print("workspace capabilities requires a request string", file=sys.stderr)
+            return 2
+        command = ["./ControlTower", "capabilities", "suggest", "--repo", repo, "--request", request]
+        if json_output:
+            command.append("--json")
+    else:
+        print(f"Unknown workspace action: {action}", file=sys.stderr)
+        return 2
+    try:
+        return subprocess.run(command, cwd=projects_root, check=False).returncode
+    except FileNotFoundError:
+        print("Projects-root ControlTower command failed: executable not found.", file=sys.stderr)
+        return 127
+
+
+def run_controltower_passthrough(argv):
+    projects_root = find_projects_root()
+    if projects_root is None:
+        print("Projects-root ControlTower not found from this repo.", file=sys.stderr)
+        return 3
+    if not argv:
+        print("usage: ./.controltower/bin/controltower <ControlTower args...>", file=sys.stderr)
+        return 2
+    try:
+        return subprocess.run(["./ControlTower"] + argv, cwd=projects_root, check=False).returncode
+    except FileNotFoundError:
+        print("Projects-root ControlTower command failed: executable not found.", file=sys.stderr)
+        return 127
+
+
+def main(argv):
+    interface, error = load_interface()
+    json_output = "--json" in argv
+    if len(argv) >= 1 and argv[0] == "workspace":
+        return run_workspace(argv[1:], interface, json_output=json_output)
+    if len(argv) >= 1 and argv[0] in {"controltower", "ct"}:
+        return run_controltower_passthrough(argv[1:])
+    if len(argv) < 2 or argv[0] != "mount":
+        return run_controltower_passthrough(argv)
+    if error:
+        if json_output:
+            emit_json({"schema": "controltower.repo_local_error.v1", "status": "fail", "reason": error})
+        else:
+            print(f"ControlTower interface error: {error}", file=sys.stderr)
+        return 3
+    action = argv[1]
+    commands = commands_by_id(interface)
+    if action == "commands":
+        if json_output:
+            emit_json(command_payload(interface))
+        else:
+            for command in interface.get("commands", []):
+                available = "available" if command.get("available") is not False else "unavailable"
+                print(f"{command.get('id')} ({available})")
+        return 0
+    if action in {"capabilities", "capability"}:
+        if json_output:
+            emit_json(capability_payload(interface))
+        else:
+            print(f"{interface.get('repo')} ControlTower capabilities")
+            for command_id in capability_payload(interface)["available_commands"]:
+                print(f"- {command_id}")
+        return 0
+    if action == "status":
+        return run_declared(commands.get("mount.status"), argv[2:], json_output=json_output)
+    if action == "verify":
+        command_status = run_declared(commands.get("mount.status"), ["--json"], json_output=True)
+        return 0 if command_status == 0 else command_status
+    if action == "check":
+        scope = "all"
+        rest = []
+        for arg in argv[2:]:
+            if arg.startswith("--"):
+                rest.append(arg)
+            elif scope == "all":
+                scope = arg
+            else:
+                rest.append(arg)
+        return run_declared(commands.get(f"mount.check.{scope}"), rest, json_output=json_output)
+    return run_controltower_passthrough(argv)
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1:]))

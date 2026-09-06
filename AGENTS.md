@@ -18,3 +18,13 @@ For changes, follow Projects-root laws. Verify the truth contract. Seal a clean 
 Native actions run offline, use no credentials, preserve tracked source, and grant no new game seal, live Unreal relocation, production readiness, or trusted CI claim. ControlTower writes local development receipts under `.controltower/receipts/`.
 
 Rollback is a plan. Save work first. Inspect the original baseline in a separate checkout. Revert only reviewed onboarding commits under operator authority. Refresh or demount through Projects-root ControlTower. Never reset the Desktop reference or delete evidence to repair a failed check.
+
+<!-- CONTROLTOWER_SWEDEVO_ACCESS_BEGIN -->
+## SwedeVO Access
+
+- SwedeVO is available locally at `SwedeVO.md`.
+- SwedeVO is a writing doctrine. It is not a repository, connector, plugin, or workspace.
+- Read and apply it before writing or reviewing prose, design documents, or pitch copy.
+- If asked whether SwedeVO is accessible, answer **yes** and cite the local file.
+- Write access is not required to read or apply the doctrine.
+<!-- CONTROLTOWER_SWEDEVO_ACCESS_END -->

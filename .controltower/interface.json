@@ -1,0 +1,224 @@
+{
+  "behavior": {
+    "coverage_scope": "six declared native governance and stored-release verification routes",
+    "historical_script_inventory": "proof_kernel/ and the preserved README.md",
+    "no_auto_probe": true,
+    "runner": "./start.sh"
+  },
+  "commands": [
+    {
+      "argv": [
+        "./start.sh",
+        "strategic-status",
+        "--json"
+      ],
+      "available": true,
+      "description": "Read current proof and authority.",
+      "effects": {
+        "evidence": "receipt",
+        "external": "none",
+        "runtime": "none",
+        "source": "none"
+      },
+      "expected_artifacts": [],
+      "expected_json": {
+        "/action": "strategic-status",
+        "/claims/live_unreal_from_city": false,
+        "/claims/phase_5_authorized": false,
+        "/repo": "CITY",
+        "/schema": "city.native.v1",
+        "/status": "pass"
+      },
+      "groups": [
+        "governance"
+      ],
+      "id": "city.strategic-status",
+      "mutability": "read_only",
+      "requires_credentials": false,
+      "requires_network": false,
+      "scope": "repo_native",
+      "supports_json": true,
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "./start.sh",
+        "health",
+        "--json"
+      ],
+      "available": true,
+      "description": "Check original byte integrity and governance.",
+      "effects": {
+        "evidence": "receipt",
+        "external": "none",
+        "runtime": "none",
+        "source": "none"
+      },
+      "expected_artifacts": [],
+      "expected_json": {
+        "/action": "health",
+        "/claims/live_unreal_from_city": false,
+        "/claims/phase_5_authorized": false,
+        "/repo": "CITY",
+        "/schema": "city.native.v1",
+        "/status": "pass"
+      },
+      "groups": [
+        "validation"
+      ],
+      "id": "city.health",
+      "mutability": "read_only",
+      "requires_credentials": false,
+      "requires_network": false,
+      "scope": "repo_native",
+      "supports_json": true,
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "./start.sh",
+        "next-action",
+        "--json"
+      ],
+      "available": true,
+      "description": "Read the next permitted verification action.",
+      "effects": {
+        "evidence": "receipt",
+        "external": "none",
+        "runtime": "none",
+        "source": "none"
+      },
+      "expected_artifacts": [],
+      "expected_json": {
+        "/action": "next-action",
+        "/claims/live_unreal_from_city": false,
+        "/claims/phase_5_authorized": false,
+        "/repo": "CITY",
+        "/schema": "city.native.v1",
+        "/status": "pass"
+      },
+      "groups": [
+        "governance"
+      ],
+      "id": "city.next-action",
+      "mutability": "read_only",
+      "requires_credentials": false,
+      "requires_network": false,
+      "scope": "repo_native",
+      "supports_json": true,
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "./start.sh",
+        "rollback-plan",
+        "--json"
+      ],
+      "available": true,
+      "description": "Plan rollback without executing it.",
+      "effects": {
+        "evidence": "receipt",
+        "external": "none",
+        "runtime": "none",
+        "source": "none"
+      },
+      "expected_artifacts": [],
+      "expected_json": {
+        "/action": "rollback-plan",
+        "/claims/live_unreal_from_city": false,
+        "/claims/phase_5_authorized": false,
+        "/repo": "CITY",
+        "/schema": "city.native.v1",
+        "/status": "pass"
+      },
+      "groups": [
+        "governance"
+      ],
+      "id": "city.rollback-plan",
+      "mutability": "read_only",
+      "requires_credentials": false,
+      "requires_network": false,
+      "scope": "repo_native",
+      "supports_json": true,
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "./start.sh",
+        "validation-state",
+        "--json"
+      ],
+      "available": true,
+      "description": "Read exact-HEAD verification receipt state.",
+      "effects": {
+        "evidence": "receipt",
+        "external": "none",
+        "runtime": "none",
+        "source": "none"
+      },
+      "expected_artifacts": [],
+      "expected_json": {
+        "/action": "validation-state",
+        "/claims/live_unreal_from_city": false,
+        "/claims/phase_5_authorized": false,
+        "/repo": "CITY",
+        "/schema": "city.native.v1",
+        "/status": "pass"
+      },
+      "groups": [
+        "validation"
+      ],
+      "id": "city.validation-state",
+      "mutability": "read_only",
+      "requires_credentials": false,
+      "requires_network": false,
+      "scope": "repo_native",
+      "supports_json": true,
+      "timeout_seconds": 30
+    },
+    {
+      "argv": [
+        "./start.sh",
+        "verify-release",
+        "--json"
+      ],
+      "available": true,
+      "description": "Execute the frozen stored-release verifier.",
+      "effects": {
+        "evidence": "receipt",
+        "external": "none",
+        "runtime": "none",
+        "source": "none"
+      },
+      "expected_artifacts": [],
+      "expected_json": {
+        "/action": "verify-release",
+        "/claims/live_unreal_from_city": false,
+        "/claims/phase_5_authorized": false,
+        "/repo": "CITY",
+        "/schema": "city.native.v1",
+        "/status": "pass"
+      },
+      "groups": [
+        "validation"
+      ],
+      "id": "city.verify-release",
+      "mutability": "read_only",
+      "requires_credentials": false,
+      "requires_network": false,
+      "scope": "repo_native",
+      "supports_json": true,
+      "timeout_seconds": 360
+    }
+  ],
+  "installed_by": "ControlTower",
+  "repo": "CITY",
+  "schema": "controltower.repo_interface.v1",
+  "shim_version": "city-native-v1",
+  "unclaimed_domains": [
+    "live_unreal_from_city",
+    "phase_5",
+    "production",
+    "trusted_ci"
+  ]
+}

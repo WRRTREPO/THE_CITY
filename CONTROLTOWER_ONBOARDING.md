@@ -1,0 +1,26 @@
+# CITY ControlTower Entry
+
+Work here: `/Users/boandersson/Projects/CITY`.
+Origin remains `https://github.com/WRRTREPO/THE_CITY.git`.
+The folder name changes. The game and Unreal module names do not.
+
+The original checkout and its generated Unreal build files remain on Desktop. This clone has the committed source, hydrated LFS evidence, and complete original-history bundle. The two imported references retain their bytes.
+
+`README.md` is part of the sealed release. Its historical Desktop commands remain unchanged. Use these commands from CITY:
+
+| Command | Result |
+| --- | --- |
+| `./start.sh strategic-status --json` | Current sealed proof, capacity, authority, and closed successor state. |
+| `./start.sh health --json` | Original byte integrity, governance presence, references, and current receipt state. |
+| `./start.sh next-action --json` | The next permitted verification command. |
+| `./start.sh rollback-plan --json` | Reviewable rollback steps. Executes no rollback. |
+| `./start.sh validation-state --json` | Whether the stored verification receipt matches current HEAD, tree, and files. |
+| `./start.sh verify-release --json` | Runs the frozen 172-member release verifier with isolated temporary output. |
+
+The full declared native interface contains these six routes. Historical proof acquisition scripts remain discoverable in `proof_kernel/` and the original README. Their frozen contracts still apply. Native coverage counts the declared ControlTower interface; it does not mean every historical script is safe to run through a generic dispatcher.
+
+From Projects, use `./ControlTower repo CITY capabilities --json` and `./ControlTower repo CITY run <action-id> --approve --json`. Every action has explicit argv, JSON assertions, timeouts, and source/runtime/evidence/external effects. Refresh the mount after committing.
+
+The release verifier checks stored evidence. It does not launch or rebuild Unreal here. Historical dependency commitments point at the original Desktop project. A live CITY acquisition needs separate permitted validation. Health stays degraded while that boundary is unverified.
+
+Onboarding evidence lives in Projects `Synthesis/CITYOnboarding/` and the owning mount, closure, and telemetry directories. This is local development evidence.
