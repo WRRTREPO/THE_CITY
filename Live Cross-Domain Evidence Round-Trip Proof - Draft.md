@@ -1,6 +1,6 @@
 # Live Cross-Domain Evidence Round-Trip Proof
 
-**Version:** 0.1.0-draft.2
+**Version:** 0.1.0-draft.3
 **Status:** Operator-selected Phase-5 specification-review candidate. Unfrozen.
 **Implementation authority:** None until exact specification review and freeze.
 **Evidence:** Not acquired. No new proof seal. Capacity remains v0.1.11.
@@ -167,13 +167,21 @@ Independent review of draft 1 at `e8425b00285ba34d1cc034d4e983955ee57915e1` retu
 | R6. Dependencies | `unchanged_dependencies`, `dependency_contract` | Authenticate canonical serializer and complete local executable/build dependencies before use. Record external engine/toolchain inputs under the closed acquisition procedure. |
 | R7. Hash graph | `artifact_hash_graph` | Build a directed acyclic index. No file supplies its own raw hash. |
 
-The forty-one JSON schema definitions form one local draft-2020-12 `$defs` bundle. Every object has an exact required field set and forbids extra fields. Schema validity and the cross-record relations in `schema_contract` both apply. The raw predecessor records and receipts retain their exact existing schema and byte validation; embedding them as UTF-8 strings does not relax their contract.
+The forty-nine JSON schema definitions form one local draft-2020-12 `$defs` bundle. Every object has an exact required field set and forbids extra fields. Schema validity and the cross-record relations in `schema_contract` both apply. The raw predecessor records and receipts retain their exact existing schema and byte validation; embedding them as UTF-8 strings does not relax their contract.
 
 Partial refresh is explicit. F13/F14 fail after the R1 resource exists and before its anchor is published. That domain is unavailable. Its old R0 Actors are gone. Its surviving peer remains stale R0. Neither canonical rollback nor an intact predecessor representation is claimed. A terminal read-only census captures the partial world; it cannot repair it.
 
 All positive and failure runs use the recursive command prefixes in `operation_schedule`. Fault hooks never select a canonical consequence. Only the five declared child-owned fault runs may arm Unreal. Harness-owned mutations preserve the original physical captures and retain altered copies separately as actual rejection arguments. The six existing resolver fault hooks remain unchanged.
 
 The review-only checker validates schema definitions and structural adversaries. Its local Python environment requires `jsonschema`. That dependency is outside the proposed game release, along with the checker and CITY native selection code. Passing it proves no source-dataflow audit, Unreal build, physical fault, acquired release or independent acceptance.
+
+## Draft 3 trace correction
+
+The follow-up review of draft 2 found two remaining trace details. `call_trace_contract` now fixes typed function arguments, exact positional and keyword reconstruction, predecessor nested-object validation, returned-value encoding, and typed fault before/after snapshots. Binary strings use one canonical base64 encoding. Captured Q bytes stay separate from the parsed Q object, so a malformed raw-byte adversary remains exactly replayable.
+
+`canonical_fault_codes` enumerates all six complete exception strings, including their real hook-name suffixes. The verifier must compare the full code from the actual resolver call. An unsuffixed family code fails.
+
+These corrections add no source paths, live runs or release members. Draft 3 remains unfrozen and awaits a focused independent follow-up.
 
 ## Current executable checks
 

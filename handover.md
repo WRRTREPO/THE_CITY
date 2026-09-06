@@ -9,7 +9,7 @@
 
 **Phase 4 is sealed. Phase 5 is open for specification review only.**
 
-The operator selected **Live Cross-Domain Evidence Round-Trip Proof** with “Approved. Execute”. The [selection record](PHASE_5_SELECTION.json) binds the [candidate specification](Live%20Cross-Domain%20Evidence%20Round-Trip%20Proof%20-%20Draft.md) and its machine-readable contract. This updates current development routing. It changes no historical seal. Draft 1 received an independent REVISE verdict. Draft 2 addresses its seven findings and awaits exact-candidate review. The candidate remains unfrozen.
+The operator selected **Live Cross-Domain Evidence Round-Trip Proof** with “Approved. Execute”. The [selection record](PHASE_5_SELECTION.json) binds the [candidate specification](Live%20Cross-Domain%20Evidence%20Round-Trip%20Proof%20-%20Draft.md) and its machine-readable contract. This updates current development routing. It changes no historical seal. Drafts 1 and 2 received independent REVISE verdicts. Draft 3 closes the remaining trace encoding and exact fault-code findings and awaits focused exact-candidate review. The candidate remains unfrozen.
 
 | Record | Current value |
 | --- | --- |

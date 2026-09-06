@@ -2,7 +2,7 @@
   "schema": "city.live_cross_domain_evidence_spec.v1",
   "identity": {
     "proof": "Live Cross-Domain Evidence Round-Trip Proof",
-    "version": "0.1.0-draft.2",
+    "version": "0.1.0-draft.3",
     "phase": 5,
     "status": "specification_review",
     "implementation_authorized": false,
@@ -2182,12 +2182,12 @@
       "required": [
         "function",
         "record_before_raw_utf8",
-        "arguments_raw_utf8",
         "return_raw_utf8",
         "exception_code",
         "record_after_raw_utf8",
         "published_record_raw_utf8",
-        "fault_point"
+        "fault_point",
+        "arguments"
       ],
       "properties": {
         "function": {
@@ -2198,10 +2198,6 @@
           ]
         },
         "record_before_raw_utf8": {
-          "type": "string",
-          "minLength": 1
-        },
-        "arguments_raw_utf8": {
           "type": "string",
           "minLength": 1
         },
@@ -2252,6 +2248,19 @@
               "minLength": 1
             }
           ]
+        },
+        "arguments": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/admission_arguments"
+            },
+            {
+              "$ref": "#/$defs/construction_arguments"
+            },
+            {
+              "$ref": "#/$defs/resolution_arguments"
+            }
+          ]
         }
       }
     },
@@ -2263,11 +2272,10 @@
         "executor",
         "stage",
         "action",
-        "before_raw_utf8",
-        "after_raw_utf8",
         "consumed",
         "underlying_code",
-        "observation"
+        "before",
+        "after"
       ],
       "properties": {
         "failure_case": {
@@ -2288,28 +2296,6 @@
           "type": "string",
           "minLength": 1
         },
-        "before_raw_utf8": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "type": "string",
-              "minLength": 1
-            }
-          ]
-        },
-        "after_raw_utf8": {
-          "oneOf": [
-            {
-              "type": "null"
-            },
-            {
-              "type": "string",
-              "minLength": 1
-            }
-          ]
-        },
         "consumed": {
           "type": "boolean"
         },
@@ -2324,13 +2310,29 @@
             }
           ]
         },
-        "observation": {
+        "before": {
           "oneOf": [
             {
-              "type": "null"
+              "$ref": "#/$defs/fault_bytes_state"
             },
             {
-              "$ref": "#/$defs/live_observation"
+              "$ref": "#/$defs/fault_world_state"
+            },
+            {
+              "$ref": "#/$defs/fault_process_state"
+            }
+          ]
+        },
+        "after": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/fault_bytes_state"
+            },
+            {
+              "$ref": "#/$defs/fault_world_state"
+            },
+            {
+              "$ref": "#/$defs/fault_process_state"
             }
           ]
         }
@@ -2949,6 +2951,214 @@
         },
         "claims": {
           "$ref": "#/$defs/claims"
+        }
+      }
+    },
+    "admission_arguments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "record_raw_utf8",
+        "q_object_raw_utf8",
+        "q_raw_base64",
+        "materialization_receipt_raw_utf8",
+        "emission_receipt_raw_utf8"
+      ],
+      "properties": {
+        "schema": {
+          "const": "city.live_evidence_admission_arguments.v1"
+        },
+        "record_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "q_object_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "q_raw_base64": {
+          "type": "string"
+        },
+        "materialization_receipt_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "emission_receipt_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "construction_arguments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "record_raw_utf8",
+        "fixture_raw_utf8",
+        "presentation_members_raw_utf8"
+      ],
+      "properties": {
+        "schema": {
+          "const": "city.live_evidence_construction_arguments.v1"
+        },
+        "record_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fixture_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "presentation_members_raw_utf8": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "member_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "input_id",
+        "member_raw_utf8"
+      ],
+      "properties": {
+        "input_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "member_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "resolution_arguments": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "record_raw_utf8",
+        "bext_raw_utf8",
+        "admitted_members",
+        "fault_point"
+      ],
+      "properties": {
+        "schema": {
+          "const": "city.live_evidence_resolution_arguments.v1"
+        },
+        "record_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bext_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "admitted_members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member_entry"
+          }
+        },
+        "fault_point": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "enum": [
+                "after_qa_provisional_mutation",
+                "after_qb_ordinary_gate_evaluation",
+                "during_replay_barrier_construction",
+                "during_batch_ledger_construction",
+                "after_complete_r1_before_validation",
+                "after_complete_r1_validation_before_publication"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "construction_return": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bext_raw_utf8",
+        "admitted_members"
+      ],
+      "properties": {
+        "bext_raw_utf8": {
+          "type": "string",
+          "minLength": 1
+        },
+        "admitted_members": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/member_entry"
+          }
+        }
+      }
+    },
+    "fault_bytes_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "semantic_type",
+        "raw_base64"
+      ],
+      "properties": {
+        "kind": {
+          "const": "bytes"
+        },
+        "semantic_type": {
+          "enum": [
+            "q_raw",
+            "admission_arguments",
+            "construction_arguments",
+            "materialize_command"
+          ]
+        },
+        "raw_base64": {
+          "type": "string"
+        }
+      }
+    },
+    "fault_world_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "observation"
+      ],
+      "properties": {
+        "kind": {
+          "const": "world"
+        },
+        "observation": {
+          "$ref": "#/$defs/live_observation"
+        }
+      }
+    },
+    "fault_process_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "sample"
+      ],
+      "properties": {
+        "kind": {
+          "const": "process"
+        },
+        "sample": {
+          "$ref": "#/$defs/liveness"
         }
       }
     }
@@ -3895,7 +4105,7 @@
     "physical_assertions": "Compare terminal raw Actor rows and process observations to terminal_physical. All affected current/synchronized claims disabled. Surviving peer state is independently censused; death requires observed exit, never a null placeholder alone.",
     "one_shot": "Unreal accepts exactly its declared child-owned arm and matching stage/operation. Ack is emitted before materialize. Hook records before/after world census and consumed=true once. An unused arm, repeated arm, wrong stage/domain/run, synthetic error without physical action, missing consumed event or modified probe output fails acquisition.",
     "oracle_precedence": "Binding before command semantics; exact committed raw identity before lifecycle sequence before destruction. At observation: wrong world first, mixed generation next, cardinality next, record/domain next, owner last. This makes F16b report generation mismatch even though cardinality also differs.",
-    "canonical_fault_programs": "C01-C06 each expand P2, sample before_resolve, call unchanged resolve_external_batch with its corresponding existing fault_point, retain real exception concurrent_external_resolution_rejected.partial_execution_fault, sample after_resolve, terminal census and cleanup. No install/publish edge; R0 exact; no published replay barrier. Hook order follows canonical_faults. No child arm command."
+    "canonical_fault_programs": "C01-C06 each expand P2, sample before_resolve, call unchanged resolve_external_batch with its corresponding existing fault_point, retain the exact full hook-specific exception from canonical_fault_codes, sample after_resolve, terminal census and cleanup. No install/publish edge; R0 exact; no published replay barrier. Hook order follows canonical_faults. No child arm command."
   },
   "unchanged_dependencies": {
     "CityMaterializationProof/CityMaterializationProof.uproject": "d4cf6ee332faf8705cd3eab6a3a9a2a110e5a41daa1c361e95a0181012aea7ac",
@@ -4538,5 +4748,41 @@
       "manifest_missing_member"
     ],
     "execution": "Future verifier unittest suite starts from one valid retained release copied outside CITY, applies each named alteration independently, invokes verify argv and requires nonzero exit with exact lcer.schema_invalid for malformed schema or lcer.release_evidence_invalid for semantic discrepancy. It must reject from raw relationships, never fixture case-name matching. No Unreal launches."
+  },
+  "call_trace_contract": {
+    "dispatch": {
+      "admit_external_input_candidate": "admission_arguments",
+      "construct_bext_from_sealed_fixture_set": "construction_arguments",
+      "resolve_external_batch": "resolution_arguments"
+    },
+    "encoding": "arguments is a typed object, never an opaque JSON argument string. function must select exactly its mapped schema. Every *_raw_utf8 argument is strict stored predecessor JSON with one LF; duplicate keys, nonfinite numbers and unknown fields reject before replay. q_raw_base64 and fault raw_base64 use canonical RFC4648 base64 with padding, no whitespace, round-trip encode equality; they preserve any malformed original bytes without pretending those bytes passed JSON parsing.",
+    "admission_call": "Decode record_raw_utf8, q_object_raw_utf8, materialization_receipt_raw_utf8 and emission_receipt_raw_utf8 strictly. Decode q_raw_base64 to actual bytes. Call admit_external_input_candidate(record,q_object,q_bytes,materialization_receipt,emission_receipt) in that exact positional order; no keyword arguments. q_object is stored independently of q_bytes so F02 can supply a valid object with missing-LF raw bytes.",
+    "construction_call": "Decode record_raw_utf8 and fixture_raw_utf8 strictly. Decode each presentation_members_raw_utf8 item strictly, preserving array order. Call construct_bext_from_sealed_fixture_set(record,fixture,presentation_members) with those three positional arguments and no kwargs.",
+    "resolution_call": "Decode record_raw_utf8,bext_raw_utf8 and each member_raw_utf8 strictly. admitted_members is lexically sorted by input_id with no duplicates. Construct only that input_id-to-member map. Call resolve_external_batch(record,bext,map,fault_point=arguments.fault_point), exactly three positional arguments and one keyword. canonical_call.fault_point must equal this value; it is null for other functions.",
+    "nested_records": "record is exact pinned R0/R1. Original Q/receipts are exact captured predecessor values and constructor shapes. Fixture is exactly primary_fixture(R0). Admitted members must equal results independently derived from actual captured admission calls. BEXT/map must equal the independently repeated constructor result. No extra fields are allowed in these predecessor objects. The only deviations are the exact mutations named in failure_programs, applied to retained originals and compared field-for-field before replay. F10b explicitly changes input_id without repairing the old digest; replay must still reject at the event barrier. No unlisted member, field, mutation or argument encoding is legal.",
+    "returns": "On exception, return_raw_utf8 and published_record_raw_utf8 are null and exception_code is the actual full code. On success exception_code is null. Admission return_raw_utf8 is the strict stored JSON of the exact returned member. Construction return_raw_utf8 decodes as the closed construction_return schema with exact returned BEXT/member map encoded by the same nested law. Resolver return_raw_utf8 is the exact returned R1 stored bytes; published bytes equal it only at the declared publication edge. Verifier repeats the actual call and compares each return or full exception code; recorded summary is not the oracle.",
+    "fault_bytes": "For q_raw, base64 decodes the actual before/after proposed admission Q bytes; before must equal captured raw bytes and after must be exactly the declared mutation. The parsed q object stays separately in admission_arguments. For admission_arguments/construction_arguments/materialize_command, base64 decodes canonical JSON of the mapped closed schema (materialize_command uses command with command=materialize); reject unknown fields. Compare before/after recursively against the exact row action. Malformed bytes may occur only where the row explicitly changes raw bytes.",
+    "fault_states": "Both states are mandatory. Child-owned hooks use fault_world_state with real probe results immediately around the action; never expected projection data. Process replacement/exit uses fault_process_state with actual liveness samples before/after. Harness Q/member/command mutation uses fault_bytes_state of the declared semantic type. Missing-input F01 uses construction_arguments with before and after both containing [actually admitted member_A]; its action is the actual incomplete-set invocation, not removal of an unobserved QB. F08 is process, F09/F17/F18 materialize_command, F04a/b construction_arguments, F02/F03/F05/F06/F10a/b admission_arguments. For F10a, before and after arguments are equal; the action is replay invocation against committed R1. F10b before uses captured QA and after the declared changed input_id. Consumed=true requires actual action/invocation and the exact row code.",
+    "negative_cases": [
+      "wrong_argument_schema_for_function",
+      "unlisted_argument_field",
+      "changed_positional_reconstruction",
+      "kwargs_on_admission",
+      "duplicate_member_key",
+      "malformed_base64",
+      "unlisted_nested_Q_field",
+      "unlisted_member_mutation",
+      "missing_fault_before",
+      "wrong_fault_state_kind",
+      "unsuffixed_canonical_fault_code"
+    ]
+  },
+  "canonical_fault_codes": {
+    "after_qa_provisional_mutation": "concurrent_external_resolution_rejected.partial_execution_fault.after_qa_provisional_mutation",
+    "after_qb_ordinary_gate_evaluation": "concurrent_external_resolution_rejected.partial_execution_fault.after_qb_ordinary_gate_evaluation",
+    "during_replay_barrier_construction": "concurrent_external_resolution_rejected.partial_execution_fault.during_replay_barrier_construction",
+    "during_batch_ledger_construction": "concurrent_external_resolution_rejected.partial_execution_fault.during_batch_ledger_construction",
+    "after_complete_r1_before_validation": "concurrent_external_resolution_rejected.partial_execution_fault.after_complete_r1_before_validation",
+    "after_complete_r1_validation_before_publication": "concurrent_external_resolution_rejected.partial_execution_fault.after_complete_r1_validation_before_publication"
   }
 }

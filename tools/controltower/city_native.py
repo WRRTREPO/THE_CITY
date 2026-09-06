@@ -104,7 +104,7 @@ def load_selection(root=ROOT):
     expected = {
         'schema': 'city.successor_selection.v1', 'phase': 5,
         'status': 'specification_review', 'successor': 'Live Cross-Domain Evidence Round-Trip Proof',
-        'version': '0.1.0-draft.2', 'selected_by': 'operator', 'approval': 'Approved. Execute',
+        'version': '0.1.0-draft.3', 'selected_by': 'operator', 'approval': 'Approved. Execute',
         'approval_date': '2026-09-06',
         'selection_base_commit': '8b933f7d4caf48957789ad5ca6846c510df668cd',
         'specification_path': SPECIFICATION, 'contract_path': SPEC_CONTRACT,
