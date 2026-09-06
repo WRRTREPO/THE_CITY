@@ -2,7 +2,7 @@
 
 The operator approved the scoped continuation repair after the MCDP P4 attack found a sequencing conflict. The existing live acceptance test required implementation before CITY's continuation rules permitted it. The session returned to P2. The game specification remains frozen.
 
-The governing forward record is [CITY_MCDP_APPLICABILITY.json](../protocols/CITY_MCDP_APPLICABILITY.json). ControlTower owns and hash-pins that record. It binds candidate `712fff25e3e256a77b733f7ca108aa9d7ad00d1e`, its frozen specification/contract bytes and the existing forward freeze. The operator instruction was `Approved`, for [the scoped proposal](../Synthesis/CITYPhase5Adversarial/PROPOSED_APPLICABILITY_REPAIR.md).
+The governing forward record is [CITY_MCDP_APPLICABILITY.json](../contracts/CITY_MCDP_APPLICABILITY.json). ControlTower owns and hash-pins that record. It binds candidate `712fff25e3e256a77b733f7ca108aa9d7ad00d1e`, its frozen specification/contract bytes and the existing forward freeze. The operator instruction was `Approved`, for [the scoped proposal](../Synthesis/CITYPhase5Adversarial/PROPOSED_APPLICABILITY_REPAIR.md).
 
 MCDP verifies the intermediate implementation contract. Phoenix must implement and prove the unchanged live game acceptance. This distinction changes continuation governance. It does not change the frozen game requirements or any historical seal.
 
