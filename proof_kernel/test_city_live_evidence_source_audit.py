@@ -32,14 +32,16 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
             "tree": "4bd5e2311c2e5e963651e26daca18f84fae8259e",
         })
         modeled = [row for row in result["edges"] if row["reason_code"] == "lcer.effect_model_declared"]
-        materialization = [row for row in modeled if row["path"].endswith("CityLiveEvidenceGameMode.cpp")]
+        materialization = [row for row in modeled if row["callee"] in {"SpawnActor", "Destroy"}]
         canonical = [row for row in modeled if row["consequence"] == "canonical"]
         normalization = [row for row in modeled if row["consequence"] == "provenance"]
         self.assertEqual({row["callee"] for row in materialization}, {"SpawnActor", "Destroy"})
         self.assertEqual({row["callee"] for row in canonical}, {"admit_external_input_candidate", "resolve_external_batch"})
-        self.assertEqual(len(normalization), 25)
+        self.assertEqual(len(normalization), 28)
         self.assertEqual(len([row for row in modeled if row["consequence"] == "representation"]), 40)
+        self.assertEqual(len([row for row in modeled if row["consequence"] == "test_control"]), 4)
         self.assertEqual(len([row for row in result["edges"] if row["callee"] == "self._emit" and row["classification"] == "unclassified"]), 3)
+        self.assertEqual(len([row for row in result["edges"] if row["function"].endswith("ClosureExecutionContext.acquire") and row["callee"] == "os.environ" and row["classification"] == "unclassified"]), 1)
         self.assertGreater(result["summary"]["unclassified_count"], 0)
 
     def test_source_byte_drift_is_rejected_before_any_candidate(self):
@@ -87,8 +89,7 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             raw = Path(temporary) / "candidate.json"
             row = next(row for row in candidate["edges"] if row["callee"] == "GConfig")
-            row["classification"] = "allowed"
-            row["reason_code"] = "lcer.effect_model_declared"
+            row["location"]["line"] = 99999
             candidate["result_sha256"] = digest(canonical({key: value for key, value in candidate.items() if key != "result_sha256"}))
             raw.write_bytes(canonical(candidate))
             with self.assertRaisesRegex(ValueError, "lcer.source_audit_record_invalid"):

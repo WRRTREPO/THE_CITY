@@ -167,15 +167,21 @@ def python_rows(path: Path, name: str, modeled_calls: set[str],
         def visit_Attribute(self, node: ast.Attribute) -> None:
             attribute_name = dotted(node)
             if attribute_name in {"sys.argv", "os.environ"}:
-                edges.append(edge(name, self.owner(), "platform", attribute_name, "fault", "unclassified",
-                                  "lcer.required_edge_unclassified", node.lineno))
+                owner = self.owner()
+                site_key = (name, owner, attribute_name, node.lineno)
+                consequence = modeled_sites.get(site_key, "fault")
+                edges.append(edge(name, owner, "platform", attribute_name, consequence,
+                                  "allowed" if site_key in modeled_sites else "unclassified",
+                                  "lcer.effect_model_declared" if site_key in modeled_sites else "lcer.required_edge_unclassified",
+                                  node.lineno))
             self.generic_visit(node)
 
     Walk().visit(tree)
     return rows, edges, local_imports
 
 
-def cpp_rows(path: Path, name: str, modeled_effects: set[tuple[str, str, str]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def cpp_rows(path: Path, name: str, modeled_effects: set[tuple[str, str, str]],
+             modeled_sites: dict[tuple[str, str, str, int], str]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     rows, edges = [], []
     text = path.read_text(encoding="utf-8", errors="replace")
     for number, line in enumerate(text.splitlines(), start=1):
@@ -190,8 +196,10 @@ def cpp_rows(path: Path, name: str, modeled_effects: set[tuple[str, str, str]]) 
             ("Destroy", "command", "representation"), ("Resolve", "command", "canonical"),
         ):
             if token in line:
-                modeled = (name, token, consequence) in modeled_effects
-                edges.append(edge(name, owner, input_name, token, consequence,
+                site_key = (name, owner, token, number)
+                effective_consequence = modeled_sites.get(site_key, consequence)
+                modeled = (name, token, effective_consequence) in modeled_effects or site_key in modeled_sites
+                edges.append(edge(name, owner, input_name, token, effective_consequence,
                                   "allowed" if modeled else "unclassified",
                                   "lcer.effect_model_declared" if modeled else "lcer.required_edge_unclassified", number))
     return rows, edges
@@ -262,7 +270,7 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
         if (not isinstance(site, dict) or set(site) != {"path", "function", "callee", "line", "consequence"}
                 or not all(isinstance(site[key], str) and site[key] for key in ("path", "function", "callee", "consequence"))
                 or not isinstance(site["line"], int) or site["line"] <= 0
-                or site["consequence"] not in {"provenance", "canonical", "representation"}):
+                or site["consequence"] not in {"provenance", "canonical", "representation", "test_control"}):
             raise AuditError("lcer.source_audit_record_invalid")
         key = (site["path"], site["function"], site["callee"], site["line"])
         if key in modeled_sites:
@@ -280,7 +288,7 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
             found_rows, found_edges, found_imports = python_rows(source, item["path"], modeled_calls, modeled_effects, modeled_sites)
             rows.extend(found_rows); edges.extend(found_edges); imports.update(found_imports)
         elif item["kind"] in {"cpp_source", "build_rule"}:
-            found_rows, found_edges = cpp_rows(source, item["path"], modeled_effects)
+            found_rows, found_edges = cpp_rows(source, item["path"], modeled_effects, modeled_sites)
             rows.extend(found_rows); edges.extend(found_edges)
     declared_modules = {row["path"].removesuffix(".py").replace("/", ".") for row in sources if row["kind"] == "python_source"}
     unresolved_imports = set()
