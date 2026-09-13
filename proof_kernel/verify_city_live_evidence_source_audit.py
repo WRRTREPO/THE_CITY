@@ -56,6 +56,23 @@ def validate(candidate_path: Path, contract_path: Path) -> dict[str, Any]:
     edges = candidate["edges"]
     if not isinstance(edges, list) or any(not isinstance(row, dict) or row.get("classification") not in {"allowed", "denied", "unclassified"} for row in edges):
         reject()
+    external_models = contract.get("external_models")
+    effect_models = contract.get("effect_models")
+    if not isinstance(external_models, list) or not isinstance(effect_models, list):
+        reject()
+    declared_external = {(call, model.get("consequence")) for model in external_models if isinstance(model, dict)
+                         and isinstance(model.get("calls"), list) for call in model["calls"]}
+    declared_effects = {(model.get("path"), call, model.get("consequence")) for model in effect_models if isinstance(model, dict)
+                        and isinstance(model.get("calls"), list) for call in model["calls"]}
+    for row in edges:
+        if row["classification"] != "allowed":
+            continue
+        relation = (row.get("callee"), row.get("consequence"))
+        effect_relation = (row.get("path"), row.get("callee"), row.get("consequence"))
+        if ((row.get("reason_code") == "lcer.external_model_declared" and relation in declared_external)
+                or (row.get("reason_code") == "lcer.effect_model_declared" and effect_relation in declared_effects)):
+            continue
+        reject()
     unclassified = [row for row in edges if row["classification"] == "unclassified"]
     adversaries = candidate["adversary_results"]
     expected_adversaries = contract.get("forbidden_source_adversaries")

@@ -37,6 +37,14 @@
     {"id": "python-stdlib-filesystem-v1", "calls": ["open"], "consequence": "provenance"},
     {"id": "python-stdlib-process-v1", "calls": ["subprocess.run", "subprocess.Popen", "os.system"], "consequence": "provenance"}
   ],
+  "effect_models": [
+    {
+      "id": "unreal-live-domain-materialization-v1",
+      "path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp",
+      "calls": ["SpawnActor", "Destroy"],
+      "consequence": "representation"
+    }
+  ],
   "forbidden_source_adversaries": [
     "GConfig_owner_read",
     "getenv_Q_choice",

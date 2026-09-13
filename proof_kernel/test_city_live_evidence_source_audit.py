@@ -31,6 +31,9 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
             "commit": "140c370b50322d8e832338719c90830beed4c535",
             "tree": "4bd5e2311c2e5e963651e26daca18f84fae8259e",
         })
+        materialization = [row for row in result["edges"] if row["reason_code"] == "lcer.effect_model_declared"]
+        self.assertEqual({row["callee"] for row in materialization}, {"SpawnActor", "Destroy"})
+        self.assertTrue(all(row["consequence"] == "representation" for row in materialization))
         self.assertGreater(result["summary"]["unclassified_count"], 0)
 
     def test_source_byte_drift_is_rejected_before_any_candidate(self):
@@ -68,6 +71,18 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             raw = Path(temporary) / "candidate.json"
             candidate["primary_source_baseline_identity"]["commit"] = "0" * 40
+            candidate["result_sha256"] = digest(canonical({key: value for key, value in candidate.items() if key != "result_sha256"}))
+            raw.write_bytes(canonical(candidate))
+            with self.assertRaisesRegex(ValueError, "lcer.source_audit_record_invalid"):
+                validate(raw, CONTRACT)
+
+    def test_independent_validator_rejects_unmodeled_effect_escalation(self):
+        candidate = audit(ROOT, CONTRACT)
+        with tempfile.TemporaryDirectory() as temporary:
+            raw = Path(temporary) / "candidate.json"
+            row = next(row for row in candidate["edges"] if row["callee"] == "GConfig")
+            row["classification"] = "allowed"
+            row["reason_code"] = "lcer.effect_model_declared"
             candidate["result_sha256"] = digest(canonical({key: value for key, value in candidate.items() if key != "result_sha256"}))
             raw.write_bytes(canonical(candidate))
             with self.assertRaisesRegex(ValueError, "lcer.source_audit_record_invalid"):

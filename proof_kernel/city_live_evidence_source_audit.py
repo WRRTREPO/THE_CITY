@@ -169,7 +169,7 @@ def python_rows(path: Path, name: str, modeled_calls: set[str]) -> tuple[list[di
     return rows, edges, local_imports
 
 
-def cpp_rows(path: Path, name: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def cpp_rows(path: Path, name: str, modeled_effects: set[tuple[str, str, str]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     rows, edges = [], []
     text = path.read_text(encoding="utf-8", errors="replace")
     for number, line in enumerate(text.splitlines(), start=1):
@@ -184,7 +184,10 @@ def cpp_rows(path: Path, name: str) -> tuple[list[dict[str, Any]], list[dict[str
             ("Destroy", "command", "representation"), ("Resolve", "command", "canonical"),
         ):
             if token in line:
-                edges.append(edge(name, owner, input_name, token, consequence, "unclassified", "lcer.required_edge_unclassified", number))
+                modeled = (name, token, consequence) in modeled_effects
+                edges.append(edge(name, owner, input_name, token, consequence,
+                                  "allowed" if modeled else "unclassified",
+                                  "lcer.effect_model_declared" if modeled else "lcer.required_edge_unclassified", number))
     return rows, edges
 
 
@@ -230,13 +233,23 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
     closure = contract.get("transitive_local_imports")
     sources = primary + closure.get("sources", []) if isinstance(primary, list) and isinstance(closure, dict) else None
     models = contract.get("external_models")
-    if not isinstance(sources, list) or len(primary) != 11 or len(sources) != 13 or not isinstance(models, list):
+    effect_models = contract.get("effect_models")
+    if (not isinstance(sources, list) or len(primary) != 11 or len(sources) != 13
+            or not isinstance(models, list) or not isinstance(effect_models, list)):
         raise AuditError("lcer.source_audit_record_invalid")
     modeled_calls = set()
     for model in models:
         if not isinstance(model, dict) or set(model) != {"id", "calls", "consequence"} or not isinstance(model["id"], str) or not isinstance(model["consequence"], str) or not isinstance(model["calls"], list) or not all(isinstance(call, str) for call in model["calls"]):
             raise AuditError("lcer.source_audit_record_invalid")
         modeled_calls.update(model["calls"])
+    modeled_effects: set[tuple[str, str, str]] = set()
+    for model in effect_models:
+        if (not isinstance(model, dict) or set(model) != {"id", "path", "calls", "consequence"}
+                or not isinstance(model["id"], str) or not isinstance(model["path"], str)
+                or not isinstance(model["consequence"], str) or not isinstance(model["calls"], list)
+                or not model["calls"] or not all(isinstance(call, str) and call for call in model["calls"])):
+            raise AuditError("lcer.source_audit_record_invalid")
+        modeled_effects.update((model["path"], call, model["consequence"]) for call in model["calls"])
     files, rows, edges, imports = [], [], [], set()
     for item in sources:
         if not isinstance(item, dict) or set(item) != {"path", "sha256", "kind"}:
@@ -249,7 +262,7 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
             found_rows, found_edges, found_imports = python_rows(source, item["path"], modeled_calls)
             rows.extend(found_rows); edges.extend(found_edges); imports.update(found_imports)
         elif item["kind"] in {"cpp_source", "build_rule"}:
-            found_rows, found_edges = cpp_rows(source, item["path"])
+            found_rows, found_edges = cpp_rows(source, item["path"], modeled_effects)
             rows.extend(found_rows); edges.extend(found_edges)
     declared_modules = {row["path"].removesuffix(".py").replace("/", ".") for row in sources if row["kind"] == "python_source"}
     unresolved_imports = set()
