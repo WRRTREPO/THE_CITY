@@ -2,7 +2,7 @@
   "schema": "city.harbinger_policy_contract.v1",
   "city_frozen_contract": {
     "path": "proof_kernel/city_live_evidence_source_audit_contract.json",
-    "sha256": "e1ce699b83a24cd6a7b47ac7d06b43f75e4f030879122e2d543b36ce7b4f2513"
+    "sha256": "faf744cfb66fdafe3e4862cabf654d652e012f2e372cf6e84c79fc72a0034a5a"
   },
   "harbinger_core": {
     "path": "../Harbinger/harbinger",
@@ -51,6 +51,13 @@
     {"family":"function_to_consequence","path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","line":14888,"callable":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureCommandBoundaryTests.invoke","token":"subprocess.run","reference":"city_harbinger_policy_contract:test_control:14888"},
     {"family":"function_to_consequence","path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","line":15011,"callable":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureExecutionContextTests.test_new_commit_cannot_reuse_old_source_context","token":"subprocess.run","reference":"city_harbinger_policy_contract:test_control:15011"},
     {"family":"function_to_consequence","path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","line":15048,"callable":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureExecutionContextTests.test_different_actual_executor_cannot_find_or_reuse_the_context","token":"subprocess.run","reference":"city_harbinger_policy_contract:test_control:15048"}
+  ],
+  "allowed_exact_provenance_reads": [
+    {"family":"function_to_consequence","path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","line":2166,"callable":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.MacProcessObserver.exclusive_pipe_holders","token":"subprocess.run","reference":{"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.MacProcessObserver.exclusive_pipe_holders","callee":"subprocess.run","line":2166,"consequence":"provenance"}},
+    {"family":"function_to_consequence","path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","line":2237,"callable":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.MacProcessObserver.lsof_descriptors","token":"subprocess.run","reference":{"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.MacProcessObserver.lsof_descriptors","callee":"subprocess.run","line":2237,"consequence":"provenance"}},
+    {"family":"function_to_consequence","path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","line":2272,"callable":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.MacProcessObserver.image_mappings","token":"subprocess.run","reference":{"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.MacProcessObserver.image_mappings","callee":"subprocess.run","line":2272,"consequence":"provenance"}},
+    {"family":"function_to_consequence","path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","line":2353,"callable":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.MacProcessObserver.pipe_holder_census","token":"subprocess.run","reference":{"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.MacProcessObserver.pipe_holder_census","callee":"subprocess.run","line":2353,"consequence":"provenance"}},
+    {"family":"function_to_consequence","path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","line":12338,"callable":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py._current_git_identity.command","token":"subprocess.run","reference":{"path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","function":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py._current_git_identity.command","callee":"subprocess.run","line":12338,"consequence":"provenance"}}
   ],
   "retained_city_adversary_limit": {
     "count": 14,

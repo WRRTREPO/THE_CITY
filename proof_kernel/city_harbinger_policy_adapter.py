@@ -62,7 +62,8 @@ def load_policy(root: Path) -> tuple[dict[str, Any], Path]:
     unmapped = policy.get("required_unmapped_edge")
     if (not isinstance(city, dict) or city.get("path") != "proof_kernel/city_live_evidence_source_audit_contract.json"
             or not isinstance(core, dict) or unmapped != {"classification": "unclassified", "reason_code": "lcer.harbinger_edge_unmapped"}
-            or not isinstance(policy.get("allowed_exact_test_controls"), list)):
+            or not isinstance(policy.get("allowed_exact_test_controls"), list)
+            or not isinstance(policy.get("allowed_exact_provenance_reads"), list)):
         raise PolicyError("lcer.harbinger_policy_record_invalid")
     require_digest(city.get("sha256")); require_digest(core.get("sha256"))
     return policy, path
@@ -84,6 +85,22 @@ def validate_frozen_sources(root: Path, policy: dict[str, Any]) -> tuple[dict[st
             raise PolicyError("lcer.harbinger_policy_record_invalid")
         relative = Path(row["path"])
         if relative.is_absolute() or ".." in relative.parts or file_digest(root / relative) != row["sha256"]:
+            raise PolicyError("lcer.harbinger_policy_record_invalid")
+    exact_sites = contract.get("exact_effect_call_sites")
+    if not isinstance(exact_sites, list):
+        raise PolicyError("lcer.harbinger_policy_record_invalid")
+    for permitted in policy["allowed_exact_provenance_reads"]:
+        if (not isinstance(permitted, dict)
+                or set(permitted) != {"family", "path", "line", "callable", "token", "reference"}
+                or permitted.get("family") != "function_to_consequence"
+                or not isinstance(permitted.get("line"), int)
+                or not all(isinstance(permitted.get(key), str) and permitted[key]
+                           for key in ("path", "callable", "token"))
+                or not isinstance(permitted.get("reference"), dict)
+                or permitted["reference"] != {"path": permitted["path"], "function": permitted["callable"],
+                                                "callee": permitted["token"], "line": permitted["line"],
+                                                "consequence": "provenance"}
+                or permitted["reference"] not in exact_sites):
             raise PolicyError("lcer.harbinger_policy_record_invalid")
     return contract, source_path
 
@@ -116,6 +133,13 @@ def decision_for(edge: dict[str, Any], policy: dict[str, Any]) -> dict[str, Any]
                 and callable_name == permitted.get("callable") and token == permitted.get("token")):
             return {**base, "classification": "allowed", "city_classification": "test_control",
                     "city_reason_code": "lcer.exact_test_control", "city_contract_reference": permitted.get("reference")}
+    for permitted in policy["allowed_exact_provenance_reads"]:
+        if not isinstance(permitted, dict):
+            raise PolicyError("lcer.harbinger_policy_record_invalid")
+        if (family == permitted.get("family") and path == permitted.get("path") and line == permitted.get("line")
+                and callable_name == permitted.get("callable") and token == permitted.get("token")):
+            return {**base, "classification": "allowed", "city_classification": "provenance",
+                    "city_reason_code": "lcer.exact_provenance_read", "city_contract_reference": permitted.get("reference")}
     return {**base, "classification": "unclassified", "city_classification": "unresolved",
             "city_reason_code": "lcer.harbinger_edge_unmapped", "city_contract_reference": None}
 
