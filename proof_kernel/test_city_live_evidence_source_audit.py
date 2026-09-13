@@ -32,12 +32,14 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
             "tree": "4bd5e2311c2e5e963651e26daca18f84fae8259e",
         })
         modeled = [row for row in result["edges"] if row["reason_code"] == "lcer.effect_model_declared"]
-        materialization = [row for row in modeled if row["consequence"] == "representation"]
+        materialization = [row for row in modeled if row["path"].endswith("CityLiveEvidenceGameMode.cpp")]
         canonical = [row for row in modeled if row["consequence"] == "canonical"]
         normalization = [row for row in modeled if row["consequence"] == "provenance"]
         self.assertEqual({row["callee"] for row in materialization}, {"SpawnActor", "Destroy"})
         self.assertEqual({row["callee"] for row in canonical}, {"admit_external_input_candidate", "resolve_external_batch"})
         self.assertEqual(len(normalization), 25)
+        self.assertEqual(len([row for row in modeled if row["consequence"] == "representation"]), 40)
+        self.assertEqual(len([row for row in result["edges"] if row["callee"] == "self._emit" and row["classification"] == "unclassified"]), 3)
         self.assertGreater(result["summary"]["unclassified_count"], 0)
 
     def test_source_byte_drift_is_rejected_before_any_candidate(self):
