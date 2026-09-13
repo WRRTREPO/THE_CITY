@@ -2,7 +2,7 @@
   "schema": "city.live_evidence_source_audit_contract.v1",
   "adapter_id": "city-live-evidence",
   "contract_status": "frozen_for_current_source_audit",
-  "target_identity": {
+  "primary_source_baseline_identity": {
     "commit": "140c370b50322d8e832338719c90830beed4c535",
     "tree": "4bd5e2311c2e5e963651e26daca18f84fae8259e"
   },
