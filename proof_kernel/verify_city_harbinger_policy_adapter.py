@@ -45,12 +45,13 @@ def required_digest(value: Any) -> str:
 
 def load_policy(root: Path) -> tuple[dict[str, Any], Path]:
     path = root / "proof_kernel/city_harbinger_policy_contract.json"; value = read_json(path)
-    required = {"schema", "city_frozen_contract", "harbinger_core", "required_unmapped_edge", "allowed_exact_test_controls", "allowed_exact_provenance_reads", "retained_city_adversary_limit", "authority"}
+    required = {"schema", "city_frozen_contract", "harbinger_core", "required_unmapped_edge", "allowed_exact_test_controls", "allowed_exact_provenance_reads", "allowed_exact_build_execution", "retained_city_adversary_limit", "authority"}
     if set(value) != required or value.get("schema") != "city.harbinger_policy_contract.v1" or value.get("authority") != AUTHORITY: reject()
     city, core = value["city_frozen_contract"], value["harbinger_core"]
     if (not isinstance(city, dict) or set(city) != {"path", "sha256"} or city["path"] != "proof_kernel/city_live_evidence_source_audit_contract.json"
             or not isinstance(core, dict) or set(core) != {"path", "sha256"} or not isinstance(value["allowed_exact_test_controls"], list)
             or not isinstance(value["allowed_exact_provenance_reads"], list)
+            or not isinstance(value["allowed_exact_build_execution"], list)
             or value["required_unmapped_edge"] != {"classification": "unclassified", "reason_code": "lcer.harbinger_edge_unmapped"}): reject()
     if file_digest(root / city["path"]) != required_digest(city["sha256"]) or file_digest((root / core["path"]).resolve()) != required_digest(core["sha256"]): reject()
     return value, path
@@ -72,6 +73,11 @@ def verify_frozen_sources(root: Path, policy: dict[str, Any]) -> None:
                 or not all(isinstance(permitted.get(key), str) and permitted[key] for key in ("path", "callable", "token"))
                 or not isinstance(permitted.get("reference"), dict)
                 or permitted["reference"] != {"path": permitted["path"], "function": permitted["callable"], "callee": permitted["token"], "line": permitted["line"], "consequence": "provenance"}
+                or permitted["reference"] not in exact_sites): reject()
+    for permitted in policy["allowed_exact_build_execution"]:
+        if (not isinstance(permitted, dict) or set(permitted) != {"family", "path", "line", "callable", "token", "reference"}
+                or permitted.get("family") != "function_to_consequence" or not isinstance(permitted.get("reference"), dict)
+                or permitted["reference"] != {"path": permitted.get("path"), "function": permitted.get("callable"), "callee": permitted.get("token"), "line": permitted.get("line"), "consequence": "build_execution"}
                 or permitted["reference"] not in exact_sites): reject()
 
 
@@ -100,6 +106,10 @@ def expected_decision(edge: dict[str, Any], policy: dict[str, Any]) -> dict[str,
         if (family, path, line, callable_name, token) == (permitted.get("family"), permitted.get("path"), permitted.get("line"), permitted.get("callable"), permitted.get("token")):
             if token in {"self._emit", "<dynamic>.resolve"}: reject()
             return {**base, "classification": "allowed", "city_classification": "provenance", "city_reason_code": "lcer.exact_provenance_read", "city_contract_reference": permitted.get("reference")}
+    for permitted in policy["allowed_exact_build_execution"]:
+        if not isinstance(permitted, dict): reject()
+        if (family, path, line, callable_name, token) == (permitted.get("family"), permitted.get("path"), permitted.get("line"), permitted.get("callable"), permitted.get("token")):
+            return {**base, "classification": "allowed", "city_classification": "build_execution", "city_reason_code": "lcer.exact_build_execution", "city_contract_reference": permitted.get("reference")}
     return {**base, "classification": "unclassified", "city_classification": "unresolved", "city_reason_code": "lcer.harbinger_edge_unmapped", "city_contract_reference": None}
 
 

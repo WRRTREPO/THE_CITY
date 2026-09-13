@@ -1,0 +1,15 @@
+{
+  "schema": "city.live_evidence_two_edge_closure_contract.v1",
+  "source_audit_contract_sha256": "402fec70ba5b3d5a21b92f339aae532fad9b50fa3d0dbf4d5768ffca00eb45d5",
+  "source_file_count": 13,
+  "source_file_manifest_sha256": "fb2310cd2bc071b781bbdb4c3872a6975db791a1b1d47c5e1cb1f9e435027037",
+  "edges": [
+    {"family":"function_to_consequence","path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","line":210,"callable":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.AcquisitionWorkspace.build_candidate","token":"subprocess.run","consequence":"build_execution"},
+    {"family":"external_input_to_callable","path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","line":14508,"callable":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureExecutionContext.acquire","token":"os.environ","consequence":"test_control"}
+  ],
+  "build_environment_keys": ["HOME","LANG","LC_ALL","PATH","PYTHONDONTWRITEBYTECODE"],
+  "closure_environment_keys": ["LANG","LC_ALL","PATH","PYTHONDONTWRITEBYTECODE","PYTHONPYCACHEPREFIX","TMPDIR"],
+  "negative_controls": ["argv_changed","cwd_changed","undeclared_environment","output_reused","audit_incomplete","adversary_failed","parent_environment_changed","edge_moved","authority_escalated"],
+  "authority": {"may_open_acquisition":false,"may_open_release":false,"may_seal_phase_5":false},
+  "record_sha256": "673e95031be00090a9c1ecb81e4ec17ddba7bae44fbbcbabc7f594f767a2733f"
+}

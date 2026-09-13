@@ -3377,8 +3377,13 @@ def _source_audit() -> dict[str, Any]:
     if len(unreal_paths) != 8:
         raise RuntimeError(f"Phase-3 Unreal source closure is not exact eight: {unreal_paths}")
     unreal_text = {path.name: path.read_text(encoding="utf-8") for path in unreal_paths}
-    game_mode_path = source_root / "CityProofGameMode.cpp"
+    # Phase 4 adds a distinct command-line dispatch branch to the shared
+    # GameMode. Phase 3's sealed input census must inspect its own recorded
+    # bytes, never reinterpret later-phase reads as Phase-3 inputs.
+    game_mode_path = ROOT / "References" / "Phase3" / "CityProofGameMode.cpp"
     game_mode = game_mode_path.read_text(encoding="utf-8")
+    if sha256_bytes(game_mode.encode("utf-8")) != PHASE3_CPP_SOURCE_EXPECTED_RAW_SHA256["CityProofGameMode.cpp"]:
+        raise RuntimeError("Phase-3 GameMode snapshot identity mismatch")
     phase1_path = ROOT / "proof_kernel" / "canonical_spatial_topology_identity.py"
     phase1 = phase1_path.read_text(encoding="utf-8")
     python_paths = tuple(

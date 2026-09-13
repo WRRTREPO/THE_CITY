@@ -38,11 +38,11 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
         normalization = [row for row in modeled if row["consequence"] == "provenance"]
         self.assertEqual({row["callee"] for row in materialization}, {"SpawnActor", "Destroy"})
         self.assertEqual({row["callee"] for row in canonical}, {"admit_external_input_candidate", "resolve_external_batch"})
-        self.assertEqual(len(normalization), 28)
+        self.assertEqual(len(normalization), 27)
         self.assertEqual(len([row for row in modeled if row["consequence"] == "representation"]), 40)
-        self.assertEqual(len([row for row in modeled if row["consequence"] == "test_control"]), 4)
+        self.assertEqual(len([row for row in modeled if row["consequence"] == "test_control"]), 5)
         self.assertEqual(len([row for row in result["edges"] if row["callee"] == "self._emit" and row["classification"] == "unclassified"]), 3)
-        self.assertEqual(len([row for row in result["edges"] if row["function"].endswith("ClosureExecutionContext.acquire") and row["callee"] == "os.environ" and row["classification"] == "unclassified"]), 1)
+        self.assertEqual(len([row for row in result["edges"] if row["function"].endswith("ClosureExecutionContext.acquire") and row["callee"] == "os.environ" and row["classification"] == "allowed"]), 1)
         self.assertGreater(result["summary"]["unclassified_count"], 0)
 
     def test_source_byte_drift_is_rejected_before_any_candidate(self):

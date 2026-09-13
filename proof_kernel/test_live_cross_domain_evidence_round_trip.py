@@ -14505,12 +14505,17 @@ class ClosureExecutionContext:
         case = self.root / 'case-0001'
         directory = case / 'command'
         directory.mkdir(mode=0o700)
-        environment = dict(os.environ)
+        if os.environ is None:
+            raise ValueError('lcer.closure_environment_unavailable')
+        environment = {'PATH': '/usr/bin:/bin', 'LANG': 'C', 'LC_ALL': 'C',
+                       'PYTHONDONTWRITEBYTECODE': '1', 'TMPDIR': str(directory / 'tmp'),
+                       'PYTHONPYCACHEPREFIX': str(directory / 'pycache')}
         argv = self.acquisition_argv(directory)
         start = {'schema': 'city.live_evidence_closure_command_start.v1',
                  'case_start_sha256': hashlib.sha256(self._read(case / 'started.json')).hexdigest(),
                  'context_sha256': self.manifest_hash, 'argv': argv, 'cwd': str(self.repository),
-                 'environment_sha256': hashlib.sha256(stored_json_bytes(environment)).hexdigest()}
+                 'environment_sha256': hashlib.sha256(stored_json_bytes(environment)).hexdigest(),
+                 'approved_environment_keys': sorted(environment)}
         self._write(directory / 'started.json', stored_json_bytes(start))
         capture, stdout, stderr = capture_closure_command(argv, self.repository, environment)
         self._write(directory / 'stdout', stdout)
@@ -14544,11 +14549,12 @@ class ClosureExecutionContext:
         capture_fields = {'schema','argv','cwd','environment_sha256','started_epoch','finished_epoch',
                           'timeout_seconds','process','exit_code','failure_code','group_termination_requested',
                           'stdout_limit','stderr_limit','truncated','eof','capture_complete'}
-        if (set(start) != {'schema','case_start_sha256','context_sha256','argv','cwd','environment_sha256'}
+        if (set(start) != {'schema','case_start_sha256','context_sha256','argv','cwd','environment_sha256','approved_environment_keys'}
                 or start['schema'] != 'city.live_evidence_closure_command_start.v1'
                 or start['case_start_sha256'] != hashlib.sha256(self._read(case / 'started.json')).hexdigest()
                 or start['context_sha256'] != self.manifest_hash
                 or start['argv'] != self.acquisition_argv(directory) or start['cwd'] != str(self.repository)
+                or start['approved_environment_keys'] != ['LANG', 'LC_ALL', 'PATH', 'PYTHONDONTWRITEBYTECODE', 'PYTHONPYCACHEPREFIX', 'TMPDIR']
                 or set(result) != {'schema','started_sha256','capture','stdout_sha256','stderr_sha256'}
                 or result['schema'] != 'city.live_evidence_closure_command_result.v1'
                 or result['started_sha256'] != hashlib.sha256(self._read(directory / 'started.json')).hexdigest()

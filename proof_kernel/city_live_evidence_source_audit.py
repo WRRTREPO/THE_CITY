@@ -151,9 +151,11 @@ def python_rows(path: Path, name: str, modeled_calls: set[str],
             if call in {"eval", "exec", "__import__", "importlib.import_module"}:
                 edges.append(edge(name, owner, "platform", call, "fault", "denied", "lcer.source_input_forbidden", node.lineno))
             elif call in {"os.getenv", "os.environ.get", "input", "open", "subprocess.run", "subprocess.Popen", "os.system"}:
-                consequence = "provenance" if call in {"open", "subprocess.run", "subprocess.Popen", "os.system"} else "fault"
-                classification = "allowed" if call in modeled_calls else "unclassified"
-                reason = "lcer.external_model_declared" if call in modeled_calls else "lcer.external_model_missing"
+                site_key = (name, owner, call, node.lineno)
+                site_consequence = modeled_sites.get(site_key)
+                consequence = site_consequence or ("provenance" if call in {"open", "subprocess.run", "subprocess.Popen", "os.system"} else "fault")
+                classification = "allowed" if site_consequence == "build_execution" or call in modeled_calls else "unclassified"
+                reason = "lcer.effect_model_declared" if site_consequence == "build_execution" else "lcer.external_model_declared" if call in modeled_calls else "lcer.external_model_missing"
                 edges.append(edge(name, owner, "platform", call, consequence, classification, reason, node.lineno))
             elif any(token in call.lower() for token in ("resolve", "admit", "emit", "spawnactor", "destroy")):
                 default_consequence = "canonical" if any(token in call.lower() for token in ("resolve", "admit")) else "representation"
@@ -270,7 +272,7 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
         if (not isinstance(site, dict) or set(site) != {"path", "function", "callee", "line", "consequence"}
                 or not all(isinstance(site[key], str) and site[key] for key in ("path", "function", "callee", "consequence"))
                 or not isinstance(site["line"], int) or site["line"] <= 0
-                or site["consequence"] not in {"provenance", "canonical", "representation", "test_control"}):
+                or site["consequence"] not in {"provenance", "canonical", "representation", "test_control", "build_execution"}):
             raise AuditError("lcer.source_audit_record_invalid")
         key = (site["path"], site["function"], site["callee"], site["line"])
         if key in modeled_sites:

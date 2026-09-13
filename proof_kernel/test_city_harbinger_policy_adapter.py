@@ -60,8 +60,8 @@ class CityHarbingerPolicyAdapterTests(unittest.TestCase):
     def test_fresh_valid_bridge_is_raw_valid_and_incomplete(self):
         self.assertEqual(self.raw["verdict"], "raw_evidence_valid_incomplete")
         self.assertEqual(self.raw["summary"]["edge_count"], 45)
-        self.assertEqual(self.adapter_result["mapped_edge_count"], 43)
-        self.assertEqual(self.adapter_result["unclassified_edge_count"], 2)
+        self.assertEqual(self.adapter_result["mapped_edge_count"], 45)
+        self.assertEqual(self.adapter_result["unclassified_edge_count"], 0)
         self.assertEqual(self.verify(self.record)["verdict"], "raw_evidence_valid_incomplete")
 
     def test_only_exact_city_test_controls_and_provenance_reads_are_mapped(self):
@@ -69,15 +69,14 @@ class CityHarbingerPolicyAdapterTests(unittest.TestCase):
         mapped = [row for row in value["edge_decisions"] if row["classification"] == "allowed"]
         controls = [row for row in mapped if row["city_classification"] == "test_control"]
         provenance = [row for row in mapped if row["city_classification"] == "provenance"]
-        self.assertEqual(len(controls), 38)
+        build = [row for row in mapped if row["city_classification"] == "build_execution"]
+        self.assertEqual(len(controls), 39)
         self.assertEqual(len(provenance), 5)
+        self.assertEqual(len(build), 1)
         self.assertTrue(all(row["source_path"] == "proof_kernel/test_live_cross_domain_evidence_round_trip.py" for row in controls))
         self.assertTrue(all(row["city_reason_code"] == "lcer.exact_provenance_read" and isinstance(row["city_contract_reference"], dict)
                             for row in provenance))
-        unresolved = {(row["source_path"], row["source_line"], row["harbinger_token"])
-                      for row in value["edge_decisions"] if row["classification"] == "unclassified"}
-        self.assertIn(("proof_kernel/live_cross_domain_evidence_round_trip_harness.py", 210, "subprocess.run"), unresolved)
-        self.assertIn(("proof_kernel/test_live_cross_domain_evidence_round_trip.py", 14508, "os.environ"), unresolved)
+        self.assertEqual(value["unclassified_edge_count"], 0)
 
     def test_source_byte_change_rejects_before_mapping(self):
         with tempfile.TemporaryDirectory(dir=self.work) as temporary:
@@ -115,7 +114,7 @@ class CityHarbingerPolicyAdapterTests(unittest.TestCase):
 
     def test_unmapped_edge_cannot_be_allowed(self):
         record = self.copied_record()
-        self.rewrite_record(record, lambda value: next(row for row in value["edge_decisions"] if row["classification"] == "unclassified").__setitem__("classification", "allowed"))
+        self.rewrite_record(record, lambda value: next(row for row in value["edge_decisions"] if row["classification"] == "allowed").__setitem__("city_contract_reference", None))
         self.assertEqual(self.verify(record, expected=2)["status"], "fail")
 
     def test_live_emit_and_dynamic_resolve_cannot_be_diagnostic(self):
@@ -123,7 +122,7 @@ class CityHarbingerPolicyAdapterTests(unittest.TestCase):
             with self.subTest(token=token):
                 record = self.copied_record()
                 def mutate(value, token=token):
-                    row = next(row for row in value["edge_decisions"] if row["classification"] == "unclassified")
+                    row = next(row for row in value["edge_decisions"] if row["classification"] == "allowed")
                     row["harbinger_token"] = token
                     row["classification"] = "allowed"
                     row["city_classification"] = "diagnostic"

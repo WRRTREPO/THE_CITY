@@ -207,7 +207,7 @@ class AcquisitionWorkspace:
         with log_path.open('xb') as log:
             log.write(b'CITY_LCER_PYTHON ' + stored_json_bytes(python_runtime))
             log.flush()
-            result = subprocess.run(argv, cwd=str(self._repository_root),
+            result = subprocess.run(argv, cwd=str(self._repository_root), env={'PATH': '/usr/bin:/bin', 'LANG': 'C', 'LC_ALL': 'C', 'HOME': '/var/empty', 'PYTHONDONTWRITEBYTECODE': '1'},
                                     stdout=log, stderr=subprocess.STDOUT, timeout=900)
             log.flush()
             os.fsync(log.fileno())

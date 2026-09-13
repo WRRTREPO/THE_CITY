@@ -14,9 +14,9 @@
   },
   "primary_sources": [
     {"path": "proof_kernel/live_cross_domain_evidence_round_trip.py", "sha256": "d5e2754626b66c0b737bfed038ff7d1b475f22b81d8437cd8ef5346ca036f1ea", "kind": "python_source"},
-    {"path": "proof_kernel/live_cross_domain_evidence_round_trip_harness.py", "sha256": "c63fcf720427b5f8f3a105494983c136fddf0fd12d5212e4a8e3ac0423de6fad", "kind": "python_source"},
+    {"path": "proof_kernel/live_cross_domain_evidence_round_trip_harness.py", "sha256": "cadeba8d76c88835b2d9fa52e784f1e2d5597972a9ecbb58556ad76396c98518", "kind": "python_source"},
     {"path": "proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py", "sha256": "3373d826b32f294f6b604eb93e834cb362205c0e29576aea224cdd78a9d8b370", "kind": "python_source"},
-    {"path": "proof_kernel/test_live_cross_domain_evidence_round_trip.py", "sha256": "5863acd26d9ecb08b4a4d64b97a5aaccff703aff22fcae1cc9217199f7840995", "kind": "python_source"},
+    {"path": "proof_kernel/test_live_cross_domain_evidence_round_trip.py", "sha256": "0d31df4337963c695900567ab700574983d0ba74b579f0c95af9cae78042f9f9", "kind": "python_source"},
     {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/CityLiveEvidenceProof.uplugin", "sha256": "84028584f391249b422ca2359be2ecb2cd9000d1a77db16f47b1486d7a88fe07", "kind": "plugin_manifest"},
     {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/CityLiveEvidenceProof.Build.cs", "sha256": "c03d77b7bd7f6eb92666e8a9aefb2736e45d861c23b3fd88bd2f23b355a1893e", "kind": "build_rule"},
     {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceProofModule.cpp", "sha256": "4eab69935be0c4e2fb78beafd4bcc3081d74607f18e39c62899f9cf7bae78b6f", "kind": "cpp_source"},
@@ -111,9 +111,11 @@
     {"path":"CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp","function":"CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp.<native>","callee":"GConfig","line":320,"consequence":"provenance"},
     {"path":"CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp","function":"CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp.<native>","callee":"GConfig","line":323,"consequence":"provenance"},
     {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.SourceIdentityRelationTests.test_inherited_git_environment_cannot_redirect_repository_identity","callee":"os.environ","line":13333,"consequence":"test_control"},
-    {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureCommandCaptureTests.run_program","callee":"os.environ","line":15086,"consequence":"test_control"},
-    {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureCommandCaptureTests.test_spawn_failure_has_no_invented_process_or_exit","callee":"os.environ","line":15134,"consequence":"test_control"},
-    {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.<module>","callee":"sys.argv","line":15207,"consequence":"test_control"}
+    {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureExecutionContext.acquire","callee":"os.environ","line":14508,"consequence":"test_control"},
+    {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureCommandCaptureTests.run_program","callee":"os.environ","line":15092,"consequence":"test_control"},
+    {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureCommandCaptureTests.test_spawn_failure_has_no_invented_process_or_exit","callee":"os.environ","line":15140,"consequence":"test_control"},
+    {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.<module>","callee":"sys.argv","line":15213,"consequence":"test_control"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.AcquisitionWorkspace.build_candidate","callee":"subprocess.run","line":210,"consequence":"build_execution"}
   ],
   "forbidden_source_adversaries": [
     "GConfig_owner_read",
