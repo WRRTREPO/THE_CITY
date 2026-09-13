@@ -9,6 +9,9 @@ import hashlib
 import json
 import math
 import re
+from pathlib import Path
+import sys
+import sysconfig
 
 
 FROZEN_CONTRACT_SHA256 = (
@@ -255,3 +258,123 @@ def select_frozen_case(contract_raw, case_id):
     if type(case_id) is not str or case_id not in plan["case_order"]:
         raise ValueError("lcer.case_not_frozen")
     return plan["frozen_case_plans"][case_id]
+
+
+def source_file_bytes(repository_root, relative_path, expected_sha256=None):
+    """Read one ordinary repository file without accepting a path alias."""
+    root = Path(repository_root).absolute()
+    relative = Path(relative_path)
+    path = root / relative
+    if (relative.is_absolute() or ".." in relative.parts or not relative.parts
+            or root != root.resolve() or not path.resolve().is_relative_to(root)
+            or any(item.is_symlink() for item in [path, *path.parents])):
+        raise ValueError("lcer.dependency_path_invalid")
+    try:
+        if not path.is_file():
+            raise ValueError("lcer.dependency_identity_mismatch")
+        raw = path.read_bytes()
+    except OSError as error:
+        raise ValueError("lcer.dependency_identity_mismatch") from error
+    if expected_sha256 is not None and hashlib.sha256(raw).hexdigest() != expected_sha256:
+        raise ValueError("lcer.dependency_identity_mismatch")
+    return raw
+
+
+def stdlib_top_level_names():
+    """Discover the running interpreter's library without importing local names."""
+    library = Path(sysconfig.get_path("stdlib"))
+    names = set(sys.builtin_module_names)
+    for path in library.iterdir():
+        if path.suffix == ".py":
+            names.add(path.stem)
+        elif path.is_dir() and (path / "__init__.py").is_file():
+            names.add(path.name)
+    extensions = Path(sysconfig.get_config_var("DESTSHARED") or library / "lib-dynload")
+    if extensions.is_dir():
+        names.update(path.name.split(".", 1)[0] for path in extensions.iterdir() if path.is_file())
+    return names
+
+
+def validate_python_import_paths(repository_root):
+    """Require source-only local imports, including under Python's -B mode."""
+    proof_root = Path(repository_root).absolute() / 'proof_kernel'
+    local_names = {'live_cross_domain_evidence_round_trip', 'live_cross_domain_evidence_round_trip_harness',
+                   'verify_live_cross_domain_evidence_round_trip_release', 'test_live_cross_domain_evidence_round_trip',
+                   'concurrent_external_evidence_arbitration', 'kernel'}
+    standard_names = stdlib_top_level_names()
+    for path in proof_root.rglob('*'):
+        if path.is_symlink():
+            raise ValueError('lcer.dependency_path_invalid')
+        if path.is_file() and path.suffix in ('.pyc', '.pyo', '.so', '.dylib'):
+            raise ValueError('lcer.source_input_forbidden')
+        if path.parent == proof_root and (
+                (path.suffix == '.py' and path.stem in standard_names)
+                or (path.is_dir() and path.name in standard_names | local_names)):
+            raise ValueError('lcer.source_input_forbidden')
+
+
+def inspect_project_sources(contract_raw, repository_root):
+    """Inventory the complete planned source set and authenticate preserved inputs.
+
+    This is source preflight only. It neither audits dataflow nor grants build,
+    launch, release, or live acceptance. Action entrypoints perform those gates.
+    """
+    policy = _load_frozen_policy(contract_raw)
+    root = Path(repository_root).absolute()
+    source_file_bytes(root, "proof_kernel/live_cross_domain_evidence_round_trip_contract.json",
+                      FROZEN_CONTRACT_SHA256)
+    source_file_bytes(root, "Live Cross-Domain Evidence Round-Trip Proof - Draft.md",
+                      "ecb21d9a4b8adede4ec886ac5239404fdbc492b11eb1a3ac9d419a04d8552214")
+    preserved = {**policy["predecessors"], **policy["canonical_records"],
+                 **policy["unchanged_dependencies"]}
+    original_rows = []
+    for name, expected in sorted(preserved.items()):
+        raw = source_file_bytes(root, name, expected)
+        original_rows.append({"path": name, "sha256": hashlib.sha256(raw).hexdigest(), "size_bytes": len(raw)})
+    planned = set(policy["planned_source_paths"])
+    candidate_rows = []
+    for name in sorted(planned):
+        raw = source_file_bytes(root, name)
+        candidate_rows.append({"path": name, "sha256": hashlib.sha256(raw).hexdigest(), "size_bytes": len(raw)})
+    allowed = set(preserved) | planned
+    project = root / Path(policy["runtime"]["project"]).parent
+    observed_project_paths = []
+    for subtree in (project / "Source", project / "Config", project / "Plugins"):
+        if not subtree.exists():
+            continue
+        if subtree.is_symlink():
+            raise ValueError("lcer.dependency_path_invalid")
+        for path in sorted(subtree.rglob("*")):
+            relative = path.relative_to(root)
+            if path.is_symlink():
+                raise ValueError("lcer.dependency_path_invalid")
+            if not path.is_file():
+                continue
+            # UBT output is independently inventoried as build input/output.
+            # Only these two directories in the declared plugin are generated.
+            plugin_relative = path.relative_to(subtree)
+            generated = (subtree.name == "Plugins" and len(plugin_relative.parts) >= 3
+                         and plugin_relative.parts[0] == "CityLiveEvidenceProof"
+                         and plugin_relative.parts[1] in ("Binaries", "Intermediate"))
+            if generated:
+                continue
+            name = relative.as_posix()
+            if name not in allowed:
+                raise ValueError("lcer.source_input_forbidden")
+            observed_project_paths.append(name)
+    validate_python_import_paths(root)
+    descriptor_path = policy["runtime"]["plugin"] + "/CityLiveEvidenceProof.uplugin"
+    try:
+        descriptor = json.loads(source_file_bytes(root, descriptor_path),
+                                object_pairs_hook=_unique_object, parse_constant=_reject_constants)
+    except (ValueError, UnicodeError) as error:
+        raise ValueError("lcer.source_input_forbidden") from error
+    permitted_keys = {"FileVersion", "Version", "VersionName", "FriendlyName", "Description",
+                      "Category", "CreatedBy", "EnabledByDefault", "CanContainContent", "Modules"}
+    if (type(descriptor) is not dict or set(descriptor) - permitted_keys
+            or descriptor.get("FileVersion") != 3 or descriptor.get("EnabledByDefault") is not True
+            or descriptor.get("CanContainContent") is not False
+            or descriptor.get("Modules") != [{"Name": "CityLiveEvidenceProof", "Type": "Runtime", "LoadingPhase": "Default"}]):
+        raise ValueError("lcer.source_input_forbidden")
+    return {"frozen_contract_sha256": FROZEN_CONTRACT_SHA256, "preserved_files": original_rows,
+            "candidate_files": candidate_rows, "project_source_paths": sorted(observed_project_paths)}

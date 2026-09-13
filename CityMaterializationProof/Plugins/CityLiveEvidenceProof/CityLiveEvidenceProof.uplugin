@@ -1,0 +1,12 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "City Live Evidence Proof",
+  "Description": "Bounded physical evidence round-trip runtime.",
+  "EnabledByDefault": true,
+  "CanContainContent": false,
+  "Modules": [
+    {"Name": "CityLiveEvidenceProof", "Type": "Runtime", "LoadingPhase": "Default"}
+  ]
+}
