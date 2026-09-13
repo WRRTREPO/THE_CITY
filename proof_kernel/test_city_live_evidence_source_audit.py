@@ -6,6 +6,7 @@ import tempfile
 import unittest
 
 from proof_kernel.city_live_evidence_source_audit import ADVERSARY_SAMPLES, AuditError, audit, canonical, detect_forbidden_adversary, digest
+from proof_kernel.run_harbinger_city_source_effect_audit import audit as harbinger_audit
 from proof_kernel.verify_city_live_evidence_source_audit import validate
 
 
@@ -107,6 +108,22 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
             raw.write_bytes(canonical(candidate))
             with self.assertRaisesRegex(ValueError, "lcer.source_audit_record_invalid"):
                 validate(raw, CONTRACT)
+
+    def test_harbinger_consumes_the_frozen_city_manifest_without_authority_escalation(self):
+        harbinger_root = ROOT.parent / "Harbinger"
+        with tempfile.TemporaryDirectory(dir="/private/tmp") as temporary:
+            output = Path(temporary) / "harbinger-city"
+            result = harbinger_audit(ROOT, harbinger_root, output)
+            self.assertEqual(result["status"], "pass")
+            record = json.loads(Path(result["record"]).read_text(encoding="utf-8"))
+            self.assertEqual(record["verdict"], "raw_evidence_valid_incomplete")
+            self.assertIn("harbinger.scope_incomplete", record["failure_codes"])
+            self.assertGreater(record["summary"]["unclassified_count"], 0)
+            self.assertEqual(record["authority"], {
+                "may_open_acquisition": False,
+                "may_open_release": False,
+                "may_seal_phase_5": False,
+            })
 
     def test_every_frozen_adversary_requires_its_exact_mutation_fixture(self):
         contract = json.loads(CONTRACT.read_text(encoding="utf-8"))
