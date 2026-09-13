@@ -221,6 +221,11 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
     contract_raw = contract_path.read_bytes(); contract = load_json(contract_path)
     if contract.get("schema") != CONTRACT_SCHEMA or contract.get("adapter_id") != "city-live-evidence":
         raise AuditError("lcer.source_audit_record_invalid")
+    primary_baseline = contract.get("primary_source_baseline_identity")
+    if (not isinstance(primary_baseline, dict) or set(primary_baseline) != {"commit", "tree"}
+            or not all(isinstance(primary_baseline[key], str) and re.fullmatch(r"[0-9a-f]{40}", primary_baseline[key])
+                       for key in ("commit", "tree"))):
+        raise AuditError("lcer.source_audit_record_invalid")
     primary = contract.get("primary_sources")
     closure = contract.get("transitive_local_imports")
     sources = primary + closure.get("sources", []) if isinstance(primary, list) and isinstance(closure, dict) else None
@@ -260,7 +265,8 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
     edges.sort(key=lambda item: item["edge_id"])
     unclassified = [item for item in edges if item["classification"] == "unclassified"]
     result = {"schema": SCHEMA, "adapter_id": "city-live-evidence", "claim_level": "raw_evidence_only",
-              "source_identity": source_identity(root), "contract_sha256": digest(contract_raw), "files": files,
+              "source_identity": source_identity(root), "primary_source_baseline_identity": primary_baseline,
+              "contract_sha256": digest(contract_raw), "files": files,
               "nodes": rows, "edges": edges, "transitive_local_imports": sorted(imports),
               "scope_status": "partial", "source_audit_complete": False,
               "adversary_results": required_adversaries(contract),

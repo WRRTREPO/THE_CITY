@@ -27,6 +27,10 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
         self.assertEqual(result["summary"]["historical_partial_graph_unclassified_count"], 145103)
         self.assertEqual(result["summary"]["declared_closure_source_count"], 2)
         self.assertEqual(result["summary"]["unresolved_local_import_count"], 0)
+        self.assertEqual(result["primary_source_baseline_identity"], {
+            "commit": "140c370b50322d8e832338719c90830beed4c535",
+            "tree": "4bd5e2311c2e5e963651e26daca18f84fae8259e",
+        })
         self.assertGreater(result["summary"]["unclassified_count"], 0)
 
     def test_source_byte_drift_is_rejected_before_any_candidate(self):
@@ -54,6 +58,16 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
             result = validate(raw, CONTRACT)
             self.assertEqual(result["verdict"], "raw_evidence_valid_incomplete")
             candidate["authority"]["may_open_acquisition"] = True
+            candidate["result_sha256"] = digest(canonical({key: value for key, value in candidate.items() if key != "result_sha256"}))
+            raw.write_bytes(canonical(candidate))
+            with self.assertRaisesRegex(ValueError, "lcer.source_audit_record_invalid"):
+                validate(raw, CONTRACT)
+
+    def test_independent_validator_rejects_baseline_identity_substitution(self):
+        candidate = audit(ROOT, CONTRACT)
+        with tempfile.TemporaryDirectory() as temporary:
+            raw = Path(temporary) / "candidate.json"
+            candidate["primary_source_baseline_identity"]["commit"] = "0" * 40
             candidate["result_sha256"] = digest(canonical({key: value for key, value in candidate.items() if key != "result_sha256"}))
             raw.write_bytes(canonical(candidate))
             with self.assertRaisesRegex(ValueError, "lcer.source_audit_record_invalid"):

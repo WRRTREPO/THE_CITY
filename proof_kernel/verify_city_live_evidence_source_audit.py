@@ -6,6 +6,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 
@@ -30,13 +31,19 @@ def validate(candidate_path: Path, contract_path: Path) -> dict[str, Any]:
         raise ValueError("lcer.source_audit_record_invalid") from error
     if not isinstance(candidate, dict) or not isinstance(contract, dict):
         reject()
-    required = {"schema", "adapter_id", "claim_level", "source_identity", "contract_sha256", "files", "nodes", "edges", "transitive_local_imports", "scope_status", "source_audit_complete", "adversary_results", "summary", "authority", "result_sha256"}
+    required = {"schema", "adapter_id", "claim_level", "source_identity", "primary_source_baseline_identity", "contract_sha256", "files", "nodes", "edges", "transitive_local_imports", "scope_status", "source_audit_complete", "adversary_results", "summary", "authority", "result_sha256"}
     if set(candidate) != required or candidate["schema"] != "city.source_effect_audit.v1" or candidate["adapter_id"] != "city-live-evidence" or candidate["claim_level"] != "raw_evidence_only":
         reject()
     unsigned = dict(candidate); supplied = unsigned.pop("result_sha256")
     if not isinstance(supplied, str) or supplied != digest(canonical(unsigned)):
         reject()
     if candidate["contract_sha256"] != digest(contract_raw):
+        reject()
+    baseline = contract.get("primary_source_baseline_identity")
+    if (not isinstance(baseline, dict) or set(baseline) != {"commit", "tree"}
+            or not all(isinstance(baseline[key], str) and re.fullmatch(r"[0-9a-f]{40}", baseline[key])
+                       for key in ("commit", "tree"))
+            or candidate["primary_source_baseline_identity"] != baseline):
         reject()
     primary = contract.get("primary_sources")
     closure = contract.get("transitive_local_imports")
