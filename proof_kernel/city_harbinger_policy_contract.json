@@ -1,0 +1,30 @@
+{
+  "schema": "city.harbinger_policy_contract.v1",
+  "city_frozen_contract": {
+    "path": "proof_kernel/city_live_evidence_source_audit_contract.json",
+    "sha256": "e1ce699b83a24cd6a7b47ac7d06b43f75e4f030879122e2d543b36ce7b4f2513"
+  },
+  "harbinger_core": {
+    "path": "../Harbinger/harbinger",
+    "sha256": "dc339e9ec9f13caa1295fc588f433af4534b1399d59d6813e18f6723a74dd034"
+  },
+  "required_unmapped_edge": {
+    "classification": "unclassified",
+    "reason_code": "lcer.harbinger_edge_unmapped"
+  },
+  "allowed_exact_test_controls": [
+    {"family": "external_input_to_callable", "path": "proof_kernel/test_live_cross_domain_evidence_round_trip.py", "line": 13333, "callable": "proof_kernel.test_live_cross_domain_evidence_round_trip.py.SourceIdentityRelationTests.test_inherited_git_environment_cannot_redirect_repository_identity", "token": "os.environ", "reference": "exact_effect_call_sites:os.environ:13333"},
+    {"family": "external_input_to_callable", "path": "proof_kernel/test_live_cross_domain_evidence_round_trip.py", "line": 15086, "callable": "proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureCommandCaptureTests.run_program", "token": "os.environ", "reference": "exact_effect_call_sites:os.environ:15086"},
+    {"family": "external_input_to_callable", "path": "proof_kernel/test_live_cross_domain_evidence_round_trip.py", "line": 15134, "callable": "proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureCommandCaptureTests.test_spawn_failure_has_no_invented_process_or_exit", "token": "os.environ", "reference": "exact_effect_call_sites:os.environ:15134"},
+    {"family": "external_input_to_callable", "path": "proof_kernel/test_live_cross_domain_evidence_round_trip.py", "line": 15207, "callable": "proof_kernel.test_live_cross_domain_evidence_round_trip.py.<module>", "token": "sys.argv", "reference": "exact_effect_call_sites:sys.argv:15207"}
+  ],
+  "retained_city_adversary_limit": {
+    "count": 14,
+    "statement": "Harbinger graph interpretation does not replace CITY's fourteen frozen source adversaries."
+  },
+  "authority": {
+    "may_open_acquisition": false,
+    "may_open_release": false,
+    "may_seal_phase_5": false
+  }
+}
