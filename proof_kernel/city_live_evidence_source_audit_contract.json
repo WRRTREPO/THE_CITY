@@ -43,6 +43,12 @@
       "path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp",
       "calls": ["SpawnActor", "Destroy"],
       "consequence": "representation"
+    },
+    {
+      "id": "canonical-fail-closed-arbitration-interface-v1",
+      "path": "proof_kernel/concurrent_external_evidence_arbitration.py",
+      "calls": ["admit_external_input_candidate", "resolve_external_batch"],
+      "consequence": "canonical"
     }
   ],
   "forbidden_source_adversaries": [

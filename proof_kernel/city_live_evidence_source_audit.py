@@ -104,7 +104,8 @@ def edge(path: str, function: str, input_name: str, callee: str, consequence: st
             "location": {"line": line}}
 
 
-def python_rows(path: Path, name: str, modeled_calls: set[str]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str]]:
+def python_rows(path: Path, name: str, modeled_calls: set[str],
+                modeled_effects: set[tuple[str, str, str]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str]]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=name)
     except (OSError, SyntaxError) as error:
@@ -155,7 +156,10 @@ def python_rows(path: Path, name: str, modeled_calls: set[str]) -> tuple[list[di
                 edges.append(edge(name, owner, "platform", call, consequence, classification, reason, node.lineno))
             elif any(token in call.lower() for token in ("resolve", "admit", "emit", "spawnactor", "destroy")):
                 consequence = "canonical" if any(token in call.lower() for token in ("resolve", "admit")) else "representation"
-                edges.append(edge(name, owner, "command", call, consequence, "unclassified", "lcer.required_edge_unclassified", node.lineno))
+                modeled = (name, call, consequence) in modeled_effects
+                edges.append(edge(name, owner, "command", call, consequence,
+                                  "allowed" if modeled else "unclassified",
+                                  "lcer.effect_model_declared" if modeled else "lcer.required_edge_unclassified", node.lineno))
             self.generic_visit(node)
 
         def visit_Attribute(self, node: ast.Attribute) -> None:
@@ -259,7 +263,7 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
             raise AuditError("lcer.source_audit_record_changed")
         files.append({"path": item["path"], "sha256": digest(raw), "size_bytes": len(raw), "kind": item["kind"]})
         if item["kind"] == "python_source":
-            found_rows, found_edges, found_imports = python_rows(source, item["path"], modeled_calls)
+            found_rows, found_edges, found_imports = python_rows(source, item["path"], modeled_calls, modeled_effects)
             rows.extend(found_rows); edges.extend(found_edges); imports.update(found_imports)
         elif item["kind"] in {"cpp_source", "build_rule"}:
             found_rows, found_edges = cpp_rows(source, item["path"], modeled_effects)
