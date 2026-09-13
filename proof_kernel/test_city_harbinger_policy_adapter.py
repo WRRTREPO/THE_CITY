@@ -60,9 +60,20 @@ class CityHarbingerPolicyAdapterTests(unittest.TestCase):
     def test_fresh_valid_bridge_is_raw_valid_and_incomplete(self):
         self.assertEqual(self.raw["verdict"], "raw_evidence_valid_incomplete")
         self.assertEqual(self.raw["summary"]["edge_count"], 45)
-        self.assertEqual(self.adapter_result["mapped_edge_count"], 4)
-        self.assertEqual(self.adapter_result["unclassified_edge_count"], 41)
+        self.assertEqual(self.adapter_result["mapped_edge_count"], 38)
+        self.assertEqual(self.adapter_result["unclassified_edge_count"], 7)
         self.assertEqual(self.verify(self.record)["verdict"], "raw_evidence_valid_incomplete")
+
+    def test_only_exact_test_source_process_controls_are_newly_mapped(self):
+        value = json.loads(self.record.read_text(encoding="utf-8"))
+        mapped = [row for row in value["edge_decisions"] if row["classification"] == "allowed"]
+        self.assertEqual(len(mapped), 38)
+        self.assertTrue(all(row["source_path"] == "proof_kernel/test_live_cross_domain_evidence_round_trip.py" for row in mapped))
+        unresolved = {(row["source_path"], row["source_line"], row["harbinger_token"])
+                      for row in value["edge_decisions"] if row["classification"] == "unclassified"}
+        self.assertIn(("proof_kernel/live_cross_domain_evidence_round_trip_harness.py", 210, "subprocess.run"), unresolved)
+        self.assertIn(("proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py", 12338, "subprocess.run"), unresolved)
+        self.assertIn(("proof_kernel/test_live_cross_domain_evidence_round_trip.py", 14508, "os.environ"), unresolved)
 
     def test_source_byte_change_rejects_before_mapping(self):
         with tempfile.TemporaryDirectory(dir=self.work) as temporary:
