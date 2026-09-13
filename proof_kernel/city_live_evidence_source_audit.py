@@ -104,7 +104,7 @@ def edge(path: str, function: str, input_name: str, callee: str, consequence: st
             "location": {"line": line}}
 
 
-def python_rows(path: Path, name: str) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str]]:
+def python_rows(path: Path, name: str, modeled_calls: set[str]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str]]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=name)
     except (OSError, SyntaxError) as error:
@@ -134,16 +134,15 @@ def python_rows(path: Path, name: str) -> tuple[list[dict[str, Any]], list[dict[
         def visit_Import(self, node: ast.Import) -> None:
             for alias in node.names:
                 rows.append({"kind": "import", "id": alias.name, "line": node.lineno})
-                if alias.name.startswith("proof_kernel."):
-                    local_imports.add(alias.name)
+                local_imports.add(alias.name)
 
         def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
             module = node.module or ""
             rows.append({"kind": "import", "id": module or "<relative>", "line": node.lineno})
-            if module.startswith("proof_kernel."):
+            if module:
                 local_imports.add(module)
             if node.level:
-                local_imports.add("<relative>")
+                local_imports.add("<relative>" + module)
 
         def visit_Call(self, node: ast.Call) -> None:
             call = dotted(node.func); owner = self.owner()
@@ -151,7 +150,9 @@ def python_rows(path: Path, name: str) -> tuple[list[dict[str, Any]], list[dict[
                 edges.append(edge(name, owner, "platform", call, "fault", "denied", "lcer.source_input_forbidden", node.lineno))
             elif call in {"os.getenv", "os.environ.get", "input", "open", "subprocess.run", "subprocess.Popen", "os.system"}:
                 consequence = "provenance" if call in {"open", "subprocess.run", "subprocess.Popen", "os.system"} else "fault"
-                edges.append(edge(name, owner, "platform", call, consequence, "unclassified", "lcer.external_model_missing", node.lineno))
+                classification = "allowed" if call in modeled_calls else "unclassified"
+                reason = "lcer.external_model_declared" if call in modeled_calls else "lcer.external_model_missing"
+                edges.append(edge(name, owner, "platform", call, consequence, classification, reason, node.lineno))
             elif any(token in call.lower() for token in ("resolve", "admit", "emit", "spawnactor", "destroy")):
                 consequence = "canonical" if any(token in call.lower() for token in ("resolve", "admit")) else "representation"
                 edges.append(edge(name, owner, "command", call, consequence, "unclassified", "lcer.required_edge_unclassified", node.lineno))
@@ -220,9 +221,17 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
     contract_raw = contract_path.read_bytes(); contract = load_json(contract_path)
     if contract.get("schema") != CONTRACT_SCHEMA or contract.get("adapter_id") != "city-live-evidence":
         raise AuditError("lcer.source_audit_record_invalid")
-    sources = contract.get("primary_sources")
-    if not isinstance(sources, list) or len(sources) != 11:
+    primary = contract.get("primary_sources")
+    closure = contract.get("transitive_local_imports")
+    sources = primary + closure.get("sources", []) if isinstance(primary, list) and isinstance(closure, dict) else None
+    models = contract.get("external_models")
+    if not isinstance(sources, list) or len(primary) != 11 or len(sources) != 13 or not isinstance(models, list):
         raise AuditError("lcer.source_audit_record_invalid")
+    modeled_calls = set()
+    for model in models:
+        if not isinstance(model, dict) or set(model) != {"id", "calls", "consequence"} or not isinstance(model["id"], str) or not isinstance(model["consequence"], str) or not isinstance(model["calls"], list) or not all(isinstance(call, str) for call in model["calls"]):
+            raise AuditError("lcer.source_audit_record_invalid")
+        modeled_calls.update(model["calls"])
     files, rows, edges, imports = [], [], [], set()
     for item in sources:
         if not isinstance(item, dict) or set(item) != {"path", "sha256", "kind"}:
@@ -232,12 +241,21 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
             raise AuditError("lcer.source_audit_record_changed")
         files.append({"path": item["path"], "sha256": digest(raw), "size_bytes": len(raw), "kind": item["kind"]})
         if item["kind"] == "python_source":
-            found_rows, found_edges, found_imports = python_rows(source, item["path"])
+            found_rows, found_edges, found_imports = python_rows(source, item["path"], modeled_calls)
             rows.extend(found_rows); edges.extend(found_edges); imports.update(found_imports)
         elif item["kind"] in {"cpp_source", "build_rule"}:
             found_rows, found_edges = cpp_rows(source, item["path"])
             rows.extend(found_rows); edges.extend(found_edges)
-    for imported in sorted(imports):
+    declared_modules = {row["path"].removesuffix(".py").replace("/", ".") for row in sources if row["kind"] == "python_source"}
+    unresolved_imports = set()
+    for imported in imports:
+        normalized = imported.removeprefix("proof_kernel.")
+        candidate = "proof_kernel." + normalized
+        if candidate in declared_modules:
+            continue
+        if (root / "proof_kernel" / (normalized.replace(".", "/") + ".py")).is_file() or imported.startswith("<relative>"):
+            unresolved_imports.add(imported)
+    for imported in sorted(unresolved_imports):
         edges.append(edge("<import-closure>", "<module>", "platform", imported, "provenance", "unclassified", "lcer.scope_incomplete", 0))
     edges.sort(key=lambda item: item["edge_id"])
     unclassified = [item for item in edges if item["classification"] == "unclassified"]
@@ -247,7 +265,8 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
               "scope_status": "partial", "source_audit_complete": False,
               "adversary_results": required_adversaries(contract),
               "summary": {"primary_source_count": len(files), "node_count": len(rows), "edge_count": len(edges),
-                          "unclassified_count": len(unclassified), "historical_partial_graph_unclassified_count": contract["baseline"]["partial_graph_unclassified_count"]},
+                          "unclassified_count": len(unclassified), "historical_partial_graph_unclassified_count": contract["baseline"]["partial_graph_unclassified_count"],
+                          "declared_closure_source_count": len(closure["sources"]), "unresolved_local_import_count": len(unresolved_imports)},
               "authority": {"may_open_acquisition": False, "may_open_release": False, "may_seal_phase_5": False}}
     result["result_sha256"] = digest(canonical(result))
     return result

@@ -27,8 +27,16 @@
   ],
   "transitive_local_imports": {
     "rule": "discover_all",
-    "closure_required_for_acceptance": true
+    "closure_required_for_acceptance": true,
+    "sources": [
+      {"path": "proof_kernel/concurrent_external_evidence_arbitration.py", "sha256": "c2f8c3543a1ef954ec57f5d3dbc28df9260310241c5f590747032dcf555e0690", "kind": "python_source"},
+      {"path": "proof_kernel/kernel.py", "sha256": "3ae9b961d7302aa999e59c2dd87e26f0e6eb55f105f30decb3132a6d0f32e2c3", "kind": "python_source"}
+    ]
   },
+  "external_models": [
+    {"id": "python-stdlib-filesystem-v1", "calls": ["open"], "consequence": "provenance"},
+    {"id": "python-stdlib-process-v1", "calls": ["subprocess.run", "subprocess.Popen", "os.system"], "consequence": "provenance"}
+  ],
   "forbidden_source_adversaries": [
     "GConfig_owner_read",
     "getenv_Q_choice",

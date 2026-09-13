@@ -38,7 +38,9 @@ def validate(candidate_path: Path, contract_path: Path) -> dict[str, Any]:
         reject()
     if candidate["contract_sha256"] != digest(contract_raw):
         reject()
-    expected = contract.get("primary_sources")
+    primary = contract.get("primary_sources")
+    closure = contract.get("transitive_local_imports")
+    expected = primary + closure.get("sources", []) if isinstance(primary, list) and isinstance(closure, dict) else None
     files = candidate["files"]
     if not isinstance(expected, list) or not isinstance(files, list) or [row.get("path") for row in files] != [row.get("path") for row in expected]:
         reject()

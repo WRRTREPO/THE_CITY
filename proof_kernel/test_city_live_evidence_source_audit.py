@@ -25,6 +25,8 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
         self.assertTrue(all(row["status"] == "rejected" for row in result["adversary_results"]))
         self.assertTrue(all(row["offending_edge"]["classification"] == "denied" for row in result["adversary_results"]))
         self.assertEqual(result["summary"]["historical_partial_graph_unclassified_count"], 145103)
+        self.assertEqual(result["summary"]["declared_closure_source_count"], 2)
+        self.assertEqual(result["summary"]["unresolved_local_import_count"], 0)
         self.assertGreater(result["summary"]["unclassified_count"], 0)
 
     def test_source_byte_drift_is_rejected_before_any_candidate(self):
