@@ -105,7 +105,8 @@ def edge(path: str, function: str, input_name: str, callee: str, consequence: st
 
 
 def python_rows(path: Path, name: str, modeled_calls: set[str],
-                modeled_effects: set[tuple[str, str, str]]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str]]:
+                modeled_effects: set[tuple[str, str, str]],
+                modeled_sites: dict[tuple[str, str, str, int], str]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], set[str]]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=name)
     except (OSError, SyntaxError) as error:
@@ -155,8 +156,9 @@ def python_rows(path: Path, name: str, modeled_calls: set[str],
                 reason = "lcer.external_model_declared" if call in modeled_calls else "lcer.external_model_missing"
                 edges.append(edge(name, owner, "platform", call, consequence, classification, reason, node.lineno))
             elif any(token in call.lower() for token in ("resolve", "admit", "emit", "spawnactor", "destroy")):
-                consequence = "canonical" if any(token in call.lower() for token in ("resolve", "admit")) else "representation"
-                modeled = (name, call, consequence) in modeled_effects
+                default_consequence = "canonical" if any(token in call.lower() for token in ("resolve", "admit")) else "representation"
+                consequence = modeled_sites.get((name, owner, call, node.lineno), default_consequence)
+                modeled = (name, call, consequence) in modeled_effects or (name, owner, call, node.lineno) in modeled_sites
                 edges.append(edge(name, owner, "command", call, consequence,
                                   "allowed" if modeled else "unclassified",
                                   "lcer.effect_model_declared" if modeled else "lcer.required_edge_unclassified", node.lineno))
@@ -238,8 +240,9 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
     sources = primary + closure.get("sources", []) if isinstance(primary, list) and isinstance(closure, dict) else None
     models = contract.get("external_models")
     effect_models = contract.get("effect_models")
+    exact_sites = contract.get("exact_effect_call_sites")
     if (not isinstance(sources, list) or len(primary) != 11 or len(sources) != 13
-            or not isinstance(models, list) or not isinstance(effect_models, list)):
+            or not isinstance(models, list) or not isinstance(effect_models, list) or not isinstance(exact_sites, list)):
         raise AuditError("lcer.source_audit_record_invalid")
     modeled_calls = set()
     for model in models:
@@ -254,6 +257,17 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
                 or not model["calls"] or not all(isinstance(call, str) and call for call in model["calls"])):
             raise AuditError("lcer.source_audit_record_invalid")
         modeled_effects.update((model["path"], call, model["consequence"]) for call in model["calls"])
+    modeled_sites: dict[tuple[str, str, str, int], str] = {}
+    for site in exact_sites:
+        if (not isinstance(site, dict) or set(site) != {"path", "function", "callee", "line", "consequence"}
+                or not all(isinstance(site[key], str) and site[key] for key in ("path", "function", "callee", "consequence"))
+                or not isinstance(site["line"], int) or site["line"] <= 0
+                or site["consequence"] not in {"provenance", "canonical", "representation"}):
+            raise AuditError("lcer.source_audit_record_invalid")
+        key = (site["path"], site["function"], site["callee"], site["line"])
+        if key in modeled_sites:
+            raise AuditError("lcer.source_audit_record_invalid")
+        modeled_sites[key] = site["consequence"]
     files, rows, edges, imports = [], [], [], set()
     for item in sources:
         if not isinstance(item, dict) or set(item) != {"path", "sha256", "kind"}:
@@ -263,7 +277,7 @@ def audit(root: Path, contract_path: Path) -> dict[str, Any]:
             raise AuditError("lcer.source_audit_record_changed")
         files.append({"path": item["path"], "sha256": digest(raw), "size_bytes": len(raw), "kind": item["kind"]})
         if item["kind"] == "python_source":
-            found_rows, found_edges, found_imports = python_rows(source, item["path"], modeled_calls, modeled_effects)
+            found_rows, found_edges, found_imports = python_rows(source, item["path"], modeled_calls, modeled_effects, modeled_sites)
             rows.extend(found_rows); edges.extend(found_edges); imports.update(found_imports)
         elif item["kind"] in {"cpp_source", "build_rule"}:
             found_rows, found_edges = cpp_rows(source, item["path"], modeled_effects)

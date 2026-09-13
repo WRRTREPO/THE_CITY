@@ -51,6 +51,33 @@
       "consequence": "canonical"
     }
   ],
+  "exact_effect_call_sites": [
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip.py","function":"proof_kernel.live_cross_domain_evidence_round_trip.py.source_file_bytes","callee":"root.resolve","line":269,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip.py","function":"proof_kernel.live_cross_domain_evidence_round_trip.py.source_file_bytes","callee":"path.resolve","line":269,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py._prepare_source_imports","callee":"PROOF_ROOT.resolve","line":44,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.AcquisitionWorkspace._destination","callee":"path.resolve","line":120,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.AcquisitionWorkspace._directory_identity","callee":"path.resolve","line":130,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.AcquisitionPackageWriter._artifact","callee":"path.resolve","line":306,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.AcquisitionPackageWriter._write","callee":"path.resolve","line":324,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.AcquisitionPackageWriter.finalize","callee":"self._manifest.resolve","line":525,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.select_dyld_cache","callee":"path.resolve","line":797,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.BuildActionInputInventory._pin","callee":"supplied.resolve","line":1501,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.OriginalPipeMonitor.__init__","callee":"path.parent.resolve","line":2635,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.RawTraceWriter.__init__","callee":"path.parent.resolve","line":2788,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py._read_bound_file","callee":"repo_root.resolve","line":3463,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py._read_bound_file","callee":"path.resolve","line":3463,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.CasePrefixExecution._closed_case_record","callee":"path.resolve","line":4499,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.CoreRoundTripPipeline.finish","callee":"self._proof_root.parent.resolve","line":4795,"consequence":"provenance"},
+    {"path":"proof_kernel/live_cross_domain_evidence_round_trip_harness.py","function":"proof_kernel.live_cross_domain_evidence_round_trip_harness.py.CoreRoundTripPipeline.finish","callee":"destination.resolve","line":4795,"consequence":"provenance"},
+    {"path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","function":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py.ordinary_file","callee":"root.resolve","line":151,"consequence":"provenance"},
+    {"path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","function":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py.ordinary_file","callee":"path.resolve","line":152,"consequence":"provenance"},
+    {"path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","function":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py.authenticate_release","callee":"artifact_root.resolve","line":196,"consequence":"provenance"},
+    {"path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","function":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py.ClangSourceInventory.parse.snapshot","callee":"name.resolve","line":1804,"consequence":"provenance"},
+    {"path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","function":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py.native_build_action_inventory","callee":"engine_root.resolve","line":12017,"consequence":"provenance"},
+    {"path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","function":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py.native_build_action_inventory.pin","callee":"supplied.resolve","line":12024,"consequence":"provenance"},
+    {"path":"proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py","function":"proof_kernel.verify_live_cross_domain_evidence_round_trip_release.py._current_git_identity","callee":"repository.resolve","line":12331,"consequence":"provenance"},
+    {"path":"proof_kernel/test_live_cross_domain_evidence_round_trip.py","function":"proof_kernel.test_live_cross_domain_evidence_round_trip.py.ClosureExecutionContext._directory","callee":"path.resolve","line":14613,"consequence":"provenance"}
+  ],
   "forbidden_source_adversaries": [
     "GConfig_owner_read",
     "getenv_Q_choice",

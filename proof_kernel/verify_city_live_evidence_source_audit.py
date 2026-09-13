@@ -58,19 +58,23 @@ def validate(candidate_path: Path, contract_path: Path) -> dict[str, Any]:
         reject()
     external_models = contract.get("external_models")
     effect_models = contract.get("effect_models")
-    if not isinstance(external_models, list) or not isinstance(effect_models, list):
+    exact_sites = contract.get("exact_effect_call_sites")
+    if not isinstance(external_models, list) or not isinstance(effect_models, list) or not isinstance(exact_sites, list):
         reject()
     declared_external = {(call, model.get("consequence")) for model in external_models if isinstance(model, dict)
                          and isinstance(model.get("calls"), list) for call in model["calls"]}
     declared_effects = {(model.get("path"), call, model.get("consequence")) for model in effect_models if isinstance(model, dict)
                         and isinstance(model.get("calls"), list) for call in model["calls"]}
+    declared_sites = {(site.get("path"), site.get("function"), site.get("callee"), site.get("line"), site.get("consequence"))
+                      for site in exact_sites if isinstance(site, dict)}
     for row in edges:
         if row["classification"] != "allowed":
             continue
         relation = (row.get("callee"), row.get("consequence"))
         effect_relation = (row.get("path"), row.get("callee"), row.get("consequence"))
+        site_relation = (row.get("path"), row.get("function"), row.get("callee"), row.get("location", {}).get("line"), row.get("consequence"))
         if ((row.get("reason_code") == "lcer.external_model_declared" and relation in declared_external)
-                or (row.get("reason_code") == "lcer.effect_model_declared" and effect_relation in declared_effects)):
+                or (row.get("reason_code") == "lcer.effect_model_declared" and (effect_relation in declared_effects or site_relation in declared_sites))):
             continue
         reject()
     unclassified = [row for row in edges if row["classification"] == "unclassified"]

@@ -34,8 +34,10 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
         modeled = [row for row in result["edges"] if row["reason_code"] == "lcer.effect_model_declared"]
         materialization = [row for row in modeled if row["consequence"] == "representation"]
         canonical = [row for row in modeled if row["consequence"] == "canonical"]
+        normalization = [row for row in modeled if row["consequence"] == "provenance"]
         self.assertEqual({row["callee"] for row in materialization}, {"SpawnActor", "Destroy"})
         self.assertEqual({row["callee"] for row in canonical}, {"admit_external_input_candidate", "resolve_external_batch"})
+        self.assertEqual(len(normalization), 25)
         self.assertGreater(result["summary"]["unclassified_count"], 0)
 
     def test_source_byte_drift_is_rejected_before_any_candidate(self):
@@ -84,6 +86,19 @@ class CityLiveEvidenceSourceAuditTests(unittest.TestCase):
             raw = Path(temporary) / "candidate.json"
             row = next(row for row in candidate["edges"] if row["callee"] == "GConfig")
             row["classification"] = "allowed"
+            row["reason_code"] = "lcer.effect_model_declared"
+            candidate["result_sha256"] = digest(canonical({key: value for key, value in candidate.items() if key != "result_sha256"}))
+            raw.write_bytes(canonical(candidate))
+            with self.assertRaisesRegex(ValueError, "lcer.source_audit_record_invalid"):
+                validate(raw, CONTRACT)
+
+    def test_independent_validator_rejects_path_model_outside_the_exact_call_site(self):
+        candidate = audit(ROOT, CONTRACT)
+        with tempfile.TemporaryDirectory() as temporary:
+            raw = Path(temporary) / "candidate.json"
+            row = next(row for row in candidate["edges"] if row["callee"] == "<dynamic>.resolve")
+            row["classification"] = "allowed"
+            row["consequence"] = "provenance"
             row["reason_code"] = "lcer.effect_model_declared"
             candidate["result_sha256"] = digest(canonical({key: value for key, value in candidate.items() if key != "result_sha256"}))
             raw.write_bytes(canonical(candidate))
