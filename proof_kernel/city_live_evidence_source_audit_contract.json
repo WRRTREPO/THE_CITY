@@ -1,0 +1,57 @@
+{
+  "schema": "city.live_evidence_source_audit_contract.v1",
+  "adapter_id": "city-live-evidence",
+  "contract_status": "frozen_for_current_source_audit",
+  "target_identity": {
+    "commit": "140c370b50322d8e832338719c90830beed4c535",
+    "tree": "4bd5e2311c2e5e963651e26daca18f84fae8259e"
+  },
+  "authority": {
+    "claim_level": "raw_evidence_only",
+    "may_open_acquisition": false,
+    "may_open_release": false,
+    "may_seal_phase_5": false
+  },
+  "primary_sources": [
+    {"path": "proof_kernel/live_cross_domain_evidence_round_trip.py", "sha256": "d5e2754626b66c0b737bfed038ff7d1b475f22b81d8437cd8ef5346ca036f1ea", "kind": "python_source"},
+    {"path": "proof_kernel/live_cross_domain_evidence_round_trip_harness.py", "sha256": "c63fcf720427b5f8f3a105494983c136fddf0fd12d5212e4a8e3ac0423de6fad", "kind": "python_source"},
+    {"path": "proof_kernel/verify_live_cross_domain_evidence_round_trip_release.py", "sha256": "3373d826b32f294f6b604eb93e834cb362205c0e29576aea224cdd78a9d8b370", "kind": "python_source"},
+    {"path": "proof_kernel/test_live_cross_domain_evidence_round_trip.py", "sha256": "5863acd26d9ecb08b4a4d64b97a5aaccff703aff22fcae1cc9217199f7840995", "kind": "python_source"},
+    {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/CityLiveEvidenceProof.uplugin", "sha256": "84028584f391249b422ca2359be2ecb2cd9000d1a77db16f47b1486d7a88fe07", "kind": "plugin_manifest"},
+    {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/CityLiveEvidenceProof.Build.cs", "sha256": "c03d77b7bd7f6eb92666e8a9aefb2736e45d861c23b3fd88bd2f23b355a1893e", "kind": "build_rule"},
+    {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceProofModule.cpp", "sha256": "4eab69935be0c4e2fb78beafd4bcc3081d74607f18e39c62899f9cf7bae78b6f", "kind": "cpp_source"},
+    {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Public/CityLiveEvidenceGameMode.h", "sha256": "a97bc7a703f1ca98829891a3dcb326ebb567f49a653ea9f3aa54367ca1b82f06", "kind": "cpp_source"},
+    {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceGameMode.cpp", "sha256": "007b3f20f773b685fa3e718db9df2248d106b22eac6fd23049d1160b2e0a2da6", "kind": "cpp_source"},
+    {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Public/CityLiveEvidenceActors.h", "sha256": "655fb62b5876e9ec44c3c765787d8383a09b869179f07f5c2a28c14ea76eb19d", "kind": "cpp_source"},
+    {"path": "CityMaterializationProof/Plugins/CityLiveEvidenceProof/Source/CityLiveEvidenceProof/Private/CityLiveEvidenceActors.cpp", "sha256": "8324d5cba31e6eee12d0631e5231e232b0a328dec54b4892da33c3796dc22ae3", "kind": "cpp_source"}
+  ],
+  "transitive_local_imports": {
+    "rule": "discover_all",
+    "closure_required_for_acceptance": true
+  },
+  "forbidden_source_adversaries": [
+    "GConfig_owner_read",
+    "getenv_Q_choice",
+    "argv_canonical_order",
+    "clock_member_order",
+    "PID_owner_choice",
+    "peer_root_read",
+    "canonical_output_write_from_child",
+    "probe_reads_receipt",
+    "probe_reads_projection",
+    "echoed_Q_without_actor",
+    "unlisted_local_import",
+    "controller_calls_emit",
+    "fault_bypasses_stage",
+    "helper_holds_proof_pipe"
+  ],
+  "required_failure_codes": [
+    "lcer.source_input_forbidden",
+    "lcer.proof_pipe_extra_holder",
+    "lcer.source_audit_record_invalid"
+  ],
+  "baseline": {
+    "partial_graph_unclassified_count": 145103,
+    "interpretation": "Historical partial-analysis observation only. It is neither a fixed completion target nor an acceptance condition."
+  }
+}
